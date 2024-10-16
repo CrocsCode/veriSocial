@@ -21,7 +21,9 @@ Nowadays, the social media landscape has given rise to AI generated content and 
 ### Outline
 VeriSocial is a unique social platform designed to prioritise authentic human interaction. With the rise of artificial content and automated bot interactions, the online experience becomes plagued for the everyday user, which dilutes their overall experience. VeriSocial addresses this issue by providing a space for users and implementing a system that detects and filters out AI generated content or bot activity. This allows users to confidently browse and connect with others knowing that every piece of media or interaction is authentic and human.
 
-**Phase A**<br>
+Below are the initial development phases. The project is divided into development phases to de-risk the project and allow us to deliver a working project at each phase.
+
+**Developement Phase A**<br>
 For the first part of our project - we will focus on creating a platform that will allow us to implement our anti AI system. This includes creating a base Social Media Platform, complete with the standard features you see in many modern social media applications. Features include:
 
 - **Account Registration and Login**: Users will be able to create accounts and be able to log in
@@ -30,7 +32,7 @@ For the first part of our project - we will focus on creating a platform that wi
 - **Comments**: Users will be able to comment on posts.
 - **Feed**: Users will be able to see posts on the homepage made by other users.
 
-<br>**Phase B**<br>
+<br>**Development Phase B**<br>
 For this section of the project - the focus will shift on the implementation of our Anti AI / Bot system. This will allow our platform to detect AI generated content on any uploaded post / comment made by users. Planned features include:
 
 - **AI Content Detection**: Any uploaded content, post or comments, will be put through a “detection” process to check if said content is AI generated or not.
@@ -38,7 +40,7 @@ For this section of the project - the focus will shift on the implementation of 
 - **Flagging and Appealing System**: A way for users to report bypassed AI content or Users on the platform. As well as a system for users to appeal posts that have been mistaken as AI.
 - **Monitoring**: All posts and interactions need to be monitored, as we believe the AI will most likely not be the most reliable that we would have found and thus we need to be able to see how many people are complaining about the AI’s decision.
 
-<br>**Phase C**<br>
+<br>**Development Phase C**<br>
 Phase A and B consist of the main base planned features. Phase C will consist of other features that won’t be core to the project - but will provide additional features that aim to enrich it.
 
 - **Support for other Media types**:  So far only Text and Images will be planned. Audio or Video can also be added.
@@ -112,6 +114,36 @@ Text: [/akshayvkt/detect-ai-text](https://huggingface.co/akshayvkt/detect-ai-tex
 > - PostgreSQL/ MySQL/ MongoDB
 > - Postman
 > - Xyz top level domain
+
+### Front-end:
+For the Front side of this project, we will be mainly using React (a javascript library). Alongside this, to manage the website and test we will be using the following libraries too.
+
+**Redux & Redux Saga:**<br>
+Redux is a library for managing global application state. This will be used to implement the client side features and functionality.
+
+**Axios:**<br>
+A javascript library used for making HTTP requests from a web browser. Also includes other features such as Interceptors for authentication.
+
+**Styling:**<br>
+A number of Libraries will be used to style and aid the React Application. Some of these include: **Styled Components**, **Tailwind CSS**, and / or **React Bootstrap**.
+
+**Testing:**<br>
+For testing the front-side of the application, the following may be used:
+- **Jest**: For unit testing
+- **Cypress**: For simulating user behaviour
+
+
+### Back-end:
+
+**Actix-web:**<br>
+A backend framework for Rust. It also provides other features with it’s sibling crates for managing authentication and such.
+
+**ONNX Models:**<br>
+Onnx Runtime is a cross platform machine learning accelerator. The plan is to use this for enhanced performance of the AI models for detection. Furthermore, the use of **ORT** (https://ort.pyke.io/) for use of these models inside Rust. 
+
+**SQL Databases:**<br>
+We plan to use an SQL database to store user data, feed data, posts, etc.
+
 
 
 ### Hardware
