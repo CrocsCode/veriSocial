@@ -1,0 +1,4 @@
+[workspace]
+members = ["./src/verisocial_be"]
+
+resolver = "2"
