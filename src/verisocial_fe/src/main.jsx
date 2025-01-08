@@ -1,20 +1,31 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
 import { Provider } from 'react-redux';
-import store from './redux/store.js';
+import { PersistGate } from 'redux-persist/integration/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import App from './App.jsx'
+import { NavigationHandler } from './routes/navigation.js';
+import store, { persistor } from './redux/store.js';
 import LoginPage from './pages/LoginPage.jsx';
 import theme from './styles/theme.js';
+import HomePage from './pages/HomePage.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ChakraProvider theme={theme}>
       <Provider store={store}>
-        <App />
+        <PersistGate loading={null} persistor={persistor}>
+          <Router>
+            <NavigationHandler />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+            </Routes>
+          </Router>
+        </PersistGate>
       </Provider>
     </ChakraProvider>
-  </StrictMode>,
-)
+  </StrictMode>
+);
+
