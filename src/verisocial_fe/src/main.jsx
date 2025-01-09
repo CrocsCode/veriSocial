@@ -10,6 +10,7 @@ import store, { persistor } from './redux/store.js';
 import LoginPage from './pages/LoginPage.jsx';
 import theme from './styles/theme.js';
 import HomePage from './pages/HomePage.jsx';
+import Layout from "./styles/layout"
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -19,7 +20,12 @@ createRoot(document.getElementById('root')).render(
           <Router>
             <NavigationHandler />
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              {/* Login Routes */}
+              <Route element={<Layout />}>
+                <Route path="/" element={<HomePage />} />
+              </Route>
+
+              {/* Logout Routes */}
               <Route path="/login" element={<LoginPage />} />
             </Routes>
           </Router>
