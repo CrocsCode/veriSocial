@@ -10,7 +10,7 @@ const Layout = ({ isAuthenticated }) => {
       {isAuthenticated && (
         <Box as="header" bg="primary.600" color="white" py={4} px={6}>
           <Text fontSize="xl" fontWeight="bold">
-            VeriSocial - Logged In
+            VeriSocial - Placeholder Nav
           </Text>
         </Box>
       )}

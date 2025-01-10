@@ -12,10 +12,9 @@ function HomePage({ logout }) {
 
     return (
         <>
-            <Layout>
                 Logged in View
                 <Button background='primary.300' onClick={handleLogout}>Log Out</Button>
-                <Box
+                {/* <Box
                     data-state="open"
                     _open={{
                         animation: "slide-from-top 500ms",
@@ -24,8 +23,7 @@ function HomePage({ logout }) {
                     minH={'70vh'}
                 >
                     Sample Container
-                </Box>
-            </Layout>
+                </Box> */}
         </>
     )
 }

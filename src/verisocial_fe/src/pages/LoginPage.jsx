@@ -24,10 +24,10 @@ function LoginPage({ loginRequest }) {
         e.preventDefault();
         if (isSignUp) {
             if (password !== confirmPassword) {
-                alert("Passwords do not match!");
+                alert("Password must Match");
                 return;
             }
-            console.log("Sign-Up Request:", { email, password });
+            console.log("Sign-Up Request:", { email, password }); // Debug
         } else {
             loginRequest({ email, password });
         }
@@ -86,14 +86,14 @@ function LoginPage({ loginRequest }) {
                     bg="white"
                     zIndex={1}
                 >
-                    <Heading as="h2" size="lg" textAlign="center" mb={6}>
+                    <Heading as="h2" size="lg" textAlign="center" mb={6} color={'purple.700'}>
                         {isSignUp ? "Sign Up" : "Login"}
                     </Heading>
                     <form onSubmit={handleSubmit}>
-                        <VStack spacing={4}>
+                        <VStack spacing={6}>
                             {/* Email Input */}
                             <FormControl id="email" isRequired>
-                                <FormLabel>Email Address</FormLabel>
+                                <FormLabel color={'purple.800'}>Email Address</FormLabel>
                                 <Input
                                     type="email"
                                     placeholder="Enter your email"
@@ -104,7 +104,7 @@ function LoginPage({ loginRequest }) {
 
                             {/* Password Input */}
                             <FormControl id="password" isRequired>
-                                <FormLabel>Password</FormLabel>
+                                <FormLabel color={'purple.800'}>Password</FormLabel>
                                 <Input
                                     type="password"
                                     placeholder="Enter your password"
@@ -116,7 +116,7 @@ function LoginPage({ loginRequest }) {
                             {/* Confirm Password */}
                             {isSignUp && (
                                 <FormControl id="confirm-password" isRequired>
-                                    <FormLabel>Confirm Password</FormLabel>
+                                    <FormLabel color={'purple.800'}>Confirm Password</FormLabel>
                                     <Input
                                         type="password"
                                         placeholder="Confirm your password"
@@ -127,7 +127,7 @@ function LoginPage({ loginRequest }) {
                             )}
 
                             {/* Submit Button */}
-                            <Button colorScheme="blue" w="full" mt={4} type="submit" bgGradient="linear(to-r, blue.500, purple.600, pink.400)">
+                            <Button colorScheme="purple" w="full" mt={4} type="submit" bgGradient="linear(to-r, blue.500, purple.600, pink.400)">
                                 {isSignUp ? "Sign Up" : "Login"}
                             </Button>
                         </VStack>

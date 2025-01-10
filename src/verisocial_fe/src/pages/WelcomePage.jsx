@@ -36,7 +36,7 @@ function WelcomePage() {
             }}
         >
             <Flex
-                direction={{ base: "column", md: "row" }} // Column on mobile, row on desktop
+                direction={{ base: "column", md: "row" }}
                 minH="100vh"
                 align="center"
                 justify="center"
@@ -51,10 +51,10 @@ function WelcomePage() {
                     p={8}
                     color="white"
                 >
-                    <Heading as="h1" size="2xl" mb={4}>
+                    <Heading as="h1" size="2xl" mb={4} zIndex={1}>
                         Welcome to VeriSocial
                     </Heading>
-                    <Text fontSize="lg" mb={6}>
+                    <Text fontSize="lg" mb={6} zIndex={1}>
                         Join us now and experience the best social platform!
                     </Text>
                 </Flex>
@@ -82,6 +82,7 @@ function WelcomePage() {
                         _hover={{
                             transform: "scale(1.1)",
                         }}
+                        zIndex={1}
                     >
                         {/* Ready to Join? */}
                         Join today!
