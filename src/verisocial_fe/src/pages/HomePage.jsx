@@ -1,35 +1,47 @@
-import { Button, Box } from "@chakra-ui/react"
-import Layout from "../styles/layout"
-import { connect } from "react-redux"
-import { logout } from "../redux/actionCreators/authCreators"
+import React, { useState } from "react";
+import { Container, Heading, Box, Button } from "@chakra-ui/react";
+import { connect } from "react-redux";
+import Feed from "../components/Feed";
+import PostFocus from "../components/PostFocus";
 
-function HomePage({ logout }) {
 
-    const handleLogout = () => {
-        logout();
-        console.log("Attempted Logout");
-    }
+function HomePage({ isAuthenticated }) {
+  const [selectedPost, setSelectedPost] = useState(null);
 
+  if (!isAuthenticated) {
     return (
+      <Box textAlign="center" mt={6}>
+        <Heading as="h2" size="lg">
+          Please log in to view your feed.
+        </Heading>
+      </Box>
+    );
+  }
+
+  return (
+    <Container maxW="container.md" h="80vh" p={2}>
+      {!selectedPost ? (
         <>
-                Logged in View
-                <Button background='primary.300' onClick={handleLogout}>Log Out</Button>
-                {/* <Box
-                    data-state="open"
-                    _open={{
-                        animation: "slide-from-top 500ms",
-                    }}
-                    background={'primary.100'}
-                    minH={'70vh'}
-                >
-                    Sample Container
-                </Box> */}
+          <Feed onSelectPost={(post) => setSelectedPost(post)} />
         </>
-    )
+      ) : (
+        <Box>
+          <Button
+            colorScheme="blue"
+            mb={4}
+            onClick={() => setSelectedPost(null)}
+          >
+            Back to Feed
+          </Button>
+          <PostFocus post={selectedPost} />
+        </Box>
+      )}
+    </Container>
+  );
 }
 
-const mapDispatchToProps = {
-    logout,
-};
+const mapStateToProps = (state) => ({
+  isAuthenticated: state.auth.isAuthenticated,
+});
 
-export default connect(null, mapDispatchToProps)(HomePage);
+export default connect(mapStateToProps)(HomePage);
