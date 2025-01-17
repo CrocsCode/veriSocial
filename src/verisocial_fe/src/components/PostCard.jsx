@@ -1,5 +1,7 @@
 import React from "react";
-import { Box, Heading, Text, Image, Avatar, HStack } from "@chakra-ui/react";
+import { Box, Heading, Text, Image, Avatar, HStack, Icon } from "@chakra-ui/react";
+import { FaHeart, FaFlag } from "react-icons/fa";
+import { FaMessage } from "react-icons/fa6";
 
 const getRelativeTime = (timestamp) => {
   const now = new Date();
@@ -23,7 +25,12 @@ const PostCard = ({ post, onClick }) => {
       position="relative"
       cursor="pointer"
       onClick={onClick}
+      transition="background-color 0.2s ease"
+      _hover={{
+        bg: "gray.100",
+      }}
     >
+      {/* Timestamp */}
       <Box
         position="absolute"
         top={2}
@@ -34,6 +41,7 @@ const PostCard = ({ post, onClick }) => {
         {getRelativeTime(post.timestamp)}
       </Box>
 
+      {/* User Info */}
       <HStack align="top" mb={4}>
         <Avatar src={post.profilePicture} name={post.user} size="md" />
         <Box>
@@ -46,19 +54,26 @@ const PostCard = ({ post, onClick }) => {
         </Box>
       </HStack>
 
+      {/* Content */}
       <Text mb={4}>{post.content}</Text>
       {post.image && <Image src={post.image} alt="Post content" borderRadius="md" mb={4} />}
 
+      {/* Buttons */}
       <HStack spacing={4}>
-        <Text color="blue.500" fontSize="sm" cursor="pointer">
-          Like
-        </Text>
-        <Text color="red.500" fontSize="sm" cursor="pointer">
-          Report
-        </Text>
-        <Text color="teal.500" fontSize="sm" cursor="pointer">
-          Comments
-        </Text>
+        <HStack color="blue.500" fontSize="sm" cursor="pointer">
+          <Icon as={FaHeart} boxSize={4} />
+          <Text>Like</Text>
+        </HStack>
+
+        <HStack color="teal.500" fontSize="sm" cursor="pointer">
+          <Icon as={FaMessage} boxSize={4} />
+          <Text>Comments</Text>
+        </HStack>
+
+        <HStack color="red.500" fontSize="sm" cursor="pointer">
+          <Icon as={FaFlag} boxSize={4} />
+          <Text>Report</Text>
+        </HStack>
       </HStack>
     </Box>
   );

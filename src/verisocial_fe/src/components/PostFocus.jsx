@@ -5,12 +5,15 @@ import {
   Text,
   Avatar,
   HStack,
-  Button,
   Input,
   VStack,
+  Icon,
+  Divider,
 } from "@chakra-ui/react";
+import { FaHeart, FaFlag } from "react-icons/fa";
+import { FaMessage } from "react-icons/fa6";
 
-const PostFocus = ({ post, onClose }) => {
+const PostFocus = ({ post }) => {
   return (
     <Box>
       <HStack mb={4} justifyContent="space-between">
@@ -33,18 +36,40 @@ const PostFocus = ({ post, onClose }) => {
       <Text mb={4}>{post.content}</Text>
       {post.image && <img src={post.image} alt="Post content" width="100%" />}
 
-      <HStack spacing={4} mt={4}>
-        <Button colorScheme="blue" size="sm">
-          Like
-        </Button>
-        <Button colorScheme="red" size="sm">
-          Report
-        </Button>
+      <HStack spacing={4}>
+        <HStack
+          color="blue.500"
+          fontSize="sm"
+          cursor="pointer"
+        >
+          <Icon as={FaHeart} boxSize={4} />
+          <Text>Like</Text>
+        </HStack>
+
+        <HStack
+          color="teal.500"
+          fontSize="sm"
+          cursor="pointer"
+        >
+          <Icon as={FaMessage} boxSize={4} />
+          <Text >Reply</Text>
+        </HStack>
+
+        <HStack
+          color="red.500"
+          fontSize="sm"
+          cursor="pointer"
+        >
+          <Icon as={FaFlag} boxSize={4} />
+          <Text>Report</Text>
+        </HStack>
       </HStack>
+
+      <Divider my={6} borderColor="gray.300" />
 
       {/* Comments */}
       <Box mt={6}>
-        <Heading as="h4" size="md" mb={4}>
+        <Heading as="h4" size="md" mb={4} color="blue.500" fontWeight="bold">
           Comments
         </Heading>
 

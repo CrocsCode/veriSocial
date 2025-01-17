@@ -32,7 +32,7 @@ const Layout = ({ isAuthenticated, logout }) => {
         </Box>
       )}
 
-      <Box as="main" flex="1">
+      <Box as="main" flex="1" minH="90vh">
         {isAuthenticated ? (
           <Outlet />
         ) : (

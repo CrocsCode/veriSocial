@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Container, Heading, Box, Button } from "@chakra-ui/react";
+import { Container, Heading, Box, Button, HStack, Icon, Text } from "@chakra-ui/react";
 import { connect } from "react-redux";
 import Feed from "../components/Feed";
 import PostFocus from "../components/PostFocus";
+import { FaArrowLeft } from "react-icons/fa";
 
 
 function HomePage({ isAuthenticated }) {
@@ -26,13 +27,24 @@ function HomePage({ isAuthenticated }) {
         </>
       ) : (
         <Box>
-          <Button
-            colorScheme="blue"
-            mb={4}
+          <HStack
+            as="button"
             onClick={() => setSelectedPost(null)}
+            cursor="pointer"
+            spacing={2}
+            mt={4}
+            mb={4}
+            align="center"
+            transition="transform 0.2s ease-in-out"
+            _hover={{
+              transform: "scale(1.05)",
+            }}
           >
-            Back to Feed
-          </Button>
+            <Icon as={FaArrowLeft} boxSize={4} color="blue.500" />
+            <Text color="blue.500" fontWeight="bold">
+              Back to Feed
+            </Text>
+          </HStack>
           <PostFocus post={selectedPost} />
         </Box>
       )}
