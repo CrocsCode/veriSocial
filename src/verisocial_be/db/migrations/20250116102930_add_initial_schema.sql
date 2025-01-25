@@ -5,11 +5,8 @@ CREATE TABLE IF NOT EXISTS users
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(100),
-    bio TEXT,
-    bot_score TINYINT UNSIGNED,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    full_name VARCHAR(100) NOT NULL,
+    bio TEXT NOT NULL,
+    bot_score TINYINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
-
--- Revert this migration.
-DROP TABLE users;

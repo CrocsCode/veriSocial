@@ -1,5 +1,6 @@
 use actix_web::{HttpServer, App, web};
 use actix_web::middleware::Logger;
+use argon2::Argon2;
 use env_logger::Env;
 use sqlx::migrate::Migrator;
 use sqlx::mysql::MySqlPoolOptions;
@@ -7,6 +8,7 @@ use log::{info, error};
 
 mod services;
 mod models;
+mod routes;
 mod config;
 
 static MIGRATOR: Migrator = sqlx::migrate!("./db/migrations");
@@ -42,14 +44,17 @@ async fn main() -> std::io::Result<()> {
     MIGRATOR.run(&pool).await.expect("Failed to run migrations");
     info!("Migrations have been applied");
 
-    let app_data = models::models::AppState {
-        conn_pool: pool
+    let app_data = models::app_state::AppState {
+        pass_hashing: Argon2::default(), // Password Hashing
+        pool
     };
 
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(app_data.clone()))
-            .service(services::users::retrieve_user)
+            .service(routes::users::retrieve_user)
+            .service(routes::users::create_user)
+            .service(routes::users::login_user)
             .wrap(Logger::default())
     })
     .bind((app_url, 8080))?
