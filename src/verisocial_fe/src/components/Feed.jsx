@@ -18,7 +18,7 @@ const Feed = ({ onSelectPost }) => {
     setIsLoading(true);
     setTimeout(() => {
       const currentPosts = posts.length;
-      const newPosts = mockPosts.slice(currentPosts, currentPosts + 4);
+      const newPosts = mockPosts.slice(currentPosts, currentPosts + 10);
 
       setPosts([...posts, ...newPosts]);
       if (currentPosts + newPosts.length >= mockPosts.length) {
@@ -51,7 +51,7 @@ const Feed = ({ onSelectPost }) => {
   }, [posts]);
 
   return (
-    <Box>
+    <Box w="80%" height="100%">
       {/* Add Post Box */}
       <Box
         border="2px dashed"
@@ -60,7 +60,7 @@ const Feed = ({ onSelectPost }) => {
         p={6}
 
         mb="1.5vh"
-        mt="0.5vh"
+        mt="3%"
         display="flex"
         justifyContent="center"
         alignItems="center"
@@ -71,6 +71,7 @@ const Feed = ({ onSelectPost }) => {
         _hover={{
           transform: "scale(1.02)",
         }}
+        height="7.5%"
       >
         <HStack>
           <Icon as={FaPen} boxSize={5} color="gray.600" />
@@ -84,9 +85,9 @@ const Feed = ({ onSelectPost }) => {
       {/* Feed Container */}
       <Box
         ref={feedContainerRef}
-        h="80vh"
+        h="85%"
         overflowY="auto"
-        bg="white"
+        // bg="red"
         sx={{
           "::-webkit-scrollbar": {
             display: "none",
@@ -139,4 +140,4 @@ const Feed = ({ onSelectPost }) => {
   );
 };
 
-export default Feed;
+export default Feed; 

@@ -21,7 +21,7 @@ const PostCard = ({ post, onClick }) => {
       borderWidth="1px"
       borderRadius="lg"
       boxShadow="md"
-      bg="gray.50"
+      bg="white"
       position="relative"
       cursor="pointer"
       onClick={onClick}
@@ -29,6 +29,7 @@ const PostCard = ({ post, onClick }) => {
       _hover={{
         bg: "gray.100",
       }}
+      minH="5vh"
     >
       {/* Timestamp */}
       <Box
