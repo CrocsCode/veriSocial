@@ -9,13 +9,14 @@ const Layout = ({ isAuthenticated, logout }) => {
   const handleLogout = () => {
     logout();
     console.log("Attempted Logout");
-  }
+  };
 
   return (
-    <Flex direction="column" minH="100vh">
+    <Flex direction="column" h="100vh">
+      {/* Header */}
       {isAuthenticated && (
-        <Box as="header" bg="primary.600" color="white" py={4} px={6}>
-          <Flex justify="space-between" align="center">
+        <Box as="header" bg="purple.600" color="white" h="5vh" px={6}>
+          <Flex justify="space-between" align="center" h="100%">
             <Text fontSize="xl" fontWeight="bold">
               VeriSocial - Placeholder Nav
             </Text>
@@ -32,18 +33,29 @@ const Layout = ({ isAuthenticated, logout }) => {
         </Box>
       )}
 
-      <Box as="main" flex="1" minH="90vh">
+      {/* Main Content */}
+      <Box as="main" flex="1" overflow="auto" >
         {isAuthenticated ? (
           <Outlet />
         ) : (
-          <Box bg="white" textAlign="center" minW="md">
+          <Box bg="white" textAlign="center" h="100%">
             <WelcomePage />
           </Box>
         )}
       </Box>
 
+      {/* Footer */}
       {isAuthenticated && (
-        <Box as="footer" bg="blue.600" color="white" py={4} px={6} textAlign="center">
+        <Box
+          as="footer"
+          bg="purple.600"
+          color="white"
+          h="5vh"
+          px={6}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
           <Text fontSize="sm">&copy; 2025 VeriSocial. All rights reserved.</Text>
         </Box>
       )}
@@ -60,4 +72,3 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Layout);
-
