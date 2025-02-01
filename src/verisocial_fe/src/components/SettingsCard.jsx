@@ -21,13 +21,13 @@ const SettingsCard = () => {
                 <Box pl="10%" fontSize="md" color="gray.600">
                     <Text
                         cursor="pointer"
-                        _hover={{ color: "blue.500" }}
+                        _hover={{ color: "purple.400" }}
                     >
                         Subheading 1
                     </Text>
                     <Text
                         cursor="pointer"
-                        _hover={{ color: "blue.500" }}
+                        _hover={{ color: "purple.400" }}
                     >
                         Subheading 2
                     </Text>
@@ -42,13 +42,13 @@ const SettingsCard = () => {
                 <Box pl="10%" fontSize="md" color="gray.600">
                     <Text
                         cursor="pointer"
-                        _hover={{ color: "blue.500" }}
+                        _hover={{ color: "purple.400" }}
                     >
                         Subheading 1
                     </Text>
                     <Text
                         cursor="pointer"
-                        _hover={{ color: "blue.500" }}
+                        _hover={{ color: "purple.400" }}
                     >
                         Subheading 2
                     </Text>

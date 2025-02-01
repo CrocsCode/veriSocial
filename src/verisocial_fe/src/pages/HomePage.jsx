@@ -39,7 +39,7 @@ function HomePage({ isAuthenticated }) {
             {!selectedPost ? (
               <Feed onSelectPost={(post) => setSelectedPost(post)} />
             ) : (
-              <Box w="100%" m={3} bg="white" p={5} pb={10} borderRadius="md" boxShadow="md">
+              <Box w="100%" m={3} bg="purple.50" p={5} pb={10} borderRadius="md" boxShadow="md">
                 <Flex
                   as="button"
                   onClick={() => setSelectedPost(null)}
@@ -53,8 +53,8 @@ function HomePage({ isAuthenticated }) {
                     transform: "scale(1.05)",
                   }}
                 >
-                  <Icon as={FaArrowLeft} boxSize={4} color="blue.500" />
-                  <Text color="blue.500" fontWeight="bold">
+                  <Icon as={FaArrowLeft} boxSize={4} color="purple.700" />
+                  <Text textStyle="label" fontWeight="bold">
                     Back to Feed
                   </Text>
                 </Flex>

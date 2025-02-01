@@ -78,7 +78,7 @@ const ProfileCard = () => {
                     bg="transparent"
                     fontSize="lg"
                     fontWeight="bold"
-                    _hover={{ bg: "transparent", color: "red" }}
+                    _hover={{ bg: "transparent", color: "purple.400" }}
                     _focus={{ boxShadow: "none" }}
                 >
                     ...

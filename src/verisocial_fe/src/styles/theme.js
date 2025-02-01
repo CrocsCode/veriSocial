@@ -21,6 +21,10 @@ const theme = extendTheme({
       fontWeight: "bold",
       color: "purple.700",
     },
+    label: {
+      fontWeight: "bold",
+      color: "purple.700",
+    },
   },
 });
 

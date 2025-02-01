@@ -21,13 +21,13 @@ const PostCard = ({ post, onClick }) => {
       borderWidth="1px"
       borderRadius="lg"
       boxShadow="md"
-      bg="white"
+      bg="purple.50"
       position="relative"
       cursor="pointer"
       onClick={onClick}
       transition="background-color 0.2s ease"
       _hover={{
-        bg: "gray.100",
+        bg: "purple.100",
       }}
       minH="5vh"
     >

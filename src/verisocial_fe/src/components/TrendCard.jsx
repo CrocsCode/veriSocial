@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, VStack, Flex, Heading } from "@chakra-ui/react";
+import { Box, Text, Flex } from "@chakra-ui/react";
 import { Line } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -88,7 +88,7 @@ const TrendCard = () => {
 
             <Flex justifyContent="space-between" mt={2} fontSize={{ base: "xs", md: "sm" }}>
                 <Text fontWeight="bold">Total Detected: {totalBots}</Text>
-                <Text fontWeight="bold" color="blue.500">
+                <Text textStyle="label">
                     Detected Today: {todayBots}
                 </Text>
             </Flex>
