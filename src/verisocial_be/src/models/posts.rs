@@ -1,20 +1,32 @@
-use chrono::NaiveDateTime;
-use uuid::Uuid;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug)]
+
+#[derive(Deserialize, Serialize, sqlx::FromRow, Debug)]
 pub struct Post {
-    pub id: Uuid,
-    pub title: String,
-    pub content: String,
+    pub id: u64,
     #[serde(rename = "user-id")]
-    pub user_id: String, // Should be the author's userID
+    pub user_id: u128,
     pub username: String,
-    pub name: String,
-    #[serde(rename = "bot-score")]
-    pub bot_score: u16,
-    pub investigated: bool,
-    pub likes: u128,
+    #[serde(rename = "full-name")]
+    pub full_name: String,
+    pub content: String,
+    #[serde(rename = "likes-count")]
+    pub likes_count: u64,
+    #[serde(rename = "comments-count")]
+    pub comments_count: u64,
     #[serde(rename = "created-at")]
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct NewPost {
+    // I may not need the following.
+    #[serde(rename = "user-id")]
+    pub user_id: String,
+    pub username: String,
+    #[serde(rename = "full-name")]
+    pub full_name: String,
+    // Could be passed as part of the URI (for the username or user_id)
+    pub content: String,
 }
