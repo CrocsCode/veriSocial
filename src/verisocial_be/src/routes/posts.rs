@@ -26,7 +26,6 @@ pub async fn create_new_post(json: web::Json<NewPost>, app_data: web::Data<AppSt
     let post = json.into_inner();
     let conn = &app_data.into_inner().pool;
 
-    // find user
     let result = posts::create_post(conn, post).await;
     Response::create_get_response(result)
 }
@@ -35,7 +34,6 @@ pub async fn create_new_post(json: web::Json<NewPost>, app_data: web::Data<AppSt
 pub async fn timeline(app_data: web::Data<AppState<'_>>) -> impl Responder {
     let conn = &app_data.into_inner().pool;
 
-    // find user
     let result = posts::user_timeline(conn).await;
     Response::create_get_response(result)
 }
