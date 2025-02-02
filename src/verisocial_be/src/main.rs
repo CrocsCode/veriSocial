@@ -57,6 +57,7 @@ async fn main() -> std::io::Result<()> {
             .service(routes::users::login_user)
             .service(routes::posts::retrieve_posts)
             .service(routes::posts::create_new_post)
+            .service(routes::posts::timeline)
             .wrap(Logger::default())
     })
     .bind((app_url, 8080))?
