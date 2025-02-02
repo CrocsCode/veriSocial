@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, sqlx::FromRow, Debug)]
 pub struct User {
-    pub id: u64,
+    pub user_id: u64,
     pub username: String,
     pub email: String,
     #[serde(rename = "password-hash")]

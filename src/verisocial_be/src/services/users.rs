@@ -29,7 +29,7 @@ pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUse
 
     let result_2 = sqlx::query_as!(User,
         r#"
-        SELECT * FROM users WHERE id = ?;
+        SELECT * FROM users WHERE user_id = ?;
         "#,
         latest_user_id
     ) 
@@ -67,7 +67,7 @@ pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiEr
 
     let result = sqlx::query_as!(User,
         r#"
-    SELECT * FROM users WHERE id = ?;
+        SELECT * FROM users WHERE user_id = ?;
         "#,
         user_id
     )
