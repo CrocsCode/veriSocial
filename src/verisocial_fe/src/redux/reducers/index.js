@@ -1,7 +1,8 @@
 import { combineReducers } from 'redux';
-import authReducer from './authReducer';
 import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+import authReducer from './authReducer';
+import notificationReducer from './notificationReducer';
 
 const authPersistConfig = {
     key: 'auth',
@@ -11,6 +12,7 @@ const authPersistConfig = {
 
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
+    notification: notificationReducer,
 });
 
 export default rootReducer;

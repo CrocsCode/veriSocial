@@ -1,27 +1,31 @@
 import { put, takeLatest } from 'redux-saga/effects';
-import { LOGIN_REQUEST, LOGIN_FAILURE, LOGOUT } from '../actionTypes/authActionTypes';
-import { loginSuccess } from '../actionCreators/authCreators';
+import { LOGIN_REQUEST, LOGOUT } from '../actionTypes/authActionTypes';
+import { loginSuccess, loginFailure } from '../actionCreators/authCreators';
+import { showNotificationRequest } from '../actionCreators/notificationCreators';
 import { navigate } from '../../routes/navigation';
+import T from '../../constants/text';
 
 function* handleLogin(action) {
   try {
     console.log('Login attempted with credentials:', action.payload); // Debug
-
     const mockResponse = { token: 'mockToken123' };
     yield put(loginSuccess(mockResponse.token));
-    navigate('/')
-    console.log(history)
+    yield put(showNotificationRequest(T.AUTH.LOGIN_SUCCESS, "success"));
+    navigate('/');
   } catch (error) {
-    yield put({ type: LOGIN_FAILURE, payload: 'Mock login failure' });
+    yield put(loginFailure("Login Error"));
+    yield put(showNotificationRequest(T.AUTH.LOGIN_FAILURE, "error"));
   }
 }
 
 function* handleLogout() {
   try {
     console.log('Logout attempted');
-    navigate('/login')
+    yield put(showNotificationRequest(T.AUTH.LOGOUT_SUCCESS, "info"));
+    navigate('/login');
   } catch (error) {
     console.error('Error during logout:', error); // Debug
+    yield put(showNotificationRequest(T.AUTH.LOGOUT_FAILURE, "error"));
   }
 }
 
@@ -31,4 +35,3 @@ function* watchAuthActions() {
 }
 
 export default watchAuthActions;
-
