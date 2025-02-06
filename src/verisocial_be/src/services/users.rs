@@ -1,61 +1,80 @@
-use actix_web::{get, post, web, HttpResponse, Responder};
+use sqlx::MySqlPool;
+use argon2::Argon2;
 use crate::models::{
-    models::User,
-    response::Response
+    response::ApiError,
+    user::{NewUser, User}
 };
 
-/// TODO:
-/// Retrieve user
-/// Retrieve multiple
-/// Register
-/// Delete
-/// Follow
-/// Unfollow
+pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUser) -> Result<User, ApiError> {
+    let password_hash = User::create_password_hash(&new_user.password, argon2);
 
+    let result_1 = sqlx::query!(
+        "
+        INSERT INTO users (username, email, password_hash, full_name, bio, bot_score)
+        VALUES (?, ?, ?, ?, ?, ?)",
+        &new_user.username,
+        &new_user.email,
+        password_hash,
+        &new_user.full_name,
+        &new_user.bio,
+        &new_user.bot_score
+    )
+    .execute(conn)
+    .await;
 
-#[get("/")]
-pub async fn retrieve_user() -> impl Responder {
+    let latest_user_id = match result_1 {
+        Ok(query_result) => query_result.last_insert_id(),
+        Err(e) => return Err(ApiError::CannotCreateObject(e.to_string()))
+    };
 
-    // let user = User {
-    //     username: user_id.to_ascii_lowercase(),
-    //     name: "Sean".into(),
-    //     description: "Bot Slayer".into(),
-    //     following: None,
-    //     followers: None
-    // };
+    let result_2 = sqlx::query_as!(User,
+        r#"
+        SELECT * FROM users WHERE user_id = ?;
+        "#,
+        latest_user_id
+    ) 
+    .fetch_one(conn)
+    .await;
 
-    HttpResponse::Ok().json(Response {
-        status: "success".into(),
-        message: "user"
-    })
-}
-
-#[post("/create-user")]
-pub async fn create_user() -> impl Responder {
-    //let new_user = payload.into_inner(); // Destructure json into user.
-
-    
-
-    HttpResponse::Ok().json(Response {
-        status: "success".into(),
-        message: "user"
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use actix_web::{http::header::ContentType, test, App};
-    use super::*;
-
-    #[actix_web::test]
-    async fn test_index_get() {
-        let app = test::init_service(App::new().service(retrieve_user)).await;
-        let req = test::TestRequest::default()
-            .insert_header(ContentType::plaintext())
-            .to_request();
-
-        let resp = test::call_service(&app, req).await;
-        println!("{:?}", resp.status());
-        assert!(resp.status().is_success());
+    match result_2 {
+        Ok(user) => Ok(user),
+        Err(err) => Err(ApiError::CannotCreateObject("Could not find recently created object: ".to_string() + &err.to_string()))
     }
-}   
+}
+
+pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username: String, password: String) -> Result<String, ApiError> {
+    let result = sqlx::query_as!(User,
+        r#"
+        SELECT * FROM users where username = ?;
+        "#,
+        username
+    ).fetch_one(conn).await;
+
+    // Create user login logic
+    let user= match result {
+        Ok(user) => user,
+        Err(_) => return Err(ApiError::VerificationFailed("Username not found".into()))
+    };
+
+    if user.verify_password(&password, argon2) {
+        Ok("Authorized".into())
+    } else {
+        Err(ApiError::VerificationFailed("Password was wrong".into()))
+    }
+}
+
+pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiError> {
+
+    let result = sqlx::query_as!(User,
+        r#"
+        SELECT * FROM users WHERE user_id = ?;
+        "#,
+        user_id
+    )
+    .fetch_one(conn).await;
+
+    match result {
+        Ok(user) => return Ok(user),
+        Err(e) => return Err(ApiError::CannotCreateObject(e.to_string()))
+    }
+}
