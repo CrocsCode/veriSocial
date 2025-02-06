@@ -3,6 +3,7 @@ import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authReducer from './authReducer';
 import notificationReducer from './notificationReducer';
+import modalReducer from './modalReducer';
 
 const authPersistConfig = {
     key: 'auth',
@@ -13,6 +14,7 @@ const authPersistConfig = {
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
     notification: notificationReducer,
+    modal: modalReducer,
 });
 
 export default rootReducer;
