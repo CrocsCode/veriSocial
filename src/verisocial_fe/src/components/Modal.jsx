@@ -8,10 +8,16 @@ import {
     ModalCloseButton,
 } from "@chakra-ui/react";
 import { closeModalRequest } from "../redux/actionCreators/modalCreators";
+import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
 
-const GlobalModal = ({ isOpen, closeModalRequest, children }) => {
+const GlobalModal = ({ isOpen, closeModalRequest, resetCreatePostForm, children }) => {
+    const handleClose = () => {
+        resetCreatePostForm();
+        closeModalRequest();
+    };
+
     return (
-        <Modal isOpen={isOpen} onClose={closeModalRequest} isCentered>
+        <Modal isOpen={isOpen} onClose={handleClose} isCentered>
             <ModalOverlay />
             <ModalContent width="auto" maxWidth="fit-content" minH="auto" height="auto" p={4}>
                 <ModalCloseButton />
@@ -27,6 +33,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = {
     closeModalRequest,
+    resetCreatePostForm,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(GlobalModal);
