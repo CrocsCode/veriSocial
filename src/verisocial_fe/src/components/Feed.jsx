@@ -1,26 +1,29 @@
 import React, { useState, useEffect, useRef } from "react";
+import { connect } from "react-redux";
 import { Box, VStack, Text, Skeleton, SkeletonText, SkeletonCircle, Icon, HStack } from "@chakra-ui/react";
 import { FaPen } from "react-icons/fa";
 import PostCard from "./PostCard";
 import mockPosts from "../pages/mockPosts.json";
+import { openModalRequest } from "../redux/actionCreators/modalCreators";
+import CreatePostForm from "./CreatePostForm";
+import Modal from "./Modal";
 
-const Feed = ({ onSelectPost }) => {
+const Feed = ({ openModalRequest, onSelectPost }) => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-
   const feedContainerRef = useRef(null);
 
   // Temp
   const fetchPosts = () => {
     if (!hasMore) return;
-
     setIsLoading(true);
+
     setTimeout(() => {
       const currentPosts = posts.length;
       const newPosts = mockPosts.slice(currentPosts, currentPosts + 10);
-
       setPosts([...posts, ...newPosts]);
+
       if (currentPosts + newPosts.length >= mockPosts.length) {
         setHasMore(false);
       }
@@ -46,19 +49,16 @@ const Feed = ({ onSelectPost }) => {
   useEffect(() => {
     const container = feedContainerRef.current;
     container.addEventListener("scroll", handleScroll);
-
     return () => container.removeEventListener("scroll", handleScroll);
   }, [posts]);
 
   return (
     <Box w="80%" height="100%">
-      {/* Add Post Box */}
       <Box
         border="2px dashed"
         borderColor="gray.400"
         borderRadius="md"
         p={6}
-
         mb="1.5vh"
         mt="3%"
         display="flex"
@@ -66,28 +66,27 @@ const Feed = ({ onSelectPost }) => {
         alignItems="center"
         cursor="pointer"
         bg="gray.50"
-        onClick={() => alert("post create")}
+        onClick={() => openModalRequest()}
         transition="transform 0.2s ease-in-out"
-        _hover={{
-          transform: "scale(1.02)",
-        }}
+        _hover={{ transform: "scale(1.02)" }}
         height="7.5%"
       >
         <HStack>
           <Icon as={FaPen} boxSize={5} color="gray.600" />
-          <Text color="gray.600" fontWeight="bold">
-            Create Post
-          </Text>
+          <Text color="gray.600" fontWeight="bold">Create Post</Text>
         </HStack>
       </Box>
 
+      {/* Create Post */}
+      <Modal>
+        <CreatePostForm />
+      </Modal>
 
       {/* Feed Container */}
       <Box
         ref={feedContainerRef}
         h="85%"
         overflowY="auto"
-        // bg="red"
         sx={{
           "::-webkit-scrollbar": {
             display: "none",
@@ -110,14 +109,7 @@ const Feed = ({ onSelectPost }) => {
             Array(2)
               .fill("")
               .map((_, index) => (
-                <Box
-                  key={index}
-                  p={4}
-                  borderWidth="1px"
-                  borderRadius="lg"
-                  boxShadow="md"
-                  bg="gray.50"
-                >
+                <Box key={index} p={4} borderWidth="1px" borderRadius="lg" boxShadow="md" bg="gray.50">
                   <Box display="flex" alignItems="center" mb={4}>
                     <SkeletonCircle size="10" mr={4} />
                     <Box>
@@ -140,4 +132,8 @@ const Feed = ({ onSelectPost }) => {
   );
 };
 
-export default Feed; 
+const mapDispatchToProps = {
+  openModalRequest,
+};
+
+export default connect(null, mapDispatchToProps)(Feed);
