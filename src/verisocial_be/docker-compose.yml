@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  backend:
+    image: cr0c0dile07/final-year-project
+    container_name: backend
+    depends_on:
+      - database
+    environment:
+      APP_URL: '0.0.0.0'
+      APP_DATABASE_URL: 'mysql://root:my-secret-pw@database:3306/mydatabase'
+    ports:
+    - 8080:8080
+
+  database:
+    image: mysql:latest
+    container_name: database
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: mydatabase
+    ports:
+      - 3306:3306
