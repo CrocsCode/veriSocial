@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n        INSERT INTO follow (followee_id, follower_id) VALUES (?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "6b732d6dc9f3288a9adb061e564e1c4d52fa53095b327832305bcdb060f2d4a6"
+}
