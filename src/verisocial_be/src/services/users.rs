@@ -109,3 +109,23 @@ pub async fn add_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Resu
         Err(err) => Err(ApiError::CannotCreateObject("Users with specified IDs can't be found:\n".to_string() + &err.to_string()))
     }
 }
+
+pub async fn remove_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Result<String, ApiError> {
+    let query = sqlx::query!(
+        r#"
+        DELETE FROM
+            follow
+        WHERE
+            follower_id = ? OR followee_id = ?
+        "#,
+        follow_request.follower_id,
+        follow_request.followee_id
+    )
+    .execute(conn)
+    .await;
+
+    match query {
+        Ok(_) => Ok("Unfollow operation success!".to_string()),
+        Err(_) => Err(ApiError::DeleteError("Could not unfollow.".to_string()))
+    }
+}

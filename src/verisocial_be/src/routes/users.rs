@@ -39,6 +39,15 @@ pub async fn user_follow(json: web::Json<FollowRequest>, app_data: web::Data<App
     Response::create_post_response(result)
 }
 
+#[post("/user/unfollow")]
+pub async fn user_unfollow(json: web::Json<FollowRequest>, app_data: web::Data<AppState<'_>>) -> impl Responder {
+    let follow_request = json.into_inner();
+    let conn = &app_data.into_inner().pool;
+
+    let result = users::remove_follow(follow_request, conn).await;
+    Response::create_post_response(result)
+}
+
 #[post("/login")]
 pub async fn login_user(json: web::Json<AuthDetails>,data: web::Data<AppState<'_>>) -> impl Responder {
     let auth = json.into_inner();
