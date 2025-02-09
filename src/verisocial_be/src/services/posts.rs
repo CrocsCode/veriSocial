@@ -76,7 +76,7 @@ pub async fn user_timeline(conn: &MySqlPool) -> Result<Vec<Post>, ApiError> {
 
     match query {
         Ok(posts) => Ok(posts),
-        Err(_) => Err(ApiError::ServerError)
+        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
     }
 }
 
@@ -97,7 +97,7 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64) -> Result<V
         INNER JOIN
             follow f ON p.user_id = f.followee_id
         WHERE
-            f.followee_id = ?
+            f.follower_id = ?
         ORDER BY
             created_at
         "#,
@@ -106,7 +106,10 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64) -> Result<V
     .fetch_all(conn)
     .await;
 
-    todo!()
+    match query {
+        Ok(result) => Ok(result),
+        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
+    }
 }
 
 pub async fn user_posts(conn: &MySqlPool, user_id: u64) -> Result<Vec<Post>, ApiError> {
@@ -133,7 +136,7 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64) -> Result<Vec<Post>, Api
 
     match query {
         Ok(posts) => Ok(posts),
-        Err(_) => Err(ApiError::ObjectNotFound)
+        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
     }
 }
 
@@ -162,6 +165,6 @@ pub async fn individual_user_post(conn: &MySqlPool, post_id: u64) -> Result<Post
 
     match query {
         Ok(posts) => Ok(posts),
-        Err(_) => Err(ApiError::ObjectNotFound)
+        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
     }
 }

@@ -10,8 +10,8 @@ pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUse
 
     let result_1 = sqlx::query!(
         r#"
-            INSERT INTO users (username, email, password_hash, full_name, bio, bot_score)
-            VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO users (username, email, password_hash, full_name, bio, bot_score)
+        VALUES (?, ?, ?, ?, ?, ?)
         "#,
         &new_user.username,
         &new_user.email,
@@ -30,7 +30,7 @@ pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUse
 
     let result_2 = sqlx::query_as!(User,
         r#"
-            SELECT * FROM users WHERE user_id = ?;
+        SELECT * FROM users WHERE user_id = ?;
         "#,
         latest_user_id
     ) 
@@ -43,10 +43,23 @@ pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUse
     }
 }
 
+pub async fn retrieve_user_list(conn: &MySqlPool) -> Result<Vec<User>, ApiError> {
+    let query = sqlx::query_as!(User,
+    r#"
+    SELECT * FROM users
+    "#
+    ).fetch_all(conn).await;
+
+    match query {
+        Ok(resp) => Ok(resp),
+        Err(err) => Err(ApiError::ObjectNotFound("Can't retrieve list of users at this time:\n ".to_string() + &err.to_string()))
+    }
+}
+
 pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username: String, password: String) -> Result<String, ApiError> {
     let result = sqlx::query_as!(User,
         r#"
-            SELECT * FROM users where username = ?;
+        SELECT * FROM users where username = ?;
         "#,
         username
     ).fetch_one(conn).await;
@@ -54,13 +67,13 @@ pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username
     // Create user login logic
     let user= match result {
         Ok(user) => user,
-        Err(_) => return Err(ApiError::VerificationFailed("Username not found".into()))
+        Err(_) => return Err(ApiError::AuthError("Username not found".into()))
     };
 
     if user.verify_password(&password, argon2) {
         Ok("Authorized".into())
     } else {
-        Err(ApiError::VerificationFailed("Password was wrong".into()))
+        Err(ApiError::AuthError("Password was wrong".into()))
     }
 }
 
@@ -68,7 +81,7 @@ pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiEr
 
     let result = sqlx::query_as!(User,
         r#"
-            SELECT * FROM users WHERE user_id = ?;
+        SELECT * FROM users WHERE user_id = ?;
         "#,
         user_id
     )
@@ -83,7 +96,7 @@ pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiEr
 pub async fn add_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Result<String, ApiError> {
     let query = sqlx::query!(
         r#"
-            INSERT INTO follow (followee_id, follower_id) VALUES (?, ?)
+        INSERT INTO follow (followee_id, follower_id) VALUES (?, ?)
         "#,
         follow_request.followee_id,
         follow_request.follower_id
@@ -93,6 +106,6 @@ pub async fn add_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Resu
 
     match query {
         Ok(_) => Ok("Success".to_string()),
-        Err(e) => Err(ApiError::ServerError)
+        Err(err) => Err(ApiError::CannotCreateObject("Users with specified IDs can't be found:\n".to_string() + &err.to_string()))
     }
 }

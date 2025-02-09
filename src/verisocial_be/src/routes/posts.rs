@@ -20,6 +20,12 @@ pub async fn retrieve_posts(user_id: web::Path<u64>, app_data: web::Data<AppStat
     Response::create_get_response(posts)
 }
 
+#[get("/user/{user_id}/posts/{post_id}")]
+pub async fn retrieve_individual_post(id: web::Path<(u64, u64)>, app_data: web::Data<AppState<'_>>) -> impl Responder {
+    let post_id = id.1;
+    let post = posts::individual_user_post(&app_data.pool, post_id).await;
+    Response::create_get_response(post)
+}
 
 #[post("/user/{user_id}/posts")]
 pub async fn create_new_post(json: web::Json<NewPost>, app_data: web::Data<AppState<'_>>) -> impl Responder {
@@ -36,6 +42,12 @@ pub async fn timeline(app_data: web::Data<AppState<'_>>) -> impl Responder {
 
     let result = posts::user_timeline(conn).await;
     Response::create_get_response(result)
+}
+
+#[get("/user/fyp/{user_id}")]
+pub async fn for_you_page(user_id: web::Path<u64>,app_data: web::Data<AppState<'_>>) -> impl Responder {
+    let posts = posts::user_following_timeline(&app_data.pool, *user_id).await;
+    Response::create_get_response(posts)
 }
 
 // Tests for creating post
