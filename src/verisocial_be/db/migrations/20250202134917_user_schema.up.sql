@@ -15,8 +15,9 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS follow 
 (
-    follower_id BIGINT UNSIGNED,
-    followee_id BIGINT UNSIGNED,
+    follower_id BIGINT UNSIGNED UNIQUE,
+    followee_id BIGINT UNSIGNED UNIQUE,
+    PRIMARY KEY (followee_id, follower_id),
     FOREIGN KEY (follower_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (followee_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

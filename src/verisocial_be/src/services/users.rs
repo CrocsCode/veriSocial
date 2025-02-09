@@ -2,16 +2,17 @@ use sqlx::MySqlPool;
 use argon2::Argon2;
 use crate::models::{
     response::ApiError,
-    user::{NewUser, User}
+    user::{FollowRequest, NewUser, User}
 };
 
 pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUser) -> Result<User, ApiError> {
     let password_hash = User::create_password_hash(&new_user.password, argon2);
 
     let result_1 = sqlx::query!(
-        "
+        r#"
         INSERT INTO users (username, email, password_hash, full_name, bio, bot_score)
-        VALUES (?, ?, ?, ?, ?, ?)",
+        VALUES (?, ?, ?, ?, ?, ?)
+        "#,
         &new_user.username,
         &new_user.email,
         password_hash,
@@ -42,6 +43,19 @@ pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUse
     }
 }
 
+pub async fn retrieve_user_list(conn: &MySqlPool) -> Result<Vec<User>, ApiError> {
+    let query = sqlx::query_as!(User,
+    r#"
+    SELECT * FROM users
+    "#
+    ).fetch_all(conn).await;
+
+    match query {
+        Ok(resp) => Ok(resp),
+        Err(err) => Err(ApiError::ObjectNotFound("Can't retrieve list of users at this time:\n ".to_string() + &err.to_string()))
+    }
+}
+
 pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username: String, password: String) -> Result<String, ApiError> {
     let result = sqlx::query_as!(User,
         r#"
@@ -53,13 +67,13 @@ pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username
     // Create user login logic
     let user= match result {
         Ok(user) => user,
-        Err(_) => return Err(ApiError::VerificationFailed("Username not found".into()))
+        Err(_) => return Err(ApiError::AuthError("Username not found".into()))
     };
 
     if user.verify_password(&password, argon2) {
         Ok("Authorized".into())
     } else {
-        Err(ApiError::VerificationFailed("Password was wrong".into()))
+        Err(ApiError::AuthError("Password was wrong".into()))
     }
 }
 
@@ -76,5 +90,42 @@ pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiEr
     match result {
         Ok(user) => return Ok(user),
         Err(e) => return Err(ApiError::CannotCreateObject(e.to_string()))
+    }
+}
+
+pub async fn add_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Result<String, ApiError> {
+    let query = sqlx::query!(
+        r#"
+        INSERT INTO follow (followee_id, follower_id) VALUES (?, ?)
+        "#,
+        follow_request.followee_id,
+        follow_request.follower_id
+    )
+    .execute(conn)
+    .await;
+
+    match query {
+        Ok(_) => Ok("Success".to_string()),
+        Err(err) => Err(ApiError::CannotCreateObject("Users with specified IDs can't be found:\n".to_string() + &err.to_string()))
+    }
+}
+
+pub async fn remove_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Result<String, ApiError> {
+    let query = sqlx::query!(
+        r#"
+        DELETE FROM
+            follow
+        WHERE
+            follower_id = ? OR followee_id = ?
+        "#,
+        follow_request.follower_id,
+        follow_request.followee_id
+    )
+    .execute(conn)
+    .await;
+
+    match query {
+        Ok(_) => Ok("Unfollow operation success!".to_string()),
+        Err(_) => Err(ApiError::DeleteError("Could not unfollow.".to_string()))
     }
 }

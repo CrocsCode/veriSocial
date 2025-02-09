@@ -31,6 +31,12 @@ pub struct NewUser {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+pub struct FollowRequest {
+    pub followee_id: u64,
+    pub follower_id: u64,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub struct AuthDetails {
     pub username: String,
     pub password: String,

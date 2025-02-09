@@ -1,4 +1,5 @@
 use actix_web::{get, post, web, Responder};
+use crate::models::user::FollowRequest;
 use crate::models::{
     app_state::AppState, response::Response, user::NewUser, user::AuthDetails
 };
@@ -21,6 +22,30 @@ pub async fn retrieve_user(user_id: web::Path<u64>, app_data: web::Data<AppState
     // find user
     let user = users::retrieve_user(conn, id).await;
     Response::create_get_response(user)
+}
+
+#[get("/users")]
+pub async fn retrieve_list_of_users(app_data: web::Data<AppState<'_>>) -> impl Responder {
+    let resp = users::retrieve_user_list(&app_data.into_inner().pool).await;
+    Response::create_get_response(resp)
+}
+
+#[post("/user/follow")]
+pub async fn user_follow(json: web::Json<FollowRequest>, app_data: web::Data<AppState<'_>>) -> impl Responder {
+    let follow_request = json.into_inner();
+    let conn = &app_data.into_inner().pool;
+
+    let result = users::add_follow(follow_request, conn).await;
+    Response::create_post_response(result)
+}
+
+#[post("/user/unfollow")]
+pub async fn user_unfollow(json: web::Json<FollowRequest>, app_data: web::Data<AppState<'_>>) -> impl Responder {
+    let follow_request = json.into_inner();
+    let conn = &app_data.into_inner().pool;
+
+    let result = users::remove_follow(follow_request, conn).await;
+    Response::create_post_response(result)
 }
 
 #[post("/login")]

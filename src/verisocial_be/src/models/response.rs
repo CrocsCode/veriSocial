@@ -11,8 +11,10 @@ pub struct Response<T: Serialize> {
 pub enum ApiError {
     ServerError,
     CannotCreateObject(String),
-    ObjectNotFound,
-    VerificationFailed(String)
+    ObjectNotFound(String),
+    UpdateError(String),
+    DeleteError(String),
+    AuthError(String)
 }
 
 
@@ -47,17 +49,25 @@ where T: Serialize
                 status: "failed".into(),
                 message: "Internal Server Error"
             }),
-            ApiError::CannotCreateObject(message) => HttpResponse::BadRequest().json(Response {
+            ApiError::CannotCreateObject(description) => HttpResponse::BadRequest().json(Response {
                 status: "failed".into(),
-                message
+                message: description
             }),
-            ApiError::ObjectNotFound => HttpResponse::NotFound().json(Response {
+            ApiError::ObjectNotFound(description) => HttpResponse::NotFound().json(Response {
                 status: "failed".into(),
-                message: "Resource not found"
+                message: description
             }),
-            ApiError::VerificationFailed(message) => HttpResponse::Unauthorized().json(Response {
+            ApiError::UpdateError(description) => HttpResponse::Unauthorized().json(Response {
                 status: "failed".into(),
-                message: message
+                message: description
+            }),
+            ApiError::DeleteError(description) => HttpResponse::Unauthorized().json(Response {
+                status: "failed".into(),
+                message: description
+            }),
+            ApiError::AuthError(description) => HttpResponse::Unauthorized().json(Response {
+                status: "failed".into(),
+                message: description
             })
         }
     }
