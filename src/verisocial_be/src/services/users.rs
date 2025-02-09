@@ -2,16 +2,17 @@ use sqlx::MySqlPool;
 use argon2::Argon2;
 use crate::models::{
     response::ApiError,
-    user::{NewUser, User}
+    user::{FollowRequest, NewUser, User}
 };
 
 pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUser) -> Result<User, ApiError> {
     let password_hash = User::create_password_hash(&new_user.password, argon2);
 
     let result_1 = sqlx::query!(
-        "
-        INSERT INTO users (username, email, password_hash, full_name, bio, bot_score)
-        VALUES (?, ?, ?, ?, ?, ?)",
+        r#"
+            INSERT INTO users (username, email, password_hash, full_name, bio, bot_score)
+            VALUES (?, ?, ?, ?, ?, ?)
+        "#,
         &new_user.username,
         &new_user.email,
         password_hash,
@@ -29,7 +30,7 @@ pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUse
 
     let result_2 = sqlx::query_as!(User,
         r#"
-        SELECT * FROM users WHERE user_id = ?;
+            SELECT * FROM users WHERE user_id = ?;
         "#,
         latest_user_id
     ) 
@@ -45,7 +46,7 @@ pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUse
 pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username: String, password: String) -> Result<String, ApiError> {
     let result = sqlx::query_as!(User,
         r#"
-        SELECT * FROM users where username = ?;
+            SELECT * FROM users where username = ?;
         "#,
         username
     ).fetch_one(conn).await;
@@ -67,7 +68,7 @@ pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiEr
 
     let result = sqlx::query_as!(User,
         r#"
-        SELECT * FROM users WHERE user_id = ?;
+            SELECT * FROM users WHERE user_id = ?;
         "#,
         user_id
     )
@@ -76,5 +77,22 @@ pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiEr
     match result {
         Ok(user) => return Ok(user),
         Err(e) => return Err(ApiError::CannotCreateObject(e.to_string()))
+    }
+}
+
+pub async fn add_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Result<String, ApiError> {
+    let query = sqlx::query!(
+        r#"
+            INSERT INTO follow (followee_id, follower_id) VALUES (?, ?)
+        "#,
+        follow_request.followee_id,
+        follow_request.follower_id
+    )
+    .execute(conn)
+    .await;
+
+    match query {
+        Ok(_) => Ok("Success".to_string()),
+        Err(e) => Err(ApiError::ServerError)
     }
 }
