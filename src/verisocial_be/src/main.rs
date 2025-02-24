@@ -1,3 +1,5 @@
+use actix_cors::Cors;
+use actix_web::http::header;
 use actix_web::{HttpServer, App, web};
 use actix_web::middleware::Logger;
 use argon2::Argon2;
@@ -51,6 +53,15 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
+            .wrap(
+                Cors::default()
+                // .allowed_origin(origin) When frontend is defined, this wll be here.
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                    .allowed_headers(vec![header::AUTHORIZATION, header::CONTENT_TYPE])
+                    .supports_credentials()
+                    .max_age(3600)
+            )
             .app_data(web::Data::new(app_data.clone()))
             .service(routes::users::retrieve_user)
             .service(routes::users::create_user)
@@ -63,7 +74,6 @@ async fn main() -> std::io::Result<()> {
             .service(routes::posts::timeline)
             .service(routes::posts::for_you_page)
             .service(routes::teapot::teapot)
-            .wrap(Logger::default())
     })
     .bind((app_url, 8080))?
     .run()
