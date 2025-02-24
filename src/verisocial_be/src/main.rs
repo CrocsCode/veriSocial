@@ -57,6 +57,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 Cors::default()
                 // .allowed_origin(origin) When frontend is defined, this wll be here.
+                    .allowed_origin("http://localhost:5173") // For testing purposes only (temporary)
                     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
                     .allowed_headers(vec![header::AUTHORIZATION, header::CONTENT_TYPE])
                     .supports_credentials()
