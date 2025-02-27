@@ -1,8 +1,9 @@
 use sqlx::MySqlPool;
 use argon2::Argon2;
+use crate::services::auth;
 use crate::models::{
     response::ApiError,
-    user::{FollowRequest, NewUser, User}
+    user::{FollowRequest, NewUser, User},
 };
 
 pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUser) -> Result<User, ApiError> {
@@ -56,12 +57,12 @@ pub async fn retrieve_user_list(conn: &MySqlPool) -> Result<Vec<User>, ApiError>
     }
 }
 
-pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username: String, password: String) -> Result<String, ApiError> {
+pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, email: String, password: String) -> Result<String, ApiError> {
     let result = sqlx::query_as!(User,
         r#"
-        SELECT * FROM users where username = ?;
+        SELECT * FROM users where email = ?;
         "#,
-        username
+        email
     ).fetch_one(conn).await;
 
     // Create user login logic
@@ -71,14 +72,14 @@ pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username
     };
 
     if user.verify_password(&password, argon2) {
-        Ok("Authorized".into())
+        let jwt = auth::generate_jwt(&user.user_id.to_string());
+        Ok(jwt)
     } else {
-        Err(ApiError::AuthError("Password was wrong".into()))
+        Err(ApiError::AuthError("Passwords don't match".into()))
     }
 }
 
 pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiError> {
-
     let result = sqlx::query_as!(User,
         r#"
         SELECT * FROM users WHERE user_id = ?;
