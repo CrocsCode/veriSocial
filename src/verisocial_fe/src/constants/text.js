@@ -6,6 +6,10 @@ const T = {
         LOGIN_FAILURE_CRED: "Invalid credentials. Please try again.",
         LOGOUT_SUCCESS: "Logged out successfully.",
         LOGOUT_FAILURE: "Logout failed. Please try again.",
+
+        REGISTER_SUCCESS: "Account created successfully! Please log in.",
+        REGISTER_FAILURE: "Registration failed. Please try again.",
+        REGISTER_NETWORK_ERROR: "Network error during registration. Please check your connection.",
     },
     FORM: {
         POST: {

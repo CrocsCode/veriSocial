@@ -10,11 +10,13 @@ import LoginPage from './pages/LoginPage.jsx';
 import theme from './styles/theme.js';
 import HomePage from './pages/HomePage.jsx';
 import Layout from "./styles/layout"
+import Notification from './components/Notification.jsx';
 
 createRoot(document.getElementById('root')).render(
     <ChakraProvider theme={theme}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
+          <Notification/>
           <Router>
             <NavigationHandler />
             <Routes>

@@ -4,12 +4,10 @@ import { connect } from "react-redux";
 import { logout } from "../redux/actionCreators/authCreators";
 import { Outlet } from "react-router-dom";
 import WelcomePage from "../pages/WelcomePage";
-import Notification from "../components/Notification";
 
 const Layout = ({ isAuthenticated, logout }) => {
   const handleLogout = () => {
     logout();
-    console.log("Attempted Logout");
   };
 
   return (
@@ -38,12 +36,10 @@ const Layout = ({ isAuthenticated, logout }) => {
       <Box as="main" flex="1" overflow="auto">
         {isAuthenticated ? (
           <>
-            <Notification />
             <Outlet />
           </>
         ) : (
           <Box bg="white" textAlign="center" h="100%">
-            <Notification />
             <WelcomePage />
           </Box>
         )}

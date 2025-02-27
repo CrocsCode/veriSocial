@@ -1,37 +1,10 @@
 import React, { useState } from "react";
-import {
-    Box,
-    Button,
-    Container,
-    FormControl,
-    FormLabel,
-    Input,
-    VStack,
-    Heading,
-    Text,
-    Link,
-} from "@chakra-ui/react";
-import { connect } from "react-redux";
-import { loginRequest } from "../redux/actionCreators/authCreators";
+import { Box, Container, Heading, Text, Link } from "@chakra-ui/react";
+import SignupForm from "../components/SignUpForm";
+import LoginForm from "../components/LoginForm";
 
-function LoginPage({ loginRequest }) {
+const LoginPage = () => {
     const [isSignUp, setIsSignUp] = useState(false);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (isSignUp) {
-            if (password !== confirmPassword) {
-                alert("Password must Match");
-                return;
-            }
-            console.log("Sign-Up Request:", { email, password }); // Debug
-        } else {
-            loginRequest({ email, password });
-        }
-    };
 
     return (
         <Box
@@ -78,8 +51,8 @@ function LoginPage({ loginRequest }) {
                 margin={0}
             >
                 <Box
-                    minH={"50vh"}
-                    minW={"50vh"}
+                    minH="50vh"
+                    minW="50vh"
                     p={6}
                     borderRadius="md"
                     boxShadow="lg"
@@ -89,51 +62,9 @@ function LoginPage({ loginRequest }) {
                     <Heading as="h2" size="lg" textAlign="center" mb={6} color={'purple.700'}>
                         {isSignUp ? "Sign Up" : "Login"}
                     </Heading>
-                    <form onSubmit={handleSubmit}>
-                        <VStack spacing={6}>
-                            {/* Email Input */}
-                            <FormControl id="email" isRequired>
-                                <FormLabel color={'purple.800'}>Email Address</FormLabel>
-                                <Input
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </FormControl>
 
-                            {/* Password Input */}
-                            <FormControl id="password" isRequired>
-                                <FormLabel color={'purple.800'}>Password</FormLabel>
-                                <Input
-                                    type="password"
-                                    placeholder="Enter your password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                            </FormControl>
+                    {isSignUp ? <SignupForm /> : <LoginForm />}
 
-                            {/* Confirm Password */}
-                            {isSignUp && (
-                                <FormControl id="confirm-password" isRequired>
-                                    <FormLabel color={'purple.800'}>Confirm Password</FormLabel>
-                                    <Input
-                                        type="password"
-                                        placeholder="Confirm your password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                    />
-                                </FormControl>
-                            )}
-
-                            {/* Submit Button */}
-                            <Button colorScheme="purple" w="full" mt={4} type="submit" bgGradient="linear(to-r, blue.500, purple.600, pink.400)">
-                                {isSignUp ? "Sign Up" : "Login"}
-                            </Button>
-                        </VStack>
-                    </form>
-
-                    {/* Toggle */}
                     <Text mt={6} textAlign="center" fontSize="sm">
                         {isSignUp ? "Already have an account? " : "Don't have an account? "}
                         <Link
@@ -149,10 +80,6 @@ function LoginPage({ loginRequest }) {
             </Container>
         </Box>
     );
-}
-
-const mapDispatchToProps = {
-    loginRequest,
 };
 
-export default connect(null, mapDispatchToProps)(LoginPage);
+export default LoginPage;

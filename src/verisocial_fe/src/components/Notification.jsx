@@ -1,23 +1,18 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useToast } from "@chakra-ui/react";
 import { connect } from "react-redux";
 
 const Notification = ({ notification }) => {
     const toast = useToast();
-    const hasShown = useRef(false);
 
     useEffect(() => {
-        if (notification.message && !hasShown.current) {
-            hasShown.current = true;
+        if (notification?.message) {
             toast({
                 title: notification.message,
                 status: notification.status || "info",
                 duration: 3000,
                 isClosable: true,
                 position: "top",
-                onCloseComplete: () => {
-                    hasShown.current = false;
-                }
             });
         }
     }, [notification, toast]);
