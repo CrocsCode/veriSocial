@@ -38,7 +38,7 @@ pub struct FollowRequest {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct AuthDetails {
-    pub username: String,
+    pub email: String,
     pub password: String,
 }
 

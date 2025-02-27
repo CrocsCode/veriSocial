@@ -57,12 +57,12 @@ pub async fn retrieve_user_list(conn: &MySqlPool) -> Result<Vec<User>, ApiError>
     }
 }
 
-pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username: String, password: String) -> Result<String, ApiError> {
+pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, email: String, password: String) -> Result<String, ApiError> {
     let result = sqlx::query_as!(User,
         r#"
-        SELECT * FROM users where username = ?;
+        SELECT * FROM users where email = ?;
         "#,
-        username
+        email
     ).fetch_one(conn).await;
 
     // Create user login logic
@@ -75,7 +75,7 @@ pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, username
         let jwt = auth::generate_jwt(&user.user_id.to_string());
         Ok(jwt)
     } else {
-        Err(ApiError::AuthError("Password was wrong".into()))
+        Err(ApiError::AuthError("Passwords don't match".into()))
     }
 }
 

@@ -54,7 +54,7 @@ pub async fn login_user(json: web::Json<AuthDetails>,data: web::Data<AppState<'_
     let app_state = &data.into_inner();
 
     // Verify login
-    let login = users::verify_auth_details(&app_state.pool, &app_state.pass_hashing, auth.username, auth.password).await;
+    let login = users::verify_auth_details(&app_state.pool, &app_state.pass_hashing, auth.email, auth.password).await;
     println!("Success");
     Response::create_get_response(login)
 }
