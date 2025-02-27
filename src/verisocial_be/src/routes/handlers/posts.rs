@@ -4,13 +4,8 @@ use crate::models::{
 };
 use crate::services::posts;
 
-/// TODO:
-/// Retrieve post [X]
-/// Retrieve multiple posts []
-/// Create post [X]
-/// Retrieve timeline [X]
 
-#[get("/user/{user_id}/posts")]
+#[get("/{user_id}")]
 pub async fn retrieve_posts(user_id: web::Path<u64>, app_data: web::Data<AppState<'_>>) -> impl Responder {
     let id = user_id.into_inner();
     let conn = &app_data.into_inner().pool;
@@ -20,14 +15,14 @@ pub async fn retrieve_posts(user_id: web::Path<u64>, app_data: web::Data<AppStat
     Response::create_get_response(posts)
 }
 
-#[get("/user/{user_id}/posts/{post_id}")]
+#[get("/{user_id}/{post_id}")]
 pub async fn retrieve_individual_post(id: web::Path<(u64, u64)>, app_data: web::Data<AppState<'_>>) -> impl Responder {
     let post_id = id.1;
     let post = posts::individual_user_post(&app_data.pool, post_id).await;
     Response::create_get_response(post)
 }
 
-#[post("/user/{user_id}/posts")]
+#[post("/{user_id}")]
 pub async fn create_new_post(json: web::Json<NewPost>, app_data: web::Data<AppState<'_>>) -> impl Responder {
     let post = json.into_inner();
     let conn = &app_data.into_inner().pool;
@@ -44,7 +39,7 @@ pub async fn timeline(app_data: web::Data<AppState<'_>>) -> impl Responder {
     Response::create_get_response(result)
 }
 
-#[get("/user/fyp/{user_id}")]
+#[get("/fyp/{user_id}")]
 pub async fn for_you_page(user_id: web::Path<u64>,app_data: web::Data<AppState<'_>>) -> impl Responder {
     let posts = posts::user_following_timeline(&app_data.pool, *user_id).await;
     Response::create_get_response(posts)
