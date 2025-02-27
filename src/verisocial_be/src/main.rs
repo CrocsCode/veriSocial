@@ -16,6 +16,7 @@ mod config;
 
 static MIGRATOR: Migrator = sqlx::migrate!("./db/migrations");
 
+
 /// Main Function for server
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

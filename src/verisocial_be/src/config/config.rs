@@ -1,5 +1,10 @@
 use config::Config;
-use std::collections::HashMap;
+use std::{collections::HashMap, env};
+use lazy_static::lazy_static;
+
+lazy_static!{
+    pub static ref SECRET: String = set_secret();
+}
 
 pub fn init_config() -> HashMap<String, String> {
     // Dotenv
@@ -11,4 +16,9 @@ pub fn init_config() -> HashMap<String, String> {
         .unwrap();
 
     config_file.try_deserialize::<HashMap<String, String>>().unwrap()
+}
+
+fn set_secret() -> String {
+    dotenvy::dotenv().ok();
+    env::var("AUTH_SECRET").unwrap()
 }

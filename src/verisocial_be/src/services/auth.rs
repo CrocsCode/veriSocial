@@ -2,9 +2,10 @@ use jsonwebtoken::{encode, Header, EncodingKey};
 use serde::{Deserialize, Serialize};
 use chrono::{Utc, Duration};
 
+use crate::config::config::SECRET;
 /// TODO:
 /// - Encode JWT (by generation)
-/// - Decode JWT
+/// - Decode JWT (Middleware does this)
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Claims {
@@ -28,7 +29,7 @@ pub fn generate_jwt(user_id: &String) -> String {
     encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret("XXIwRXPJkwNQrDIcJQzPjus60LsVY5ku".as_bytes()),
+        &EncodingKey::from_secret(SECRET.as_bytes()),
     ).expect("token encoding failed")
 }
 
