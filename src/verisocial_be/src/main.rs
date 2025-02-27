@@ -4,6 +4,7 @@ use actix_web::{HttpServer, App, web};
 use actix_web::middleware::Logger;
 use argon2::Argon2;
 use env_logger::Env;
+use routes::{auth_config, post_config, user_config};
 use sqlx::migrate::Migrator;
 use sqlx::mysql::MySqlPoolOptions;
 use log::{info, error};
@@ -64,17 +65,10 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600)
             )
             .app_data(web::Data::new(app_data.clone()))
-            .service(routes::users::retrieve_user)
-            .service(routes::users::create_user)
-            .service(routes::users::login_user)
-            .service(routes::users::retrieve_list_of_users)
-            .service(routes::users::user_follow)
-            .service(routes::posts::retrieve_posts)
-            .service(routes::posts::retrieve_individual_post)
-            .service(routes::posts::create_new_post)
-            .service(routes::posts::timeline)
-            .service(routes::posts::for_you_page)
             .service(routes::teapot::teapot)
+            .configure(auth_config::config)
+            .configure(user_config::config)
+            .configure(post_config::config)
     })
     .bind((app_url, 8080))?
     .run()
