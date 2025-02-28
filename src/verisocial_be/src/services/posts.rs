@@ -4,11 +4,6 @@ use crate::models::{
     posts::{NewPost, Post}
 };
 
-/// TODO:
-/// Read Singular Post
-/// Create Post
-/// Delete Post
-/// Update Post
 
 pub async fn create_post(conn: &MySqlPool, new_post: NewPost) -> Result<Post, ApiError> {
     let insert_result = sqlx::query!(
@@ -53,7 +48,7 @@ pub async fn create_post(conn: &MySqlPool, new_post: NewPost) -> Result<Post, Ap
     }
 }
 
-pub async fn user_timeline(conn: &MySqlPool) -> Result<Vec<Post>, ApiError> {
+pub async fn user_timeline(conn: &MySqlPool, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
     let query = sqlx::query_as!(Post,
         r#"
         SELECT 
@@ -69,7 +64,10 @@ pub async fn user_timeline(conn: &MySqlPool) -> Result<Vec<Post>, ApiError> {
             users AS u ON p.user_id = u.user_id
         ORDER BY
             created_at
-        "#
+        LIMIT ? OFFSET ?
+        "#,
+        page_size,
+        offset
     )
     .fetch_all(conn)
     .await;
@@ -80,7 +78,7 @@ pub async fn user_timeline(conn: &MySqlPool) -> Result<Vec<Post>, ApiError> {
     }
 }
 
-pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64) -> Result<Vec<Post>, ApiError> {
+pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
     let query = sqlx::query_as!(Post,
         r#"
         SELECT
@@ -100,8 +98,11 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64) -> Result<V
             f.follower_id = ?
         ORDER BY
             created_at
+        LIMIT ? OFFSET ?
         "#,
-        user_id
+        user_id,
+        page_size,
+        offset
     )
     .fetch_all(conn)
     .await;
@@ -112,7 +113,7 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64) -> Result<V
     }
 }
 
-pub async fn user_posts(conn: &MySqlPool, user_id: u64) -> Result<Vec<Post>, ApiError> {
+pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
     let query = sqlx::query_as!(Post,
         r#"
         SELECT 
@@ -127,9 +128,12 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64) -> Result<Vec<Post>, Api
         INNER JOIN
             users AS u ON p.user_id = u.user_id
         WHERE 
-            p.user_id = ?;
+            p.user_id = ?
+        LIMIT ? OFFSET ?
         "#,
-        user_id
+        user_id,
+        page_size,
+        offset
     )
     .fetch_all(conn)
     .await;
