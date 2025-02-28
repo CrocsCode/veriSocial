@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            u.user_id,\n            u.username,\n            u.full_name\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        ORDER BY\n            created_at\n        ",
+  "query": "\n        SELECT\n            p.post_id,\n            p.user_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            u.username,\n            u.full_name\n        FROM\n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        INNER JOIN\n            follow f ON p.user_id = f.followee_id\n        WHERE\n            f.follower_id = ?\n        ORDER BY\n            created_at\n        LIMIT ? OFFSET ?\n        ",
   "describe": {
     "columns": [
       {
@@ -14,6 +14,15 @@
       },
       {
         "ordinal": 1,
+        "name": "user_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | MULTIPLE_KEY | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 2,
         "name": "content",
         "type_info": {
           "type": "Blob",
@@ -22,7 +31,7 @@
         }
       },
       {
-        "ordinal": 2,
+        "ordinal": 3,
         "name": "created_at",
         "type_info": {
           "type": "Timestamp",
@@ -31,16 +40,16 @@
         }
       },
       {
-        "ordinal": 3,
-        "name": "user_id",
+        "ordinal": 4,
+        "name": "base64_image",
         "type_info": {
-          "type": "LongLong",
-          "flags": "NOT_NULL | PRIMARY_KEY | UNSIGNED | AUTO_INCREMENT",
-          "max_size": 20
+          "type": "Blob",
+          "flags": "BLOB",
+          "max_size": 4294967295
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "username",
         "type_info": {
           "type": "VarString",
@@ -49,7 +58,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "full_name",
         "type_info": {
           "type": "VarString",
@@ -59,16 +68,17 @@
       }
     ],
     "parameters": {
-      "Right": 0
+      "Right": 3
     },
     "nullable": [
       false,
       false,
       false,
       false,
+      true,
       false,
       false
     ]
   },
-  "hash": "4559a411780fc1054787a4fdf2911ae9a96804a85a24262ad629fb60739a4ccc"
+  "hash": "45b58aa604cb7bbeb51a8352032dbcdf93eb59a96e7992febba233361757460b"
 }
