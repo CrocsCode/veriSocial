@@ -1,3 +1,4 @@
+use serde_json::{json, Value};
 use sqlx::MySqlPool;
 use argon2::Argon2;
 use crate::services::auth;
@@ -57,7 +58,7 @@ pub async fn retrieve_user_list(conn: &MySqlPool) -> Result<Vec<User>, ApiError>
     }
 }
 
-pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, email: String, password: String) -> Result<String, ApiError> {
+pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, email: String, password: String) -> Result<Value, ApiError> {
     let result = sqlx::query_as!(User,
         r#"
         SELECT * FROM users where email = ?;
@@ -73,7 +74,8 @@ pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, email: S
 
     if user.verify_password(&password, argon2) {
         let jwt = auth::generate_jwt(&user.user_id.to_string());
-        Ok(jwt)
+        let resp = json!({"token": jwt, "id": &user.user_id.to_string()});
+        Ok(resp)
     } else {
         Err(ApiError::AuthError("Passwords don't match".into()))
     }
