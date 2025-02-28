@@ -1,4 +1,7 @@
 use sqlx::MySqlPool;
+// use uuid::Uuid;
+// use tokio::fs;
+
 use crate::models::{
     response::ApiError,
     posts::{NewPost, Post}
@@ -6,13 +9,21 @@ use crate::models::{
 
 
 pub async fn create_post(conn: &MySqlPool, new_post: NewPost) -> Result<Post, ApiError> {
+    // let filepath = if new_post.base64_image.is_some() {
+    //     let data = new_post.base64_image.unwrap(); // Should never happen.
+    //     decode_and_generate_image(new_post.user_id, data).await?
+    // } else {
+    //     "0".to_string()
+    // };
+
     let insert_result = sqlx::query!(
         r#"
-        INSERT INTO posts (user_id, content)
-        VALUES (?, ?)
+        INSERT INTO posts (user_id, content, base64_image)
+        VALUES (?, ?, ?)
         "#,
         &new_post.user_id,
-        &new_post.content
+        &new_post.content,
+        new_post.base64_image
     )
     .execute(conn)
     .await;
@@ -28,6 +39,7 @@ pub async fn create_post(conn: &MySqlPool, new_post: NewPost) -> Result<Post, Ap
             p.post_id,
             p.content,
             p.created_at,
+            p.base64_image,
             u.user_id,
             u.username,
             u.full_name
@@ -55,6 +67,7 @@ pub async fn user_timeline(conn: &MySqlPool, page_size: u32, offset: u32) -> Res
             p.post_id,
             p.content,
             p.created_at,
+            p.base64_image,
             u.user_id,
             u.username,
             u.full_name
@@ -86,6 +99,7 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64, page_size: 
             p.user_id,
             p.content,
             p.created_at,
+            p.base64_image,
             u.username,
             u.full_name
         FROM
@@ -120,6 +134,7 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: 
             p.post_id,
             p.content,
             p.created_at,
+            p.base64_image,
             u.user_id,
             u.username,
             u.full_name
@@ -152,6 +167,7 @@ pub async fn individual_user_post(conn: &MySqlPool, post_id: u64) -> Result<Post
             p.post_id,
             p.content,
             p.created_at,
+            p.base64_image,
             u.user_id,
             u.username,
             u.full_name
@@ -172,3 +188,20 @@ pub async fn individual_user_post(conn: &MySqlPool, post_id: u64) -> Result<Post
         Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
     }
 }
+
+
+// This if for files being created. For deployment
+// async fn decode_and_generate_image(user_id: u64, data: String) -> Result<String, ApiError> {
+//     let filename = format!("{}-{}",
+//         user_id,
+//         Uuid::new_v4()
+//     );
+//     let filepath = format!("./uploads/{}", filename);
+
+//     // Write binary data to uploads folder.
+//     if let Err(err) = fs::write(&filepath, &data).await {
+//         return Err(ApiError::CannotUpload("Error creating the file: ".to_string() + &err.to_string()))
+//     };
+
+//     Ok(filepath)
+// }

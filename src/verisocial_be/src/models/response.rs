@@ -14,7 +14,8 @@ pub enum ApiError {
     ObjectNotFound(String),
     UpdateError(String),
     DeleteError(String),
-    AuthError(String)
+    AuthError(String),
+    CannotUpload(String)
 }
 
 
@@ -66,6 +67,10 @@ where T: Serialize
                 message: description
             }),
             ApiError::AuthError(description) => HttpResponse::Unauthorized().json(Response {
+                status: "failed".into(),
+                message: description
+            }),
+            ApiError::CannotUpload(description) => HttpResponse::BadRequest().json(Response {
                 status: "failed".into(),
                 message: description
             })
