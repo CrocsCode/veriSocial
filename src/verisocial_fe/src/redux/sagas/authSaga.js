@@ -1,6 +1,6 @@
 import { call, put, takeLatest } from "redux-saga/effects";
 import { LOGIN_REQUEST, LOGOUT, REGISTER_REQUEST } from "../actionTypes/authActionTypes";
-import { loginSuccess, loginFailure } from "../actionCreators/authCreators";
+import { loginSuccess, loginFailure, userSuccess, userFailure } from "../actionCreators/authCreators";
 import { showNotificationRequest } from "../actionCreators/notificationCreators";
 import { registerFailure } from "../actionCreators/authCreators";
 import { navigate } from "../../routes/navigation";
@@ -12,16 +12,34 @@ function* handleLogin(action) {
     const { email, password } = action.payload;
     const response = yield call(api.authService.login, { email, password });
 
+    // Check Login Creds
     if (response.status === "success") {
-      yield put(loginSuccess(response.message));
-      yield put(showNotificationRequest(T.AUTH.LOGIN_SUCCESS, "success"));
-      navigate("/");
+      const { id, token } = response.message;
+      yield put(loginSuccess(token));
+      const userResponse = yield call(api.authService.getUser, id);
+
+      // Check UserDetails from Login Response
+      if (userResponse.status === "success") {
+        const filteredUser = {
+          user_id: userResponse.message.user_id,
+          username: userResponse.message.username,
+          email: userResponse.message.email,
+          full_name: userResponse.message.full_name,
+          bio: userResponse.message.bio,
+          bot_score: userResponse.message.bot_score,
+          created_at: userResponse.message["created-at"],
+        };
+        yield put(userSuccess(filteredUser));
+        yield put(showNotificationRequest(T.AUTH.LOGIN_SUCCESS, "success"));
+        navigate("/");
+      } else {
+        yield put(userFailure("Failed to fetch user details."));
+      }
     } else {
       yield put(loginFailure(response.message || T.AUTH.LOGIN_FAILURE));
       yield put(showNotificationRequest(response.message || T.AUTH.LOGIN_FAILURE, "error"));
     }
   } catch (error) {
-
     yield put(loginFailure(error.response?.data?.message || T.AUTH.LOGIN_FAILURE));
     yield put(showNotificationRequest(error.response?.data?.message || T.AUTH.LOGIN_FAILURE, "error"));
   }

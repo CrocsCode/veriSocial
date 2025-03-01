@@ -1,7 +1,9 @@
 import React from "react";
 import { Box, Avatar, Heading, Text, Flex, Button, HStack } from "@chakra-ui/react";
+import { connect } from "react-redux";
 
-const ProfileCard = () => {
+
+const ProfileCard = ({ user }) => {
     return (
         <Box
             bg="white"
@@ -36,7 +38,7 @@ const ProfileCard = () => {
             >
                 <Avatar
                     src="https://via.placeholder.com/150"
-                    name="John Doe"
+                    name={user.full_name}
                     borderWidth="0.5vh"
                     borderColor="white"
                     boxSize="7vh"
@@ -48,10 +50,10 @@ const ProfileCard = () => {
             <Box position="relative" textAlign="left" p="5%" pt="15%">
                 <HStack spacing={2} mb="2%">
                     <Heading as="h3" size="md" noOfLines={1}>
-                        John Doe
+                        {user.full_name}
                     </Heading>
                     <Text fontSize="sm" mb="-1%" color="gray.500">
-                        @john_doe
+                        {user.username}
                     </Text>
                 </HStack>
 
@@ -67,7 +69,7 @@ const ProfileCard = () => {
                     mt="1%"
                 >
                     <Text fontSize="sm" color="gray.600">
-                        Sample Bio
+                        {user.bio}
                     </Text>
                 </Box>
 
@@ -89,4 +91,8 @@ const ProfileCard = () => {
     );
 };
 
-export default ProfileCard;
+const mapStateToProps = (state) => ({
+    user: state.auth.user,
+});
+
+export default connect(mapStateToProps)(ProfileCard);

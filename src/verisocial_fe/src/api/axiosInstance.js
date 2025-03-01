@@ -1,6 +1,6 @@
 import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_BASE_URL
+import store from "../redux/store";
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -13,9 +13,13 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const state = store.getState();
+    let token = state.auth.token;
+    if (!token) {
+      token = localStorage.getItem("token");
+    }
     if (token) {
-      // config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
