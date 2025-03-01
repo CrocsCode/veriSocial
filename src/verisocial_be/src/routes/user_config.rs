@@ -6,7 +6,7 @@ use crate::routes::middleware::auth_middleware::auth_middleware;
 pub fn config(config: &mut web::ServiceConfig){
     config
         .service(
-            web::scope("")
+            web::scope("/home")
             .wrap(from_fn(auth_middleware))
             .service(handlers::users::retrieve_list_of_users)
             .service(handlers::users::retrieve_user)
