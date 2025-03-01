@@ -9,7 +9,7 @@ import createPostReducer from './createPostReducer';
 const authPersistConfig = {
     key: 'auth',
     storage, // localStorage
-    whitelist: ['isAuthenticated'],
+    whitelist: ['isAuthenticated', 'token', 'user'],
 };
 
 const rootReducer = combineReducers({

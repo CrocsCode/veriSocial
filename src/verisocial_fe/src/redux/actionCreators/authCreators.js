@@ -6,6 +6,8 @@ import {
     REGISTER_REQUEST,
     REGISTER_SUCCESS,
     REGISTER_FAILURE,
+    USER_SUCCESS,
+    USER_FAILURE,
 } from "../actionTypes/authActionTypes";
 
 export const loginRequest = (credentials) => ({
@@ -13,9 +15,9 @@ export const loginRequest = (credentials) => ({
     payload: credentials,
 });
 
-export const loginSuccess = (token, user) => ({
+export const loginSuccess = (token) => ({
     type: LOGIN_SUCCESS,
-    payload: { token, user },
+    payload: { token },
 });
 
 export const loginFailure = (error) => ({
@@ -39,5 +41,15 @@ export const registerSuccess = (user) => ({
 
 export const registerFailure = (error) => ({
     type: REGISTER_FAILURE,
+    payload: error,
+});
+
+export const userSuccess = (userDetails) => ({
+    type: USER_SUCCESS,
+    payload: { userDetails },
+});
+
+export const userFailure = (error) => ({
+    type: USER_FAILURE,
     payload: error,
 });
