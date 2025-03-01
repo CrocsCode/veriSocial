@@ -32,8 +32,11 @@ const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCrea
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      updateCreatePostForm("image", imageUrl);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        updateCreatePostForm("image", reader.result);
+      };
     }
   };
 

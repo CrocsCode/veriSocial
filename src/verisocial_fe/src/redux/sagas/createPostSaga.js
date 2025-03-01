@@ -1,23 +1,33 @@
-import { put, takeLatest, select } from "redux-saga/effects";
+import { put, takeLatest, select, call } from "redux-saga/effects";
 import {
   SUBMIT_CREATE_POST_FORM_REQUEST,
-  SUBMIT_CREATE_POST_FORM_SUCCESS,
-  SUBMIT_CREATE_POST_FORM_FAILURE,
 } from "../actionTypes/createPostActionTypes";
+import { submitCreatePostFormSuccess, submitCreatePostFormFailure } from "../actionCreators/createPostActionCreators";
 import { showNotificationRequest } from "../actionCreators/notificationCreators";
 import { closeModalRequest } from "../actionCreators/modalCreators";
 import T from "../../constants/text";
+import api from "../../api";
 
-const selectCreatePostForm = (state) => state.createPostForm;
+const selectCreatePostForm = (state) => state.createPost;
+const selectUserId = (state) => state.auth.user;
 
 function* handleSubmitCreatePost() {
   try {
     const formData = yield select(selectCreatePostForm);
-    yield put({ type: SUBMIT_CREATE_POST_FORM_SUCCESS, payload: formData });
+    const userDetails = yield select(selectUserId);
+
+    const payload = {
+      "user-id": userDetails.user_id,
+      content: formData.postText,
+      base64_image: formData.image || null,
+    };
+    yield call(api.formService.createPost, userDetails.user_id, payload);
+
+    yield put(submitCreatePostFormSuccess(formData));
     yield put(showNotificationRequest(T.FORM.POST.SUCCESS, "success"));
     yield put(closeModalRequest());
   } catch (error) {
-    yield put({ type: SUBMIT_CREATE_POST_FORM_FAILURE, payload: error.message });
+    yield put(submitCreatePostFormFailure(error.message));
     yield put(showNotificationRequest(T.FORM.POST.FAILURE, "error"));
   }
 }
