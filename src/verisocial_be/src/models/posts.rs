@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-
+// Store binary data in file, store name of file in DB.
 #[derive(Deserialize, Serialize, sqlx::FromRow, Debug)]
 pub struct Post {
     pub post_id: u64,
@@ -11,6 +11,7 @@ pub struct Post {
     #[serde(rename = "full-name")]
     pub full_name: String,
     pub content: String,
+    pub base64_image: Option<String>,
     #[serde(rename = "created-at")]
     pub created_at: DateTime<Utc>,
 }
@@ -22,4 +23,5 @@ pub struct NewPost {
     pub user_id: u64,
     // Could be passed as part of the URI (for the username or user_id)
     pub content: String,
+    pub base64_image: Option<String>
 }
