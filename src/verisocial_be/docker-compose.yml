@@ -9,8 +9,17 @@ services:
     environment:
       APP_URL: '0.0.0.0'
       APP_DATABASE_URL: 'mysql://root:my-secret-pw@database:3306/mydatabase'
+      AI_IMAGE_CHECKER_URL: 'http://ai-detection:8000/classify'
     ports:
     - 8080:8080
+  
+  ai-detection:
+    image: ai-detect-build
+    container_name: ai-detect-build
+    depends_on:
+      - backend
+    ports:
+    - 8000:8000
 
   database:
     image: mysql:latest
