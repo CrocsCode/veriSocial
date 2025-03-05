@@ -29,9 +29,8 @@ pub async fn retrieve_individual_post(id: web::Path<(u64, u64)>, app_data: web::
 #[post("/{user_id}")]
 pub async fn create_new_post(json: web::Json<NewPost>, app_data: web::Data<AppState<'_>>) -> impl Responder {
     let post = json.into_inner();
-    let conn = &app_data.into_inner().pool;
 
-    let result = posts::create_post(conn, post).await;
+    let result = posts::create_post(post, &app_data.into_inner()).await;
     Response::create_get_response(result)
 }
 

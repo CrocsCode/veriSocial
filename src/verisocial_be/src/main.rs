@@ -3,6 +3,7 @@ use actix_web::http::header;
 use actix_web::{HttpServer, App, web};
 use actix_web::middleware::Logger;
 use argon2::Argon2;
+use reqwest::Client;
 use env_logger::Env;
 use routes::{auth_config, post_config, user_config};
 use sqlx::migrate::Migrator;
@@ -48,9 +49,11 @@ async fn main() -> std::io::Result<()> {
     MIGRATOR.run(&pool).await.expect("Failed to run migrations");
     info!("Migrations have been applied");
 
+    let client =  Client::new();
     let app_data = models::app_state::AppState {
         pass_hashing: Argon2::default(), // Password Hashing
-        pool
+        pool,
+        client
     };
 
     HttpServer::new(move || {
