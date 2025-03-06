@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { connect } from "react-redux";
 import {
   Box,
@@ -11,13 +11,17 @@ import {
   Image,
   CloseButton,
   Input,
+  Spinner,
 } from "@chakra-ui/react";
 import { FaImages } from "react-icons/fa";
 import { updateCreatePostForm, submitCreatePostFormRequest, resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
-import { closeModalRequest } from "../redux/actionCreators/modalCreators";
 import T from "../constants/text";
 
-const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCreatePostFormRequest, resetCreatePostForm, closeModalRequest }) => {
+const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCreatePostFormRequest, resetCreatePostForm,
+  onClose,
+  isLoading,
+  isSuccess
+}) => {
   const [localText, setLocalText] = useState(postText);
   const debounceTimeout = useRef(null);
 
@@ -44,8 +48,15 @@ const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCrea
     submitCreatePostFormRequest();
   };
 
+  useEffect(() => {
+    if (isSuccess) {
+      resetCreatePostForm();
+      onClose();
+    }
+  }, [isSuccess, resetCreatePostForm, onClose]);
+
   return (
-    <Box bg="white" w="30vw" minH="40vh" pt="2vh">
+    <Box bg="white" w="30vw" minH="40vh" pt="2vh" p="5" borderRadius="md">
       <VStack spacing={4} align="stretch">
         <Text textAlign="left" textStyle="h3">
           Create a New Post
@@ -60,6 +71,7 @@ const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCrea
           resize="none"
           h="30vh"
           focusBorderColor="purple.500"
+          isDisabled={isLoading}
         />
 
         {/* Image Preview */}
@@ -72,6 +84,7 @@ const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCrea
               right={1}
               onClick={() => updateCreatePostForm("image", null)}
               bg="white"
+              isDisabled={isLoading}
             />
           </Box>
         )}
@@ -86,6 +99,7 @@ const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCrea
               size="lg"
               variant="ghost"
               colorScheme="purple"
+              isDisabled={isLoading}
             />
           </label>
           <Input
@@ -99,13 +113,21 @@ const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCrea
 
         {/* Submit / Cancel */}
         <HStack justify="space-between">
-          <Button colorScheme="purple" onClick={handleSubmit} isDisabled={!localText.trim()}>
-            Post
+          <Button
+            colorScheme="purple"
+            onClick={handleSubmit}
+            isDisabled={!localText.trim() || isLoading}
+          >
+            {isLoading ? <Spinner size="sm" /> : "Post"}
           </Button>
-          <Button variant="ghost" onClick={() => {
-            resetCreatePostForm();
-            closeModalRequest();
-          }}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              resetCreatePostForm();
+              onClose();
+            }}
+            isDisabled={isLoading}
+          >
             Cancel
           </Button>
         </HStack>
@@ -117,13 +139,14 @@ const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCrea
 const mapStateToProps = (state) => ({
   postText: state.createPost.postText || "",
   image: state.createPost.image || null,
+  isLoading: state.createPost.isLoading,
+  isSuccess: state.createPost.isSuccess,
 });
 
 const mapDispatchToProps = {
   updateCreatePostForm,
   submitCreatePostFormRequest,
   resetCreatePostForm,
-  closeModalRequest,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CreatePostForm);

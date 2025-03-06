@@ -11,6 +11,7 @@ const initialState = {
     image: null,
     isLoading: false,
     error: null,
+    isSuccess: false,
 };
 
 const createPostReducer = (state = initialState, action) => {
@@ -22,13 +23,13 @@ const createPostReducer = (state = initialState, action) => {
             };
 
         case SUBMIT_CREATE_POST_FORM_REQUEST:
-            return { ...state, isLoading: true, error: null };
+            return { ...state, isLoading: true, error: null, isSuccess: false };
 
         case SUBMIT_CREATE_POST_FORM_SUCCESS:
-            return { ...initialState };
+            return { ...initialState, isSuccess: true };
 
         case SUBMIT_CREATE_POST_FORM_FAILURE:
-            return { ...state, isLoading: false, error: action.payload };
+            return { ...state, isLoading: false, error: action.payload, isSuccess: false };
 
         case RESET_CREATE_POST_FORM:
             return { ...initialState };
