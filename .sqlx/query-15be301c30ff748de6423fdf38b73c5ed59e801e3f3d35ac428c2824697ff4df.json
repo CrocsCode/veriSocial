@@ -61,9 +61,9 @@
         "ordinal": 6,
         "name": "bot_score",
         "type_info": {
-          "type": "Tiny",
+          "type": "Float",
           "flags": "NOT_NULL | UNSIGNED | NO_DEFAULT_VALUE",
-          "max_size": 3
+          "max_size": 12
         }
       },
       {

@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            u.user_id,\n            u.username,\n            u.full_name\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        WHERE \n            p.post_id = ?;\n        ",
+  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        WHERE \n            p.user_id = ?\n        LIMIT ? OFFSET ?\n        ",
   "describe": {
     "columns": [
       {
@@ -41,6 +41,15 @@
       },
       {
         "ordinal": 4,
+        "name": "bot_score",
+        "type_info": {
+          "type": "Float",
+          "flags": "NOT_NULL | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 12
+        }
+      },
+      {
+        "ordinal": 5,
         "name": "user_id",
         "type_info": {
           "type": "LongLong",
@@ -49,7 +58,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "username",
         "type_info": {
           "type": "VarString",
@@ -58,7 +67,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "full_name",
         "type_info": {
           "type": "VarString",
@@ -68,7 +77,7 @@
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 3
     },
     "nullable": [
       false,
@@ -77,8 +86,9 @@
       true,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "6767212104c4134f3916316a14963b3f1e1ac2e0d33007d1894b4053f7f06c38"
+  "hash": "3116e238ce285c8499d1470a1f0eb60aec9406b4452856eae9da802b37efc19b"
 }

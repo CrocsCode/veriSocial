@@ -1,6 +1,14 @@
 use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 
+
+#[derive(Deserialize, Debug)]
+pub struct ImageResponse {
+    pub post_id: usize,
+    pub class_type: String,
+    pub score: f64
+}
+
 #[derive(Deserialize, Serialize)]
 pub struct Response<T: Serialize> {
     pub status: String,
