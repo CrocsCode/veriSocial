@@ -18,7 +18,6 @@ const feedReducer = (state = initialState, action) => {
             };
 
         case LOAD_FEED_PAGE_REQUEST_SUCCESS:
-            console.log("Updating Redux Store with Posts:", action.payload.posts);
             return {
                 ...state,
                 loading: false,

@@ -1,39 +1,37 @@
 import React from "react";
-import { connect } from "react-redux";
 import {
     Modal,
     ModalOverlay,
     ModalContent,
-    ModalBody,
     ModalCloseButton,
+    Box,
 } from "@chakra-ui/react";
-import { closeModalRequest } from "../redux/actionCreators/modalCreators";
-import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
 
-const GlobalModal = ({ isOpen, closeModalRequest, resetCreatePostForm, children }) => {
+const GlobalModal = ({ isOpen, onClose, resetForm, children }) => {
     const handleClose = () => {
-        resetCreatePostForm();
-        closeModalRequest();
+        if (resetForm) resetForm();
+        onClose();
     };
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose} isCentered>
             <ModalOverlay />
-            <ModalContent width="auto" maxWidth="fit-content" minH="auto" height="auto" p={4}>
-                <ModalCloseButton />
-                <ModalBody>{children}</ModalBody>
+            <ModalContent
+                width="auto"
+                maxWidth="fit-content"
+                minH="auto"
+                height="auto"
+                boxShadow="lg"
+                p={0}
+                position="relative"
+            >
+                <ModalCloseButton position="absolute" top="8px" right="8px" zIndex="10" />
+                <Box w="100%" h="100%">
+                    {children}
+                </Box>
             </ModalContent>
         </Modal>
     );
 };
 
-const mapStateToProps = (state) => ({
-    isOpen: state.modal.isOpen,
-});
-
-const mapDispatchToProps = {
-    closeModalRequest,
-    resetCreatePostForm,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(GlobalModal);
+export default GlobalModal;
