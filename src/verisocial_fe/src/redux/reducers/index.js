@@ -5,6 +5,7 @@ import authReducer from './authReducer';
 import notificationReducer from './notificationReducer';
 import modalReducer from './modalReducer';
 import createPostReducer from './createPostReducer';
+import feedReducer from './feedReducer';
 
 const authPersistConfig = {
     key: 'auth',
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
     notification: notificationReducer,
     modal: modalReducer,
     createPost: createPostReducer,
+    feed: feedReducer,
 });
 
 export default rootReducer;
