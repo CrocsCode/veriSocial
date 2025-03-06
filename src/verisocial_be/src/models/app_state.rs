@@ -1,11 +1,13 @@
 use argon2::Argon2;
+use reqwest::Client;
 use sqlx::MySqlPool;
 use serde::Deserialize;
 
 #[derive(Clone)]
 pub struct AppState<'a> {
     pub pass_hashing: Argon2<'a>,
-    pub pool: MySqlPool
+    pub pool: MySqlPool,
+    pub client: Client
 }
 
 #[derive(Deserialize)]

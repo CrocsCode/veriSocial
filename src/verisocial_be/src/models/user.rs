@@ -13,7 +13,8 @@ pub struct User {
     pub password_hash: String,
     pub full_name: String,
     pub bio: String,
-    pub bot_score: u8,
+    #[serde(rename = "bot-score")]
+    pub bot_score: f32,
     #[serde(rename = "created-at")]
     pub created_at: DateTime<Utc>,
 }
@@ -27,7 +28,7 @@ pub struct NewUser {
     pub bio: String,
     pub password: String,
     #[serde(rename = "bot-score")]
-    pub bot_score: u16, // Should be zero as default
+    pub bot_score: f32, // Should be zero as default
 }
 
 #[derive(Deserialize, Serialize, Debug)]

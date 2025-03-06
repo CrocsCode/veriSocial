@@ -14,6 +14,8 @@ pub struct Post {
     pub base64_image: Option<String>,
     #[serde(rename = "created-at")]
     pub created_at: DateTime<Utc>,
+    #[serde(rename = "bot-score")]
+    pub bot_score: f32
 }
 
 #[derive(Deserialize, Serialize, Debug)]

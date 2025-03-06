@@ -3,6 +3,7 @@ use actix_web::http::header;
 use actix_web::{HttpServer, App, web};
 use actix_web::middleware::Logger;
 use argon2::Argon2;
+use reqwest::Client;
 use env_logger::Env;
 use routes::{auth_config, post_config, user_config};
 use sqlx::migrate::Migrator;
@@ -48,9 +49,11 @@ async fn main() -> std::io::Result<()> {
     MIGRATOR.run(&pool).await.expect("Failed to run migrations");
     info!("Migrations have been applied");
 
+    let client =  Client::new();
     let app_data = models::app_state::AppState {
         pass_hashing: Argon2::default(), // Password Hashing
-        pool
+        pool,
+        client
     };
 
     HttpServer::new(move || {
@@ -59,7 +62,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 Cors::default()
                 // .allowed_origin(origin) When frontend is defined, this wll be here.
-                    .allowed_origin("http://localhost:5173") // For testing purposes only (temporary)
+                    //.allowed_origin("http://localhost:5173") // For testing purposes only (temporary)
+                    .allow_any_origin()  // Deployment inside docker compose
                     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
                     .allowed_headers(vec![header::AUTHORIZATION, header::CONTENT_TYPE])
                     .supports_credentials()

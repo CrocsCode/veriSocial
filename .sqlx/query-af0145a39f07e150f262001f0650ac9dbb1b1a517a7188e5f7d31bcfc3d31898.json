@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT\n            p.post_id,\n            p.user_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            u.username,\n            u.full_name\n        FROM\n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        INNER JOIN\n            follow f ON p.user_id = f.followee_id\n        WHERE\n            f.follower_id = ?\n        ORDER BY\n            created_at\n        LIMIT ? OFFSET ?\n        ",
+  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        ORDER BY\n            created_at\n        LIMIT ? OFFSET ?\n        ",
   "describe": {
     "columns": [
       {
@@ -14,15 +14,6 @@
       },
       {
         "ordinal": 1,
-        "name": "user_id",
-        "type_info": {
-          "type": "LongLong",
-          "flags": "NOT_NULL | MULTIPLE_KEY | UNSIGNED | NO_DEFAULT_VALUE",
-          "max_size": 20
-        }
-      },
-      {
-        "ordinal": 2,
         "name": "content",
         "type_info": {
           "type": "Blob",
@@ -31,7 +22,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 2,
         "name": "created_at",
         "type_info": {
           "type": "Timestamp",
@@ -40,7 +31,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 3,
         "name": "base64_image",
         "type_info": {
           "type": "Blob",
@@ -49,7 +40,25 @@
         }
       },
       {
+        "ordinal": 4,
+        "name": "bot_score",
+        "type_info": {
+          "type": "Float",
+          "flags": "NOT_NULL | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 12
+        }
+      },
+      {
         "ordinal": 5,
+        "name": "user_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | PRIMARY_KEY | UNSIGNED | AUTO_INCREMENT",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 6,
         "name": "username",
         "type_info": {
           "type": "VarString",
@@ -58,7 +67,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "full_name",
         "type_info": {
           "type": "VarString",
@@ -68,17 +77,18 @@
       }
     ],
     "parameters": {
-      "Right": 3
+      "Right": 2
     },
     "nullable": [
       false,
       false,
       false,
-      false,
       true,
+      false,
+      false,
       false,
       false
     ]
   },
-  "hash": "45b58aa604cb7bbeb51a8352032dbcdf93eb59a96e7992febba233361757460b"
+  "hash": "af0145a39f07e150f262001f0650ac9dbb1b1a517a7188e5f7d31bcfc3d31898"
 }

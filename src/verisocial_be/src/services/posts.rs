@@ -1,14 +1,18 @@
+use log::info;
 use sqlx::MySqlPool;
 // use uuid::Uuid;
 // use tokio::fs;
 
 use crate::models::{
-    response::ApiError,
-    posts::{NewPost, Post}
+    app_state::AppState,
+    posts::{NewPost, Post},
+    response::{ApiError, ImageResponse}
 };
 
+use super::image::image_check;
 
-pub async fn create_post(conn: &MySqlPool, new_post: NewPost) -> Result<Post, ApiError> {
+
+pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>) -> Result<Post, ApiError> {
     // let filepath = if new_post.base64_image.is_some() {
     //     let data = new_post.base64_image.unwrap(); // Should never happen.
     //     decode_and_generate_image(new_post.user_id, data).await?
@@ -16,16 +20,35 @@ pub async fn create_post(conn: &MySqlPool, new_post: NewPost) -> Result<Post, Ap
     //     "0".to_string()
     // };
 
+    let score: f64 = if new_post.base64_image.is_some() {
+        let check: ImageResponse = image_check(
+            new_post.base64_image.clone().unwrap(), // This will never panic
+            new_post.user_id,
+            &app_state.client
+        ).await?;
+
+        info!("{:?}", check);
+
+        if check.class_type.to_string() == "real".to_string() {
+            1_f64 - check.score
+        } else {
+            check.score
+        }
+    } else {
+        0.0
+    };
+
     let insert_result = sqlx::query!(
         r#"
-        INSERT INTO posts (user_id, content, base64_image)
-        VALUES (?, ?, ?)
+        INSERT INTO posts (user_id, content, base64_image, bot_score)
+        VALUES (?, ?, ?, ?)
         "#,
         &new_post.user_id,
         &new_post.content,
-        new_post.base64_image
+        new_post.base64_image,
+        score
     )
-    .execute(conn)
+    .execute(&app_state.pool)
     .await;
 
     let latest_post_id = match insert_result {
@@ -40,6 +63,7 @@ pub async fn create_post(conn: &MySqlPool, new_post: NewPost) -> Result<Post, Ap
             p.content,
             p.created_at,
             p.base64_image,
+            p.bot_score,
             u.user_id,
             u.username,
             u.full_name
@@ -51,7 +75,7 @@ pub async fn create_post(conn: &MySqlPool, new_post: NewPost) -> Result<Post, Ap
             p.post_id = ?;
         "#,
         latest_post_id
-    ).fetch_one(conn)
+    ).fetch_one(&app_state.pool)
     .await;
 
     match post_result {
@@ -68,6 +92,7 @@ pub async fn user_timeline(conn: &MySqlPool, page_size: u32, offset: u32) -> Res
             p.content,
             p.created_at,
             p.base64_image,
+            p.bot_score,
             u.user_id,
             u.username,
             u.full_name
@@ -100,6 +125,7 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64, page_size: 
             p.content,
             p.created_at,
             p.base64_image,
+            p.bot_score,
             u.username,
             u.full_name
         FROM
@@ -135,6 +161,7 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: 
             p.content,
             p.created_at,
             p.base64_image,
+            p.bot_score,
             u.user_id,
             u.username,
             u.full_name
@@ -168,6 +195,7 @@ pub async fn individual_user_post(conn: &MySqlPool, post_id: u64) -> Result<Post
             p.content,
             p.created_at,
             p.base64_image,
+            p.bot_score,
             u.user_id,
             u.username,
             u.full_name
