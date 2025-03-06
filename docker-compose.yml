@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   backend:
-    image: cr0c0dile07/final-year-project
+    image: cr0c0dile07/final-year-project:latest
     container_name: backend
     depends_on:
       - database
@@ -12,6 +12,16 @@ services:
       AI_IMAGE_CHECKER_URL: 'http://ai-detection:8000/classify'
     ports:
     - 8080:8080
+
+  frontend:
+    image: verisocial-fe/v4
+    container_name: frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: 'http://0.0.0.0:8080/'
+    ports:
+    - 80:80
   
   ai-detection:
     image: ai-detect-build
