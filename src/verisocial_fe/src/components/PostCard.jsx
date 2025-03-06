@@ -14,7 +14,14 @@ const getRelativeTime = (timestamp) => {
   return `${Math.floor(diff / 86400)} days ago`;
 };
 
+const formatBase64Image = (base64) => {
+  if (!base64) return null;
+  return base64.startsWith("data:image") ? base64 : `data:image/jpeg;base64,${base64}`;
+};
+
 const PostCard = ({ post, onClick }) => {
+  const imageSrc = formatBase64Image(post.base64_image);
+
   return (
     <Box
       p={4}
@@ -32,32 +39,28 @@ const PostCard = ({ post, onClick }) => {
       minH="5vh"
     >
       {/* Timestamp */}
-      <Box
-        position="absolute"
-        top={2}
-        right={4}
-        fontSize="xs"
-        color="gray.400"
-      >
-        {getRelativeTime(post.timestamp)}
+      <Box position="absolute" top={2} right={4} fontSize="xs" color="gray.400">
+        {getRelativeTime(post["created-at"])}
       </Box>
 
       {/* User Info */}
       <HStack align="top" mb={4}>
-        <Avatar src={post.profilePicture} name={post.user} size="md" />
+        {/* Add  src={imageSrc} Later - For Profile*/}
+        <Avatar name={post["full-name"]} size="md" />
         <Box>
           <Heading as="h3" size="sm" mb={1}>
-            {post.user}
+            {post["full-name"]}
           </Heading>
           <Text fontSize="sm" color="gray.500" mb={1}>
-            {post.username}
+            @{post.username}
           </Text>
         </Box>
       </HStack>
 
       {/* Content */}
       <Text mb={4}>{post.content}</Text>
-      {post.image && <Image src={post.image} alt="Post content" borderRadius="md" mb={4} />}
+
+      {imageSrc && <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />}
 
       {/* Buttons */}
       <HStack spacing={4}>
