@@ -1,3 +1,4 @@
+use std::usize;
 use actix_cors::Cors;
 use actix_web::http::header;
 use actix_web::{HttpServer, App, web};
@@ -69,6 +70,7 @@ async fn main() -> std::io::Result<()> {
                     .supports_credentials()
                     .max_age(3600)
             )
+            .app_data(actix_web::web::PayloadConfig::new(usize::MAX))
             .app_data(web::Data::new(app_data.clone()))
             .service(routes::teapot::teapot)
             .configure(auth_config::config)

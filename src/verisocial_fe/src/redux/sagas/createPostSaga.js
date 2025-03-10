@@ -15,20 +15,29 @@ function* handleSubmitCreatePost() {
     const formData = yield select(selectCreatePostForm);
     const userDetails = yield select(selectUserId);
 
+    let base64_image = null;
+    if (formData.image) {
+      // Remove the prefix from the base64 encoded image string [NOT FIXED!!!!]
+      base64_image = formData.image.replace("data:image/jpeg;base64,", "");
+    }
+
     const payload = {
       "user-id": userDetails.user_id,
       content: formData.postText,
-      base64_image: formData.image || null,
+      base64_image: base64_image,
     };
+    
     yield call(api.formService.createPost, userDetails.user_id, payload);
 
     yield put(submitCreatePostFormSuccess(formData));
     yield put(showNotificationRequest(T.FORM.POST.SUCCESS, "success"));
+    window.location.reload();
   } catch (error) {
     yield put(submitCreatePostFormFailure(error.message));
     yield put(showNotificationRequest(T.FORM.POST.FAILURE, "error"));
   }
 }
+
 export function* watchCreatePost() {
   yield takeLatest(SUBMIT_CREATE_POST_FORM_REQUEST, handleSubmitCreatePost);
 }
