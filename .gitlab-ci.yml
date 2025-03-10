@@ -5,13 +5,13 @@ stages:
 # Build stage
 rust-build:
   stage: build
-  image: rust:latest
+  image: rust:1.85.0-alpine
   script:
-    - cargo install cross --git https://github.com/cross-rs/cross
-    - cargo cross build --workspace --release --target x86_64-unknown-linux-musl
+    - apk add alpine-sdk openssl-dev libssl3 # Dependency for the binary
+    - cargo build --workspace --release
   artifacts:
     paths:
-      - target/x86_64-unknown-linux-musl/verisocial_be
+      - target/release/verisocial_be
 
 # Test Stage
 rust-tests:
