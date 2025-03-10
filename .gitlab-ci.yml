@@ -1,6 +1,18 @@
 stages:
+  - build
   - test
 
+# Build stage
+rust-build:
+  stage: build
+  image: rust:latest
+  script:
+    - cargo build --workspace --release --target x86_64-unknown-linux-musl
+  artifacts:
+    paths:
+      - target/x86_64-unknown-linux-musl/verisocial_be
+
+# Test Stage
 rust-tests:
   stage: test
   image: rust:latest
