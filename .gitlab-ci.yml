@@ -7,6 +7,7 @@ rust-build:
   stage: build
   image: rust:latest
   script:
+    - rustup target add x86_64-unknown-linux-musl
     - cargo build --workspace --release --target x86_64-unknown-linux-musl
   artifacts:
     paths:
