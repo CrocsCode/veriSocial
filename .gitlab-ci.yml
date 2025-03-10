@@ -7,8 +7,8 @@ rust-build:
   stage: build
   image: rust:latest
   script:
-    - rustup target add x86_64-unknown-linux-musl
-    - cargo build --workspace --release --target x86_64-unknown-linux-musl
+    - cargo install cross --git https://github.com/cross-rs/cross
+    - cargo cross build --workspace --release --target x86_64-unknown-linux-musl
   artifacts:
     paths:
       - target/x86_64-unknown-linux-musl/verisocial_be
