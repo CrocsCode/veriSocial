@@ -1,4 +1,5 @@
 import React from "react";
+import { connect } from "react-redux";
 import {
   Box,
   Heading,
@@ -9,57 +10,67 @@ import {
   VStack,
   Icon,
   Divider,
+  Image,
 } from "@chakra-ui/react";
 import { FaHeart, FaFlag } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
 
+const formatBase64Image = (base64) => {
+  if (!base64) return null;
+  return base64.startsWith("data:image") ? base64 : `data:image/jpeg;base64,${base64}`;
+};
+
 const PostFocus = ({ post }) => {
+  if (!post) {
+    return (
+      <Box textAlign="center" mt={6}>
+        <Heading as="h2" size="lg" color="gray.500">
+          No post selected.
+        </Heading>
+      </Box>
+    );
+  }
+
+  const imageSrc = formatBase64Image(post.base64_image);
+  const readableTimestamp = new Date(post["created-at"]).toLocaleString();
+
   return (
-    <Box>
+    <Box p="5" borderRadius="md" bg="purple.50" h="70vh" w="40vw">
+      {/* User Info */}
       <HStack mb={4} justifyContent="space-between">
         <HStack>
-          <Avatar src={post.profilePicture} name={post.user} size="lg" />
+          <Avatar src={imageSrc} name={post["full-name"]} size="lg" />
           <Box>
             <Heading as="h3" size="md">
-              {post.user}
+              {post["full-name"]}
             </Heading>
             <Text fontSize="sm" color="gray.500">
-              {post.username}
+              @{post.username}
             </Text>
           </Box>
         </HStack>
         <Text fontSize="sm" color="gray.400">
-          {new Date(post.timestamp).toLocaleString()}
+          {readableTimestamp}
         </Text>
       </HStack>
 
+      {/* Post Content */}
       <Text mb={4}>{post.content}</Text>
-      {post.image && <img src={post.image} alt="Post content" width="100%" />}
+      {imageSrc && <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />}
 
-      <HStack spacing={4}>
-        <HStack
-          color="blue.500"
-          fontSize="sm"
-          cursor="pointer"
-        >
+      {/* Buttons */}
+      <HStack spacing={4} mb={4}>
+        <HStack color="blue.500" fontSize="sm" cursor="pointer">
           <Icon as={FaHeart} boxSize={4} />
           <Text>Like</Text>
         </HStack>
 
-        <HStack
-          color="teal.500"
-          fontSize="sm"
-          cursor="pointer"
-        >
+        <HStack color="teal.500" fontSize="sm" cursor="pointer">
           <Icon as={FaMessage} boxSize={4} />
-          <Text >Reply</Text>
+          <Text>Reply</Text>
         </HStack>
 
-        <HStack
-          color="red.500"
-          fontSize="sm"
-          cursor="pointer"
-        >
+        <HStack color="red.500" fontSize="sm" cursor="pointer">
           <Icon as={FaFlag} boxSize={4} />
           <Text>Report</Text>
         </HStack>
@@ -100,4 +111,8 @@ const PostFocus = ({ post }) => {
   );
 };
 
-export default PostFocus;
+const mapStateToProps = (state, ownProps) => ({
+  post: ownProps.post || null,
+});
+
+export default connect(mapStateToProps)(PostFocus);

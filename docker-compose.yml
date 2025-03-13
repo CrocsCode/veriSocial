@@ -14,7 +14,7 @@ services:
     - 8080:8080
 
   frontend:
-    image: verisocial-fe/v4
+    image: verisocial-fe/v5
     container_name: frontend
     depends_on:
       - backend

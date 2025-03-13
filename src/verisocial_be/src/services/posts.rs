@@ -101,7 +101,7 @@ pub async fn user_timeline(conn: &MySqlPool, page_size: u32, offset: u32) -> Res
         INNER JOIN
             users AS u ON p.user_id = u.user_id
         ORDER BY
-            created_at
+            created_at DESC
         LIMIT ? OFFSET ?
         "#,
         page_size,

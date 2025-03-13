@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        ORDER BY\n            created_at\n        LIMIT ? OFFSET ?\n        ",
+  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        ORDER BY\n            created_at DESC\n        LIMIT ? OFFSET ?\n        ",
   "describe": {
     "columns": [
       {
@@ -90,5 +90,5 @@
       false
     ]
   },
-  "hash": "af0145a39f07e150f262001f0650ac9dbb1b1a517a7188e5f7d31bcfc3d31898"
+  "hash": "43a06576599008534da821eaf6193b32d1ac4208efb0894322f1793009fe9faf"
 }

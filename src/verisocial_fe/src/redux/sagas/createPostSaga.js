@@ -4,7 +4,6 @@ import {
 } from "../actionTypes/createPostActionTypes";
 import { submitCreatePostFormSuccess, submitCreatePostFormFailure } from "../actionCreators/createPostActionCreators";
 import { showNotificationRequest } from "../actionCreators/notificationCreators";
-import { closeModalRequest } from "../actionCreators/modalCreators";
 import T from "../../constants/text";
 import api from "../../api";
 
@@ -15,17 +14,20 @@ function* handleSubmitCreatePost() {
   try {
     const formData = yield select(selectCreatePostForm);
     const userDetails = yield select(selectUserId);
-
+    // console.log("Formdata:", formData); // Debug
+    let base64Only = null;
+    if (formData.image) {
+      base64Only = formData.image.replace(/^data:image\/\w+;base64,/, "");
+    }
     const payload = {
       "user-id": userDetails.user_id,
       content: formData.postText,
-      base64_image: formData.image || null,
+      base64_image: base64Only || null,
     };
+    // console.log("Payload:", payload); // Debug
     yield call(api.formService.createPost, userDetails.user_id, payload);
-
     yield put(submitCreatePostFormSuccess(formData));
     yield put(showNotificationRequest(T.FORM.POST.SUCCESS, "success"));
-    yield put(closeModalRequest());
   } catch (error) {
     yield put(submitCreatePostFormFailure(error.message));
     yield put(showNotificationRequest(T.FORM.POST.FAILURE, "error"));
