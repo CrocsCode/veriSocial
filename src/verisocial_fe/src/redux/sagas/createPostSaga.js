@@ -14,18 +14,15 @@ function* handleSubmitCreatePost() {
   try {
     const formData = yield select(selectCreatePostForm);
     const userDetails = yield select(selectUserId);
-
-    let base64_image = null;
-    if (formData.image) {
-      // Remove the prefix from the base64 encoded image string [NOT FIXED!!!!]
-      base64_image = formData.image.replace("data:image/jpeg;base64,", "");
-    }
+    console.log("FormData:", formData); // DEBUG
 
     const payload = {
       "user-id": userDetails.user_id,
       content: formData.postText,
-      base64_image: base64_image,
+      base64_image: formData.image || null,
     };
+
+    console.log("Payload:", payload); // DEBUG
     
     yield call(api.formService.createPost, userDetails.user_id, payload);
 
