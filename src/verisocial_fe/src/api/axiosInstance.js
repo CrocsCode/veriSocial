@@ -1,25 +1,45 @@
 import axios from "axios";
-import store from "../redux/store";
 const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+let authToken = null;
+
+export const setAuthToken = (token) => {
+  authToken = token;
+};
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
-    "Accept": "application/json",
+    Accept: "application/json",
   },
 });
 
+function removeExtraQuotes(str) {
+  if (typeof str === "string" && str.startsWith('"') && str.endsWith('"')) {
+    return str.slice(1, -1);
+  }
+  return str;
+}
+
 axiosInstance.interceptors.request.use(
   (config) => {
-    const state = store.getState();
-    let token = state.auth.token;
-    if (!token) {
-      token = localStorage.getItem("token");
+    if (!authToken) {
+      const persistedAuth = localStorage.getItem("persist:auth");
+      if (persistedAuth) {
+        try {
+          const parsedAuth = JSON.parse(persistedAuth);
+          if (parsedAuth.token) {
+            authToken = removeExtraQuotes(parsedAuth.token);
+          }
+        } catch (e) {
+          console.error("Error parsing persisted auth state:", e);
+        }
+      }
     }
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (authToken) {
+      config.headers.Authorization = `Bearer ${authToken}`;
     }
     return config;
   },
