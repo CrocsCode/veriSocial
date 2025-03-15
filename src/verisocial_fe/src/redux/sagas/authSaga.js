@@ -6,6 +6,8 @@ import { registerFailure } from "../actionCreators/authCreators";
 import { navigate } from "../../routes/navigation";
 import api from "../../api";
 import T from "../../constants/text";
+import { axiosInstance } from "../../api/axiosInstance";
+import { setAuthToken } from "../../api/axiosInstance";
 
 function* handleLogin(action) {
   try {
@@ -15,6 +17,8 @@ function* handleLogin(action) {
     // Check Login Creds
     if (response.status === "success") {
       const { id, token } = response.message;
+      setAuthToken(token); // In Memory for Initial Login
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       yield put(loginSuccess(token));
       const userResponse = yield call(api.authService.getUser, id);
 
