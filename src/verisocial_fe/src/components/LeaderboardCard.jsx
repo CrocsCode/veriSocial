@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Avatar, Text, VStack, HStack } from "@chakra-ui/react";
 
 const LeaderboardCard = () => {

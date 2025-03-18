@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Box, Heading, VStack, Text, Icon, Flex } from "@chakra-ui/react";
+import { useState } from "react";
+import { Box, Heading, VStack, Flex } from "@chakra-ui/react";
 import { connect } from "react-redux";
 import Feed from "../components/Feed";
 import PostFocus from "../components/PostFocus";
@@ -9,6 +9,7 @@ import TrendCard from "../components/TrendCard";
 import LeaderboardCard from "../components/LeaderboardCard";
 import DailyChallengesCard from "../components/DailyChallengesCard";
 import Modal from "../components/Modal";
+import PropTypes from "prop-types";
 
 function HomePage({ isAuthenticated }) {
   const [selectedPost, setSelectedPost] = useState(null);
@@ -33,20 +34,19 @@ function HomePage({ isAuthenticated }) {
           <SettingsCard />
         </VStack>
 
-
-          {/* Main Container */}
-          <Flex w="45%" h="100%" justify="space-between">
-            <Box w="2px" bg="purple.500" alignSelf="stretch" ml="5%" />
-            <Box w="90%" display="flex" justifyContent="center" alignItems="center">
-              <Feed
-                onSelectPost={(post) => {
-                  setSelectedPost(post);
-                  setPostModalOpen(true);
-                }}
-              />
-            </Box>
-            <Box w="2px" bg="purple.500" alignSelf="stretch" mr="5%" />
-          </Flex>
+        {/* Main Container */}
+        <Flex w="45%" h="100%" justify="space-between">
+          <Box w="2px" bg="purple.500" alignSelf="stretch" ml="5%" />
+          <Box w="90%" display="flex" justifyContent="center" alignItems="center">
+            <Feed
+              onSelectPost={(post) => {
+                setSelectedPost(post);
+                setPostModalOpen(true);
+              }}
+            />
+          </Box>
+          <Box w="2px" bg="purple.500" alignSelf="stretch" mr="5%" />
+        </Flex>
 
         {/* Post Focus Modal */}
         <Modal
@@ -69,6 +69,10 @@ function HomePage({ isAuthenticated }) {
     </Box>
   );
 }
+
+HomePage.propTypes = {
+  isAuthenticated: PropTypes.bool.isRequired,
+};
 
 const mapStateToProps = (state) => ({
   isAuthenticated: state.auth.isAuthenticated,

@@ -15,7 +15,7 @@ function* loadFeedPageSaga(action) {
       const isLastPage = response.message.length < pageSize;
       yield put(loadFeedPageSuccess(response.message, page, isLastPage));
     } else {
-      yield put(loadFeedPageFailure(error.message));
+      yield put(loadFeedPageFailure(response.message));
     }
   } catch (error) {
     // console.error("API Error:", error.message); // Debug

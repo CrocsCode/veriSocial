@@ -1,9 +1,9 @@
-import React from "react";
 import { Box, Flex, Text, Button } from "@chakra-ui/react";
 import { connect } from "react-redux";
 import { logout } from "../redux/actionCreators/authCreators";
 import { Outlet } from "react-router-dom";
 import WelcomePage from "../pages/WelcomePage";
+import PropTypes from "prop-types";
 
 const Layout = ({ isAuthenticated, logout }) => {
   const handleLogout = () => {
@@ -62,6 +62,11 @@ const Layout = ({ isAuthenticated, logout }) => {
       )}
     </Flex>
   );
+};
+
+Layout.propTypes = {
+  isAuthenticated: PropTypes.bool.isRequired,
+  logout: PropTypes.func.isRequired,
 };
 
 const mapDispatchToProps = {

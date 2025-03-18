@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Box, Heading, Text, Image, Avatar, HStack, Icon } from "@chakra-ui/react";
 import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
+import PropTypes from "prop-types";
 
 const getRelativeTime = (timestamp) => {
   const now = new Date();
@@ -86,8 +87,6 @@ const PostCard = ({ post, onClick }) => {
           <Text fontWeight={isLiked ? "bold" : "normal"}>{likeCount}</Text>
         </HStack>
 
-
-
         <HStack color="teal.500" fontSize="sm" cursor="pointer">
           <Icon as={FaMessage} boxSize={4} />
           <Text>Comments</Text>
@@ -100,6 +99,18 @@ const PostCard = ({ post, onClick }) => {
       </HStack>
     </Box>
   );
+};
+
+PostCard.propTypes = {
+  post: PropTypes.shape({
+    base64_image: PropTypes.string,
+    likeCount: PropTypes.number,
+    "created-at": PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    "full-name": PropTypes.string,
+    username: PropTypes.string,
+    content: PropTypes.string,
+  }).isRequired,
+  onClick: PropTypes.func.isRequired,
 };
 
 export default PostCard;

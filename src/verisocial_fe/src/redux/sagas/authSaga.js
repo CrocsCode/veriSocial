@@ -53,7 +53,7 @@ function* handleLogout() {
   try {
     yield put(showNotificationRequest(T.AUTH.LOGOUT_SUCCESS, "info"));
     navigate("/login");
-  } catch (error) {
+  } catch {
     yield put(showNotificationRequest(T.AUTH.LOGOUT_FAILURE, "error"));
   }
 }
