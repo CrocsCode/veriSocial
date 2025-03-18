@@ -8,13 +8,14 @@ rust-lint:
   stage: lint
   image: rust:latest
   script:
+    - rustup component add clippy
     - cargo clippy
 
 lint_node:
   image: node:23-alpine
   stage: lint
   script:
-    - cd src/web
+    - cd src/verisocial_fe
     - npm install
     - npm run lint
 
@@ -34,7 +35,7 @@ build_node:
   image: node:23-alpine
   stage: build
   script:
-    - cd src/web
+    - cd src/verisocial_fe
     - npm install
     - npm run build
   artifacts:
