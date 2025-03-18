@@ -12,7 +12,7 @@ rust-lint:
 
 lint_node:
   image: node:23-alpine
-  stage: check
+  stage: lint
   script:
     - cd src/web
     - npm install
