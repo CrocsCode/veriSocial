@@ -1,9 +1,9 @@
 # Stage 1: Build the frontend with a newer Node version
 FROM node:18-alpine AS build-stage
 WORKDIR /app
-COPY package*.json ./
+COPY ./src/verisocial_fe/package*.json ./
 RUN npm install
-COPY . .
+COPY ./src/verisocial_fe .
 RUN npm run build
 
 # Stage 2: Serve the build with Nginx

@@ -2,39 +2,40 @@ stages:
   - lint
   - test
   - build
+  - deploy
 
 
 # Linting Stage
-#rust-lint:
-#  stage: lint
-#  image: rust:latest
-#  script:
-#    - rustup component add clippy
-#    - cargo clippy
-#
-##lint_node:
-##  image: node:23-alpine
-##  stage: lint
-##  script:
-##    - cd src/verisocial_fe
-##    - npm install
-##    - npm run lint
-#
-#
-## Test Stage
-#test_node:
+rust-lint:
+  stage: lint
+  image: rust:latest
+  script:
+    - rustup component add clippy
+    - cargo clippy
+
+#lint_node:
 #  image: node:23-alpine
-#  stage: test
+#  stage: lint
 #  script:
 #    - cd src/verisocial_fe
 #    - npm install
-#    - npm run test
-#
-#rust-tests:
-#  stage: test
-#  image: rust:latest
-#  script:
-#    - cargo test --verbose
+#    - npm run lint
+
+
+# Test Stage
+test_node:
+  image: node:23-alpine
+  stage: test
+  script:
+    - cd src/verisocial_fe
+    - npm install
+    - npm run test
+
+rust-tests:
+  stage: test
+  image: rust:latest
+  script:
+    - cargo test --verbose
 
 
 # Build Stage
@@ -58,3 +59,19 @@ build_node:
   artifacts:
     paths:
       - src/web/out/*
+
+
+# Deployment stage
+deploy:
+  stage: deploy
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  variables:
+    IMAGE_TAG: $REGISTRY_NAME
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin
+    - docker build -t $REGISTRY_NAME:backend -f ./src/verisocial_be/Dockerfile .
+    - docker build -t $REGISTRY_NAME:frontend -f ./src/verisocial_fe/Dockerfile .
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
