@@ -1,7 +1,8 @@
 stages:
   - lint
-  - build
   - test
+  - build
+
 
 # Linting Stage
 rust-lint:
@@ -11,36 +12,13 @@ rust-lint:
     - rustup component add clippy
     - cargo clippy
 
-lint_node:
-  image: node:23-alpine
-  stage: lint
-  script:
-    - cd src/verisocial_fe
-    - npm install
-    - npm run lint
-
-
-# Build stage
-#rust-build:
-#  stage: build
-#  image: rust:1.85.0-alpine
+#lint_node:
+#  image: node:23-alpine
+#  stage: lint
 #  script:
-#    - apk add alpine-sdk openssl-dev libssl3 # Dependency for the binary
-#    - cargo build --workspace --release
-#  artifacts:
-#    paths:
-#      - target/release/verisocial_be
-
-build_node:
-  image: node:23-alpine
-  stage: build
-  script:
-    - cd src/verisocial_fe
-    - npm install
-    - npm run build
-  artifacts:
-    paths:
-      - src/web/out/*
+#    - cd src/verisocial_fe
+#    - npm install
+#    - npm run lint
 
 
 # Test Stage
@@ -57,3 +35,26 @@ rust-tests:
   image: rust:latest
   script:
     - cargo test --verbose
+
+
+# Build Stage
+rust-build:
+  stage: build
+  image: rust:1.85.0-alpine
+  script:
+    - apk add alpine-sdk openssl-dev libssl3 # Dependency for the binary
+    - cargo build --workspace --release
+  artifacts:
+    paths:
+      - target/release/verisocial_be
+
+build_node:
+  image: node:23-alpine
+  stage: build
+  script:
+    - cd src/verisocial_fe
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - src/web/out/*
