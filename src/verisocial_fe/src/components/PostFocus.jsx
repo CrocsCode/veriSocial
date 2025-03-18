@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import {
   Box,
@@ -12,7 +12,7 @@ import {
   Divider,
   Image,
 } from "@chakra-ui/react";
-import { FaHeart, FaFlag } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
 
 const formatBase64Image = (base64) => {
@@ -33,13 +33,27 @@ const PostFocus = ({ post }) => {
 
   const imageSrc = formatBase64Image(post.base64_image);
   const readableTimestamp = new Date(post["created-at"]).toLocaleString();
+  const initialLikes = post.likeCount !== undefined ? post.likeCount : Math.floor(Math.random() * 100); // TEMP
+  const [likeCount, setLikeCount] = useState(initialLikes);
+  const [isLiked, setIsLiked] = useState(false);
+
+  const handleLikeClick = (e) => {
+    e.stopPropagation();
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount(likeCount - 1);
+    } else {
+      setIsLiked(true);
+      setLikeCount(likeCount + 1);
+    }
+  };
 
   return (
     <Box p="5" borderRadius="md" bg="purple.50" h="70vh" w="40vw">
       {/* User Info */}
       <HStack mb={4} justifyContent="space-between">
         <HStack>
-          <Avatar src={imageSrc} name={post["full-name"]} size="lg" />
+          <Avatar name={post["full-name"]} size="lg" />
           <Box>
             <Heading as="h3" size="md">
               {post["full-name"]}
@@ -60,9 +74,16 @@ const PostFocus = ({ post }) => {
 
       {/* Buttons */}
       <HStack spacing={4} mb={4}>
-        <HStack color="blue.500" fontSize="sm" cursor="pointer">
-          <Icon as={FaHeart} boxSize={4} />
-          <Text>Like</Text>
+        <HStack spacing={1.5} cursor="pointer" onClick={handleLikeClick} role="group">
+          <Icon
+            as={isLiked ? FaHeart : FaRegHeart}
+            boxSize={4}
+            color={isLiked ? "red.500" : "blue.500"}
+            transition="transform 0.2s"
+            _groupHover={{ transform: "scale(1.2)" }}
+            _active={{ transform: "scale(0.9)" }}
+          />
+          <Text fontWeight={isLiked ? "bold" : "normal"}>{likeCount}</Text>
         </HStack>
 
         <HStack color="teal.500" fontSize="sm" cursor="pointer">
@@ -91,13 +112,7 @@ const PostFocus = ({ post }) => {
         <VStack align="stretch" spacing={4}>
           {post.comments?.length > 0 ? (
             post.comments.map((comment) => (
-              <Box
-                key={comment.id}
-                p={3}
-                borderWidth="1px"
-                borderRadius="md"
-                bg="gray.50"
-              >
+              <Box key={comment.id} p={3} borderWidth="1px" borderRadius="md" bg="gray.50">
                 <Text fontWeight="bold">{comment.user}</Text>
                 <Text>{comment.content}</Text>
               </Box>

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Heading, Text, Image, Avatar, HStack, Icon } from "@chakra-ui/react";
-import { FaHeart, FaFlag } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
 
 const getRelativeTime = (timestamp) => {
@@ -21,6 +21,20 @@ const formatBase64Image = (base64) => {
 
 const PostCard = ({ post, onClick }) => {
   const imageSrc = formatBase64Image(post.base64_image);
+  const initialLikes = post.likeCount !== undefined ? post.likeCount : Math.floor(Math.random() * 100); // TEMP
+  const [likeCount, setLikeCount] = useState(initialLikes);
+  const [isLiked, setIsLiked] = useState(false);
+
+  const handleLikeClick = (e) => {
+    e.stopPropagation();
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount(likeCount - 1);
+    } else {
+      setIsLiked(true);
+      setLikeCount(likeCount + 1);
+    }
+  };
 
   return (
     <Box
@@ -33,9 +47,7 @@ const PostCard = ({ post, onClick }) => {
       cursor="pointer"
       onClick={onClick}
       transition="background-color 0.2s ease"
-      _hover={{
-        bg: "purple.100",
-      }}
+      _hover={{ bg: "purple.100" }}
       minH="5vh"
     >
       {/* Timestamp */}
@@ -45,7 +57,6 @@ const PostCard = ({ post, onClick }) => {
 
       {/* User Info */}
       <HStack align="top" mb={4}>
-        {/* Add  src={imageSrc} Later - For Profile*/}
         <Avatar name={post["full-name"]} size="md" />
         <Box>
           <Heading as="h3" size="sm" mb={1}>
@@ -59,15 +70,23 @@ const PostCard = ({ post, onClick }) => {
 
       {/* Content */}
       <Text mb={4}>{post.content}</Text>
-
       {imageSrc && <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />}
 
       {/* Buttons */}
       <HStack spacing={4}>
-        <HStack color="blue.500" fontSize="sm" cursor="pointer">
-          <Icon as={FaHeart} boxSize={4} />
-          <Text>Like</Text>
+        <HStack spacing={1.5} cursor="pointer" onClick={handleLikeClick} role="group">
+          <Icon
+            as={isLiked ? FaHeart : FaRegHeart}
+            boxSize={4}
+            color={isLiked ? "red.500" : "blue.500"}
+            transition="transform 0.2s"
+            _groupHover={{ transform: "scale(1.2)" }}
+            _active={{ transform: "scale(0.9)" }}
+          />
+          <Text fontWeight={isLiked ? "bold" : "normal"}>{likeCount}</Text>
         </HStack>
+
+
 
         <HStack color="teal.500" fontSize="sm" cursor="pointer">
           <Icon as={FaMessage} boxSize={4} />
