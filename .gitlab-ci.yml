@@ -26,7 +26,7 @@ test_node:
   image: node:23-alpine
   stage: test
   script:
-    - cd src/web
+    - cd src/verisocial_fe
     - npm install
     - npm run test
 
