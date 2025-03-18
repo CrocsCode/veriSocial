@@ -1,19 +1,56 @@
 stages:
+  - lint
   - build
   - test
 
-# Build stage
-rust-build:
-  stage: build
-  image: rust:1.85.0-alpine
+# Linting Stage
+rust-lint:
+  stage: lint
+  image: rust:latest
   script:
-    - apk add alpine-sdk openssl-dev libssl3 # Dependency for the binary
-    - cargo build --workspace --release
+    - cargo clippy
+
+lint_node:
+  image: node:23-alpine
+  stage: check
+  script:
+    - cd src/web
+    - npm install
+    - npm run lint
+
+
+# Build stage
+#rust-build:
+#  stage: build
+#  image: rust:1.85.0-alpine
+#  script:
+#    - apk add alpine-sdk openssl-dev libssl3 # Dependency for the binary
+#    - cargo build --workspace --release
+#  artifacts:
+#    paths:
+#      - target/release/verisocial_be
+
+build_node:
+  image: node:23-alpine
+  stage: build
+  script:
+    - cd src/web
+    - npm install
+    - npm run build
   artifacts:
     paths:
-      - target/release/verisocial_be
+      - src/web/out/*
+
 
 # Test Stage
+test_node:
+  image: node:23-alpine
+  stage: test
+  script:
+    - cd src/web
+    - npm install
+    - npm run test
+
 rust-tests:
   stage: test
   image: rust:latest

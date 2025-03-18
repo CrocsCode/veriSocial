@@ -1,4 +1,3 @@
-use std::usize;
 use actix_cors::Cors;
 use actix_web::http::header;
 use actix_web::{HttpServer, App, web};
@@ -23,7 +22,7 @@ static MIGRATOR: Migrator = sqlx::migrate!("./db/migrations");
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Initialise Configuration
-    config::config::init_config();
+    config::settings::init_config();
 
     // Logger
     env_logger::init_from_env(Env::default().default_filter_or("info"));

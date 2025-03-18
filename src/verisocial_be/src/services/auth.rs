@@ -2,7 +2,7 @@ use jsonwebtoken::{encode, Header, EncodingKey};
 use serde::{Deserialize, Serialize};
 use chrono::{Utc, Duration};
 
-use crate::config::config::SECRET;
+use crate::config::settings::SECRET;
 /// TODO:
 /// - Encode JWT (by generation)
 /// - Decode JWT (Middleware does this)

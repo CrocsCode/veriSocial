@@ -43,15 +43,15 @@ pub struct AuthDetails {
     pub password: String,
 }
 
-/// Testing
-/// {
-///     username: "crocodile07",
-///     full_name: "Javier",
-///     email: "javifb02@gmail.com",
-///     bio: "Just looking to toot in life",
-///     password: "IamNotSecure",
-///     bot-score: 0,
-/// }
+// Testing
+// {
+//     username: "crocodile07",
+//     full_name: "Javier",
+//     email: "javifb02@gmail.com",
+//     bio: "Just looking to toot in life",
+//     password: "IamNotSecure",
+//     bot-score: 0,
+// }
 
 
 impl User {
@@ -69,7 +69,7 @@ impl User {
         let res = match parsed_hash {
             Ok(hash) => hash,
             Err(err)  => {
-                println!("{}", err.to_string());
+                println!("{}", err);
                 std::process::exit(1)
             }, // NEEDS TO BE FIXED
         };
