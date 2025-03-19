@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { connect } from "react-redux";
 import {
     FormControl,
@@ -14,6 +14,7 @@ import { LuEyeClosed, LuEye } from "react-icons/lu";
 import { registerRequest } from "../redux/actionCreators/authCreators";
 import { showNotificationRequest } from "../redux/actionCreators/notificationCreators";
 import { validatePassword } from "../utils/passwordValidation";
+import PropTypes from "prop-types";
 
 const SignupForm = ({ registerRequest, showNotificationRequest }) => {
     const [email, setEmail] = useState("");
@@ -105,10 +106,17 @@ const SignupForm = ({ registerRequest, showNotificationRequest }) => {
                     </InputGroup>
                 </FormControl>
 
-                <Button colorScheme="purple" w="full" mt={4} type="submit">Sign Up</Button>
+                <Button colorScheme="purple" w="full" mt={4} type="submit">
+                    Sign Up
+                </Button>
             </VStack>
         </form>
     );
+};
+
+SignupForm.propTypes = {
+    registerRequest: PropTypes.func.isRequired,
+    showNotificationRequest: PropTypes.func.isRequired,
 };
 
 const mapDispatchToProps = {

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useState, useRef, useEffect } from "react";
 import { connect } from "react-redux";
 import {
@@ -14,13 +15,19 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { FaImages } from "react-icons/fa";
-import { updateCreatePostForm, submitCreatePostFormRequest, resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
+import { updateCreatePostForm, submitCreatePostFormRequest, resetCreatePostForm,
+} from "../redux/actionCreators/createPostActionCreators";
 import T from "../constants/text";
 
-const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCreatePostFormRequest, resetCreatePostForm,
+const CreatePostForm = ({
+  postText = '',
+  image = null,
   onClose,
-  isLoading,
-  isSuccess
+  isLoading = false,
+  isSuccess = false,
+  updateCreatePostForm,
+  submitCreatePostFormRequest,
+  resetCreatePostForm,
 }) => {
   const [localText, setLocalText] = useState(postText);
   const debounceTimeout = useRef(null);
@@ -134,6 +141,17 @@ const CreatePostForm = ({ postText = "", image, updateCreatePostForm, submitCrea
       </VStack>
     </Box>
   );
+};
+
+CreatePostForm.propTypes = {
+  postText: PropTypes.string,
+  image: PropTypes.string,
+  updateCreatePostForm: PropTypes.func.isRequired,
+  submitCreatePostFormRequest: PropTypes.func.isRequired,
+  resetCreatePostForm: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
+  isSuccess: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
