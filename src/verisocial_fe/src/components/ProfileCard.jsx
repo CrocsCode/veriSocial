@@ -1,7 +1,6 @@
-import React from "react";
 import { Box, Avatar, Heading, Text, Flex, Button, HStack } from "@chakra-ui/react";
 import { connect } from "react-redux";
-
+import PropTypes from "prop-types";
 
 const ProfileCard = ({ user }) => {
     return (
@@ -89,6 +88,14 @@ const ProfileCard = ({ user }) => {
 
         </Box>
     );
+};
+
+ProfileCard.propTypes = {
+    user: PropTypes.shape({
+        full_name: PropTypes.string.isRequired,
+        username: PropTypes.string.isRequired,
+        bio: PropTypes.string,
+    }).isRequired,
 };
 
 const mapStateToProps = (state) => ({

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
   Box,
@@ -17,10 +18,21 @@ import { FaMessage } from "react-icons/fa6";
 
 const formatBase64Image = (base64) => {
   if (!base64) return null;
-  return base64.startsWith("data:image") ? base64 : `data:image/jpeg;base64,${base64}`;
+  return base64.startsWith("data:image")
+    ? base64
+    : `data:image/jpeg;base64,${base64}`;
 };
 
-const PostFocus = ({ post }) => {
+const PostFocus = ({ post = null }) => {
+  // Create an initial likes value - IF post is null.
+  const initialLikesComputed =
+    post && typeof post.likeCount !== "undefined"
+      ? post.likeCount
+      : Math.floor(Math.random() * 100);
+
+  const [likeCount, setLikeCount] = useState(initialLikesComputed);
+  const [isLiked, setIsLiked] = useState(false);
+
   if (!post) {
     return (
       <Box textAlign="center" mt={6}>
@@ -31,20 +43,26 @@ const PostFocus = ({ post }) => {
     );
   }
 
-  const imageSrc = formatBase64Image(post.base64_image);
-  const readableTimestamp = new Date(post["created-at"]).toLocaleString();
-  const initialLikes = post.likeCount !== undefined ? post.likeCount : Math.floor(Math.random() * 100); // TEMP
-  const [likeCount, setLikeCount] = useState(initialLikes);
-  const [isLiked, setIsLiked] = useState(false);
+  const {
+    base64_image: base64Image,
+    "created-at": createdAt,
+    "full-name": fullName,
+    username,
+    content,
+    comments,
+  } = post;
+
+  const imageSrc = formatBase64Image(base64Image);
+  const readableTimestamp = new Date(createdAt).toLocaleString();
 
   const handleLikeClick = (e) => {
     e.stopPropagation();
     if (isLiked) {
       setIsLiked(false);
-      setLikeCount(likeCount - 1);
+      setLikeCount((prev) => prev - 1);
     } else {
       setIsLiked(true);
-      setLikeCount(likeCount + 1);
+      setLikeCount((prev) => prev + 1);
     }
   };
 
@@ -53,13 +71,13 @@ const PostFocus = ({ post }) => {
       {/* User Info */}
       <HStack mb={4} justifyContent="space-between">
         <HStack>
-          <Avatar name={post["full-name"]} size="lg" />
+          <Avatar name={fullName} size="lg" />
           <Box>
             <Heading as="h3" size="md">
-              {post["full-name"]}
+              {fullName}
             </Heading>
             <Text fontSize="sm" color="gray.500">
-              @{post.username}
+              @{username}
             </Text>
           </Box>
         </HStack>
@@ -69,8 +87,10 @@ const PostFocus = ({ post }) => {
       </HStack>
 
       {/* Post Content */}
-      <Text mb={4}>{post.content}</Text>
-      {imageSrc && <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />}
+      <Text mb={4}>{content}</Text>
+      {imageSrc && (
+        <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />
+      )}
 
       {/* Buttons */}
       <HStack spacing={4} mb={4}>
@@ -110,15 +130,23 @@ const PostFocus = ({ post }) => {
         </Box>
 
         <VStack align="stretch" spacing={4}>
-          {post.comments?.length > 0 ? (
-            post.comments.map((comment) => (
-              <Box key={comment.id} p={3} borderWidth="1px" borderRadius="md" bg="gray.50">
+          {comments && comments.length > 0 ? (
+            comments.map((comment) => (
+              <Box
+                key={comment.id}
+                p={3}
+                borderWidth="1px"
+                borderRadius="md"
+                bg="gray.50"
+              >
                 <Text fontWeight="bold">{comment.user}</Text>
                 <Text>{comment.content}</Text>
               </Box>
             ))
           ) : (
-            <Text color="gray.500">No comments yet. Be the first to comment!</Text>
+            <Text color="gray.500">
+              No comments yet. Be the first to comment!
+            </Text>
           )}
         </VStack>
       </Box>
@@ -126,8 +154,22 @@ const PostFocus = ({ post }) => {
   );
 };
 
-const mapStateToProps = (state, ownProps) => ({
-  post: ownProps.post || null,
-});
+PostFocus.propTypes = {
+  post: PropTypes.shape({
+    base64_image: PropTypes.string,
+    "created-at": PropTypes.string,
+    likeCount: PropTypes.number,
+    "full-name": PropTypes.string,
+    username: PropTypes.string,
+    content: PropTypes.string,
+    comments: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        user: PropTypes.string,
+        content: PropTypes.string,
+      })
+    ),
+  }),
+};
 
-export default connect(mapStateToProps)(PostFocus);
+export default connect()(PostFocus);

@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, VStack, Text, Progress, Button } from "@chakra-ui/react";
 
 const DailyChallengesCard = () => {

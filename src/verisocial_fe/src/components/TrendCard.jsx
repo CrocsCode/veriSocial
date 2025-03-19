@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Text, Flex } from "@chakra-ui/react";
 import { Line } from "react-chartjs-2";
 import {

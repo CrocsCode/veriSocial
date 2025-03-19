@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { renderProviders } from '../../utils/renderProviders';

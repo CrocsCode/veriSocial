@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
     FormControl,
@@ -61,6 +62,10 @@ const LoginForm = ({ loginRequest }) => {
             </VStack>
         </form>
     );
+};
+
+LoginForm.propTypes = {
+    loginRequest: PropTypes.func.isRequired,
 };
 
 const mapDispatchToProps = {

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useToast } from "@chakra-ui/react";
 import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
 const Notification = ({ notification }) => {
     const toast = useToast();
@@ -18,6 +19,13 @@ const Notification = ({ notification }) => {
     }, [notification, toast]);
 
     return null;
+};
+
+Notification.propTypes = {
+    notification: PropTypes.shape({
+        message: PropTypes.string,
+        status: PropTypes.string,
+    }),
 };
 
 const mapStateToProps = (state) => ({

@@ -1,4 +1,3 @@
-import React from "react";
 import {
     Modal,
     ModalOverlay,
@@ -6,6 +5,7 @@ import {
     ModalCloseButton,
     Box,
 } from "@chakra-ui/react";
+import PropTypes from "prop-types";
 
 const GlobalModal = ({ isOpen, onClose, resetForm, children }) => {
     const handleClose = () => {
@@ -32,6 +32,13 @@ const GlobalModal = ({ isOpen, onClose, resetForm, children }) => {
             </ModalContent>
         </Modal>
     );
+};
+
+GlobalModal.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    resetForm: PropTypes.func,
+    children: PropTypes.node.isRequired,
 };
 
 export default GlobalModal;

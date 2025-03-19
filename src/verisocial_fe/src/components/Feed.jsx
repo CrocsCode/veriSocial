@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { debounce } from "lodash";
 import { Box, VStack, Text, Skeleton, SkeletonText, SkeletonCircle, Icon, HStack } from "@chakra-ui/react";
@@ -9,22 +10,23 @@ import Modal from "./Modal";
 import { loadFeedPageRequest } from "../redux/actionCreators/feedCreators";
 import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
 
-const Feed = ({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) => {
+function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) {
   const { posts, loading, isLastPage } = feed;
   const [currentPage, setCurrentPage] = useState(1);
   const [isFetching, setIsFetching] = useState(false);
-  const pageSize = 8;
-  const feedContainerRef = useRef(null);
   const [isCreatePostOpen, setCreatePostOpen] = useState(false);
 
-  const fetchPosts = () => {
+  const pageSize = 8;
+  const feedContainerRef = useRef(null);
+
+  const fetchPosts = useCallback(() => {
     if (loading || isLastPage || isFetching) return;
 
     setIsFetching(true);
     loadFeedPageRequest(currentPage, pageSize);
 
     setTimeout(() => {
-      setCurrentPage((prevPage) => prevPage + 1);
+      setCurrentPage((prev) => prev + 1);
       setIsFetching(false);
 
       const container = feedContainerRef.current;
@@ -32,27 +34,32 @@ const Feed = ({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
         container.scrollTop = container.scrollTop - 1;
       }
     }, 1500);
-  };
-
-  const debouncedHandleScroll = useCallback(
-    debounce(() => {
-      const container = feedContainerRef.current;
-      if (container && container.scrollTop + container.clientHeight >= container.scrollHeight - 50) {
-        fetchPosts();
-      }
-    }, 500),
-    [fetchPosts]
-  );
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  }, [loading, isLastPage, isFetching, loadFeedPageRequest, currentPage, pageSize]);
 
   useEffect(() => {
     const container = feedContainerRef.current;
-    container.addEventListener("scroll", debouncedHandleScroll);
-    return () => container.removeEventListener("scroll", debouncedHandleScroll);
-  }, [debouncedHandleScroll]);
+    if (!container) return;
+
+    const debouncedScroll = debounce(() => {
+      if (
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 50
+      ) {
+        fetchPosts();
+      }
+    }, 500);
+
+    container.addEventListener("scroll", debouncedScroll);
+
+    return () => {
+      container.removeEventListener("scroll", debouncedScroll);
+    };
+  }, [fetchPosts]);
+
+  useEffect(() => {
+    fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box w="80%" height="100%">
@@ -75,7 +82,9 @@ const Feed = ({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
       >
         <HStack>
           <Icon as={FaPen} boxSize={5} color="gray.600" />
-          <Text color="gray.600" fontWeight="bold">Create Post</Text>
+          <Text color="gray.600" fontWeight="bold">
+            Create Post
+          </Text>
         </HStack>
       </Box>
 
@@ -116,7 +125,14 @@ const Feed = ({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
               {Array(2)
                 .fill("")
                 .map((_, index) => (
-                  <Box key={`loading-${index}`} p={4} borderWidth="1px" borderRadius="lg" boxShadow="md" bg="gray.50">
+                  <Box
+                    key={`loading-${index}`}
+                    p={4}
+                    borderWidth="1px"
+                    borderRadius="lg"
+                    boxShadow="md"
+                    bg="gray.50"
+                  >
                     <Box display="flex" alignItems="center" mb={4}>
                       <SkeletonCircle size="10" mr={4} />
                       <Box>
@@ -132,13 +148,28 @@ const Feed = ({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
 
           {!loading && isLastPage && (
             <Text textAlign="center" fontSize="lg" color="gray.500">
-              You've reached the end of the feed.
+              You&apos;ve reached the end of the feed.
             </Text>
           )}
         </VStack>
       </Box>
     </Box>
   );
+}
+
+Feed.propTypes = {
+  onSelectPost: PropTypes.func.isRequired,
+  loadFeedPageRequest: PropTypes.func.isRequired,
+  feed: PropTypes.shape({
+    posts: PropTypes.arrayOf(
+      PropTypes.shape({
+        post_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      })
+    ),
+    loading: PropTypes.bool,
+    isLastPage: PropTypes.bool,
+  }).isRequired,
+  resetCreatePostForm: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
