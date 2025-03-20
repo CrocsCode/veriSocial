@@ -23,19 +23,19 @@ rust-lint:
 
 
 # Test Stage
-test_node:
+rust-tests:
+  stage: test
+  image: rust:latest
+  script:
+    - cargo test --verbose
+
+node-test:
   image: node:23-alpine
   stage: test
   script:
     - cd src/verisocial_fe
     - npm install
     - npm run test
-
-rust-tests:
-  stage: test
-  image: rust:latest
-  script:
-    - cargo test --verbose
 
 
 # Build Stage
@@ -49,7 +49,7 @@ rust-build:
     paths:
       - target/release/verisocial_be
 
-build_node:
+node-build:
   image: node:23-alpine
   stage: build
   script:
@@ -58,7 +58,7 @@ build_node:
     - npm run build
   artifacts:
     paths:
-      - src/web/out/*
+      - src/verisocial_fe/out/*
 
 
 # Deployment stage
