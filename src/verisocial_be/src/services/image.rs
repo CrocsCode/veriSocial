@@ -2,7 +2,7 @@ use reqwest::Client;
 use serde_json::json;
 
 use crate::models::response::{ApiError, ImageResponse};
-use crate::config::config::AI_IMAGE_URL;
+use crate::config::settings::AI_IMAGE_URL;
 
 
 pub async fn image_check(encoded_image: String, post_id: u64, client: &Client) -> Result<ImageResponse, ApiError> {

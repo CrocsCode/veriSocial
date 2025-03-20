@@ -91,8 +91,8 @@ pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiEr
     .fetch_one(conn).await;
 
     match result {
-        Ok(user) => return Ok(user),
-        Err(e) => return Err(ApiError::CannotCreateObject(e.to_string()))
+        Ok(user) => Ok(user),
+        Err(e) => Err(ApiError::CannotCreateObject(e.to_string()))
     }
 }
 

@@ -4,7 +4,7 @@ use actix_web_httpauth::extractors::bearer::BearerAuth;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 
 use crate::services::auth::Claims;
-use crate::config::config::SECRET;
+use crate::config::settings::SECRET;
 
 
 pub async fn auth_middleware(
@@ -13,7 +13,7 @@ pub async fn auth_middleware(
 ) -> Result<ServiceResponse<impl MessageBody>,Error> {
     dotenvy::dotenv().ok();
 
-    let auth = BearerAuth::extract(&req.request()).await?;
+    let auth = BearerAuth::extract(req.request()).await?;
     let token = auth.token();
 
     // Configure credentials

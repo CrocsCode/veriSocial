@@ -1,8 +1,77 @@
 stages:
+  - lint
   - test
+  - build
+  - deploy
 
+
+# Linting Stage
+rust-lint:
+  stage: lint
+  image: rust:latest
+  script:
+    - rustup component add clippy
+    - cargo clippy
+
+lint_node:
+  image: node:23-alpine
+  stage: lint
+  script:
+    - cd src/verisocial_fe
+    - npm install
+    - npm run lint
+
+
+# Test Stage
 rust-tests:
   stage: test
   image: rust:latest
   script:
     - cargo test --verbose
+
+node-test:
+  image: node:23-alpine
+  stage: test
+  script:
+    - cd src/verisocial_fe
+    - npm install
+    - npm run test
+
+
+# Build Stage
+rust-build:
+  stage: build
+  image: rust:1.85.0-alpine
+  script:
+    - apk add --no-cache alpine-sdk openssl-dev libssl3 openssl-libs-static
+    - cargo build --workspace --release
+  artifacts:
+    paths:
+      - target/release/verisocial_be
+
+node-build:
+  image: node:23-alpine
+  stage: build
+  script:
+    - cd src/verisocial_fe
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - src/verisocial_fe/out/*
+
+
+# Deployment stage
+deploy:
+  stage: deploy
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  variables:
+    IMAGE_TAG: $REGISTRY_NAME
+  script:
+    - echo "$REGISTRY_PASSWORD" | docker login -u $REGISTRY_USER --password-stdin
+    - docker build -t $REGISTRY_NAME:backend -f ./src/verisocial_be/Dockerfile .
+    - docker build -t $REGISTRY_NAME:frontend -f ./src/verisocial_fe/Dockerfile .
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'

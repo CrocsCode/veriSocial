@@ -27,9 +27,11 @@ pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>) -> Result<
             &app_state.client
         ).await?;
 
-        info!("{:?}", check);
+        if check.post_id > 0 {
+            info!("{:?}", check);
+        }
 
-        if check.class_type.to_string() == "real".to_string() {
+        if check.class_type == *"real" {
             1_f64 - check.score
         } else {
             check.score
