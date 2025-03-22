@@ -1,19 +1,21 @@
 import { useState } from "react";
-import { Box, Heading, Text, Image, Avatar, HStack, Icon } from "@chakra-ui/react";
-import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
+import {
+  Box,
+  Heading,
+  Text,
+  Image,
+  Avatar,
+  HStack,
+  Icon,
+  Tooltip,
+} from "@chakra-ui/react";
+import { FaHeart, FaRegHeart, FaFlag, FaRobot } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
 import PropTypes from "prop-types";
+import { formatDistanceToNowStrict } from "date-fns";
 
-const getRelativeTime = (timestamp) => {
-  const now = new Date();
-  const postTime = new Date(timestamp);
-  const diff = Math.floor((now - postTime) / 1000);
-
-  if (diff < 60) return `${diff} seconds ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-  return `${Math.floor(diff / 86400)} days ago`;
-};
+const getRelativeTime = (timestamp) =>
+  `${formatDistanceToNowStrict(new Date(timestamp))} ago`;
 
 const formatBase64Image = (base64) => {
   if (!base64) return null;
@@ -35,6 +37,19 @@ const PostCard = ({ post, onClick }) => {
       setIsLiked(true);
       setLikeCount(likeCount + 1);
     }
+  };
+
+  // Bot Score Display and Levels
+  const botScore = post["bot-score"];
+  const botScoreLevel = botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
+  const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
+
+  const botScoreColors = {
+    1: "#7ABD7E",
+    2: "#b6d7a8",
+    3: "#F8D66D",
+    4: "#FFB54C",
+    5: "#e06666",
   };
 
   return (
@@ -97,6 +112,23 @@ const PostCard = ({ post, onClick }) => {
           <Text>Report</Text>
         </HStack>
       </HStack>
+
+      {/* Bot Score Icon */}
+      <Box position="absolute" bottom={4} right={4}>
+        <Tooltip
+          label={`Bot Score: (${formattedBotScore})`}
+          placement="top"
+          hasArrow
+          fontSize="1vh"
+        >
+          <HStack spacing={1}>
+            <Icon as={FaRobot} boxSize="1.5rem" color={botScoreColors[botScoreLevel]} />
+            <Text color={botScoreColors[botScoreLevel]}>
+              {botScoreLevel}
+            </Text>
+          </HStack>
+        </Tooltip>
+      </Box>
     </Box>
   );
 };
@@ -109,6 +141,7 @@ PostCard.propTypes = {
     "full-name": PropTypes.string,
     username: PropTypes.string,
     content: PropTypes.string,
+    "bot-score": PropTypes.number,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
 };
