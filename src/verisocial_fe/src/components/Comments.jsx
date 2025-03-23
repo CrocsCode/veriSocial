@@ -118,7 +118,7 @@ function Comments({ initialComments = [] }) {
                           color={comment.liked ? "red.500" : "blue.500"}
                           transition="transform 0.2s"
                           _groupHover={{ transform: "scale(1.2)" }}
-                          _active={{ transform: "scale(0.9)" }}
+                          _groupActive={{ transform: "scale(0.9)" }}
                         />
                         <Text fontSize="sm" fontWeight={comment.liked ? "bold" : "normal"}>
                           {comment.likeCount || 0}
