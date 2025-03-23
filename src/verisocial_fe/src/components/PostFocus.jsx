@@ -10,9 +10,12 @@ import {
   Icon,
   Divider,
   Image,
+  Tooltip,
+  Spacer,
 } from "@chakra-ui/react";
-import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaFlag, FaRobot } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
+import { formatDistanceToNowStrict } from "date-fns";
 import Comments from "./Comments";
 
 const formatBase64Image = (base64) => {
@@ -23,7 +26,6 @@ const formatBase64Image = (base64) => {
 };
 
 const PostFocus = ({ post = null }) => {
-  // Create an initial likes value - IF post is null.
   const initialLikesComputed =
     post?.likeCount ?? Math.floor(Math.random() * 100);
   const [likeCount, setLikeCount] = useState(initialLikesComputed);
@@ -46,10 +48,23 @@ const PostFocus = ({ post = null }) => {
     username,
     content,
     comments,
+    "bot-score": botScore,
   } = post;
 
   const imageSrc = formatBase64Image(base64Image);
-  const readableTimestamp = new Date(createdAt).toLocaleString();
+  const relativeTime = `${formatDistanceToNowStrict(new Date(createdAt))} ago`;
+
+  // Bot Score
+  const botScoreLevel =
+    botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
+  const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
+  const botScoreColors = {
+    1: "#7ABD7E",
+    2: "#b6d7a8",
+    3: "#F8D66D",
+    4: "#FFB54C",
+    5: "#e06666",
+  };
 
   const handleLikeClick = (e) => {
     e.stopPropagation();
@@ -86,7 +101,7 @@ const PostFocus = ({ post = null }) => {
             </Box>
           </HStack>
           <Text fontSize="sm" color="gray.400">
-            {readableTimestamp}
+            {relativeTime}
           </Text>
         </HStack>
       </Box>
@@ -102,7 +117,8 @@ const PostFocus = ({ post = null }) => {
       {/* Buttons */}
       <Box mb={4}>
         <HStack spacing={4} mb={4}>
-        <HStack spacing={1.5} cursor="pointer" onClick={handleLikeClick} role="group">
+          {/* Like */}
+          <HStack spacing={1.5} cursor="pointer" onClick={handleLikeClick} role="group">
             <Icon
               as={isLiked ? FaHeart : FaRegHeart}
               boxSize={4}
@@ -113,14 +129,32 @@ const PostFocus = ({ post = null }) => {
             />
             <Text fontWeight={isLiked ? "bold" : "normal"}>{likeCount}</Text>
           </HStack>
+
+          {/* Reply */}
           <HStack color="teal.500" fontSize="sm" cursor="pointer">
             <Icon as={FaMessage} boxSize={4} />
             <Text>Reply</Text>
           </HStack>
+
+          {/* Report */}
           <HStack color="red.500" fontSize="sm" cursor="pointer">
             <Icon as={FaFlag} boxSize={4} />
             <Text>Report</Text>
           </HStack>
+
+          <Spacer /> 
+
+          <Tooltip
+            label={`Bot Score: (${formattedBotScore})`}
+            placement="top"
+            hasArrow
+            fontSize="1vh"
+          >
+            <HStack spacing={1} cursor="default">
+              <Icon as={FaRobot} boxSize="1.5rem" color={botScoreColors[botScoreLevel]} />
+              <Text color={botScoreColors[botScoreLevel]}>{botScoreLevel}</Text>
+            </HStack>
+          </Tooltip>
         </HStack>
       </Box>
 
@@ -135,7 +169,7 @@ const PostFocus = ({ post = null }) => {
       </Box>
     </Box>
   );
-}
+};
 
 PostFocus.propTypes = {
   post: PropTypes.shape({
@@ -145,6 +179,7 @@ PostFocus.propTypes = {
     "full-name": PropTypes.string,
     username: PropTypes.string,
     content: PropTypes.string,
+    "bot-score": PropTypes.number,
     comments: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
