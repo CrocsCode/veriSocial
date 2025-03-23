@@ -17,6 +17,8 @@ import { FaHeart, FaRegHeart, FaFlag, FaRobot } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
 import { formatDistanceToNowStrict } from "date-fns";
 import Comments from "./Comments";
+import Modal from "./Modal";
+import ReportForm from "./ReportForm";
 
 const formatBase64Image = (base64) => {
   if (!base64) return null;
@@ -30,6 +32,7 @@ const PostFocus = ({ post = null }) => {
     post?.likeCount ?? Math.floor(Math.random() * 100);
   const [likeCount, setLikeCount] = useState(initialLikesComputed);
   const [isLiked, setIsLiked] = useState(false);
+  const [isReportOpen, setReportOpen] = useState(false);
 
   if (!post) {
     return (
@@ -72,102 +75,137 @@ const PostFocus = ({ post = null }) => {
     setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
   };
 
+  const handleReportClick = (e) => {
+    e.stopPropagation();
+    setReportOpen(true);
+  };
+
   return (
-    <Box
-      p="5"
-      borderRadius="md"
-      bg="purple.50"
-      h="70vh"
-      w="40vw"
-      overflowY="auto"
-      sx={{
-        "::-webkit-scrollbar": { display: "none" },
-        msOverflowStyle: "none",
-        scrollbarWidth: "none",
-      }}
-    >
-      {/* User Info */}
-      <Box mb={4}>
-        <HStack justifyContent="space-between">
-          <HStack>
-            <Avatar name={fullName} size="lg" />
-            <Box>
-              <Heading as="h3" size="md">
-                {fullName}
-              </Heading>
-              <Text fontSize="sm" color="gray.500">
-                @{username}
-              </Text>
-            </Box>
-          </HStack>
-          <Text fontSize="sm" color="gray.400">
-            {relativeTime}
-          </Text>
-        </HStack>
-      </Box>
-
-      {/* Post Content */}
-      <Box mb={4}>
-        <Text mb={4}>{content}</Text>
-        {imageSrc && (
-          <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />
-        )}
-      </Box>
-
-      {/* Buttons */}
-      <Box mb={4}>
-        <HStack spacing={4} mb={4}>
-          {/* Like */}
-          <HStack spacing={1.5} cursor="pointer" onClick={handleLikeClick} role="group">
-            <Icon
-              as={isLiked ? FaHeart : FaRegHeart}
-              boxSize={4}
-              color={isLiked ? "red.500" : "blue.500"}
-              transition="transform 0.2s"
-              _groupHover={{ transform: "scale(1.2)" }}
-              _active={{ transform: "scale(0.9)" }}
-            />
-            <Text fontWeight={isLiked ? "bold" : "normal"}>{likeCount}</Text>
-          </HStack>
-
-          {/* Reply */}
-          <HStack color="teal.500" fontSize="sm" cursor="pointer">
-            <Icon as={FaMessage} boxSize={4} />
-            <Text>Reply</Text>
-          </HStack>
-
-          {/* Report */}
-          <HStack color="red.500" fontSize="sm" cursor="pointer">
-            <Icon as={FaFlag} boxSize={4} />
-            <Text>Report</Text>
-          </HStack>
-
-          <Spacer /> 
-
-          <Tooltip
-            label={`Bot Score: (${formattedBotScore})`}
-            placement="top"
-            hasArrow
-            fontSize="1vh"
-          >
-            <HStack spacing={1} cursor="default">
-              <Icon as={FaRobot} boxSize="1.5rem" color={botScoreColors[botScoreLevel]} />
-              <Text color={botScoreColors[botScoreLevel]}>{botScoreLevel}</Text>
+    <>
+      <Box
+        p="5"
+        borderRadius="md"
+        bg="purple.50"
+        h="70vh"
+        w="40vw"
+        overflowY="auto"
+        sx={{
+          "::-webkit-scrollbar": { display: "none" },
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
+        }}
+      >
+        {/* User Info */}
+        <Box mb={4}>
+          <HStack justifyContent="space-between">
+            <HStack>
+              <Avatar name={fullName} size="lg" />
+              <Box>
+                <Heading as="h3" size="md">
+                  {fullName}
+                </Heading>
+                <Text fontSize="sm" color="gray.500">
+                  @{username}
+                </Text>
+              </Box>
             </HStack>
-          </Tooltip>
-        </HStack>
+            <Text fontSize="sm" color="gray.400">
+              {relativeTime}
+            </Text>
+          </HStack>
+        </Box>
+
+        {/* Post Content */}
+        <Box mb={4}>
+          <Text mb={4}>{content}</Text>
+          {imageSrc && (
+            <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />
+          )}
+        </Box>
+
+        {/* Buttons */}
+        <Box mb={4}>
+          <HStack spacing={4} mb={4}>
+            {/* Like */}
+            <HStack spacing={1.5} cursor="pointer" onClick={handleLikeClick} role="group">
+              <Icon
+                as={isLiked ? FaHeart : FaRegHeart}
+                boxSize={4}
+                color={isLiked ? "red.500" : "blue.500"}
+                transition="transform 0.2s"
+                _groupHover={{ transform: "scale(1.2)" }}
+                _groupActive={{ transform: "scale(0.9)" }}
+              />
+              <Text fontWeight={isLiked ? "bold" : "normal"}>{likeCount}</Text>
+            </HStack>
+
+            {/* Reply */}
+            <HStack color="teal.500" fontSize="sm" cursor="pointer">
+              <Icon as={FaMessage} boxSize={4} />
+              <Text>Reply</Text>
+            </HStack>
+
+            {/* Report */}
+            <HStack
+              color="red.500"
+              fontSize="sm"
+              cursor="pointer"
+              onClick={handleReportClick}
+              role="group"
+            >
+              <Icon
+                as={FaFlag}
+                boxSize={4}
+                transition="transform 0.2s"
+                _groupHover={{ transform: "scale(1.2)" }}
+                _groupActive={{ transform: "scale(0.9)", color: "red.700" }}
+              />
+              {/* <Text>Report</Text> */}
+            </HStack>
+
+            <Spacer />
+
+            <Tooltip
+              label={`Bot Score: (${formattedBotScore})`}
+              placement="top"
+              hasArrow
+              fontSize="1vh"
+            >
+              <HStack spacing={1} cursor="default">
+                <Icon
+                  as={FaRobot}
+                  boxSize="1.5rem"
+                  color={botScoreColors[botScoreLevel]}
+                />
+                <Text color={botScoreColors[botScoreLevel]}>{botScoreLevel}</Text>
+              </HStack>
+            </Tooltip>
+          </HStack>
+        </Box>
+
+        <Divider my={2} borderColor="gray.300" />
+
+        {/* Comments */}
+        <Box mt={6}>
+          <Heading
+            as="h4"
+            size="md"
+            mb={4}
+            color="purple.600"
+            fontWeight="bold"
+          >
+            Comments
+          </Heading>
+          <Comments initialComments={comments || []} />
+        </Box>
       </Box>
 
-      <Divider my={2} borderColor="gray.300" />
-
-      {/* Comments */}
-      <Box mt={6}>
-        <Heading as="h4" size="md" mb={4} color="purple.600" fontWeight="bold">
-          Comments
-        </Heading>
-        <Comments initialComments={comments || []} />
-      </Box>
-    </Box>
+      {isReportOpen && (
+        <Modal isOpen={isReportOpen} onClose={() => setReportOpen(false)}>
+          <ReportForm onClose={() => setReportOpen(false)} />
+        </Modal>
+      )}
+    </>
   );
 };
 
