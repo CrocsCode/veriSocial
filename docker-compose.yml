@@ -8,9 +8,9 @@ services:
       - database
     environment:
       APP_URL: '0.0.0.0'
-      APP_DATABASE_URL: '${APP_DATABASE_URL:-mysql://root:my-secret-pw@database:3306/mydatabase}'
+      APP_DATABASE_URL: 'mysql://root:my-secret-pw@database:3306/mydatabase'
       AI_IMAGE_CHECKER_URL: 'http://ai-detection:8000/classify'
-      AUTH_SECRET: "${AUTH_SECRET}"
+      AUTH_SECRET: "XXIwRXPJkwNQrDIcJQzPjus60LsVY5ku"
     ports:
     - 8080:8080
 
@@ -20,17 +20,9 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_BASE_URL: 'http://0.0.0.0:8080/'
+      VITE_API_BASE_URL: 'http://139.59.175.54:8080/'
     ports:
     - 80:80
-  
-  ai-detection:
-    image: ai-detect-build
-    container_name: ai-detect-build
-    depends_on:
-      - backend
-    ports:
-    - 8000:8000
 
   database:
     image: mysql:latest
