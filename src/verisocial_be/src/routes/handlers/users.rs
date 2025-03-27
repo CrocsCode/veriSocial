@@ -5,14 +5,6 @@ use crate::models::{
 };
 use crate::services::users;
 
-/// TODO:
-/// Retrieve user
-/// Retrieve multiple
-/// Register
-/// Delete
-/// Follow
-/// Unfollow
-
 
 #[get("/user/{user_id}")]
 pub async fn retrieve_user(user_id: web::Path<u64>, app_data: web::Data<AppState<'_>>) -> impl Responder {
@@ -55,7 +47,6 @@ pub async fn login_user(json: web::Json<AuthDetails>,data: web::Data<AppState<'_
 
     // Verify login
     let login = users::verify_auth_details(&app_state.pool, &app_state.pass_hashing, auth.email, auth.password).await;
-    println!("Success");
     Response::create_get_response(login)
 }
 

@@ -14,6 +14,10 @@ pub struct Post {
     pub base64_image: Option<String>,
     #[serde(rename = "created-at")]
     pub created_at: DateTime<Utc>,
+    #[serde(rename = "likes-count")]
+    pub likes_count: u64,
+    #[serde(rename = "is-liked")]
+    pub is_liked: Option<i64>,
     #[serde(rename = "bot-score")]
     pub bot_score: f32
 }
@@ -26,4 +30,9 @@ pub struct NewPost {
     // Could be passed as part of the URI (for the username or user_id)
     pub content: String,
     pub base64_image: Option<String>
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct LikePost {
+    pub post_id: u64
 }

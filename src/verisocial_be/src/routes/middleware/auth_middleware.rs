@@ -3,7 +3,7 @@ use actix_web::middleware::Next;
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 
-use crate::services::auth::Claims;
+use crate::models::auth::{Claims, AuthUser};
 use crate::config::settings::SECRET;
 
 
@@ -30,7 +30,10 @@ pub async fn auth_middleware(
         &validation
     ).map_err(|err| actix_web::error::ErrorUnauthorized(err.to_string()))?;
 
-    req.extensions_mut().insert(token_data.claims);
+    // User_id to request.
+    req.extensions_mut().insert(AuthUser {
+        user_id: token_data.claims.sub.clone(),
+    });
 
     next.call(req).await
 }
