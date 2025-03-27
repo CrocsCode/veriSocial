@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        WHERE \n            p.post_id = ?;\n        ",
+  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name,\n            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,\n            MAX(l.user_id = ?) > 0 AS is_liked\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        LEFT JOIN \n            likes AS l ON p.post_id = l.post_id\n        WHERE \n            p.user_id = ?\n        GROUP BY \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            p.user_id,\n            u.username,\n            u.full_name\n        LIMIT ? OFFSET ?\n        ",
   "describe": {
     "columns": [
       {
@@ -74,10 +74,28 @@
           "flags": "NOT_NULL | NO_DEFAULT_VALUE",
           "max_size": 400
         }
+      },
+      {
+        "ordinal": 8,
+        "name": "likes_count",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | UNSIGNED | BINARY",
+          "max_size": 21
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "is_liked",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "BINARY",
+          "max_size": 1
+        }
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 4
     },
     "nullable": [
       false,
@@ -87,8 +105,10 @@
       false,
       false,
       false,
-      false
+      false,
+      false,
+      true
     ]
   },
-  "hash": "ff8504091809f8e8ed9a68c00333a422edb7a657e422464a92ed401a8f0f13af"
+  "hash": "2fdfdacc0e522b5dd071a5f972aa525a2b531e63038e716dafebdb62848c584c"
 }
