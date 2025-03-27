@@ -61,7 +61,7 @@ pub async fn for_you_page(user_id: web::Path<u64>,app_data: web::Data<AppState<'
 pub async fn like_post(post: web::Json<LikePost>, user: AuthUser, app_data: web::Data<AppState<'_>>) -> impl Responder {
     let conn = &app_data.pool;
     
-    let like = likes::toggle_like(conn, user.user_id, post.into_inner().post_id).await;
+    let like = likes::toggle_like(conn, post.into_inner().post_id, user.user_id).await;
     Response::create_post_response(like)
 }
 
