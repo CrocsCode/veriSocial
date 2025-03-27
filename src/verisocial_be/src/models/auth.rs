@@ -21,14 +21,8 @@ impl FromRequest for AuthUser {
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         match req.extensions().get::<AuthUser>() {
-            Some(user) => {
-                println!("I am good!");
-                ready(Ok(user.clone()))
-            },
-            None => {
-                println!("I am not good!");
-                ready(Err(actix_web::error::ErrorUnauthorized("User not authorized.")))
-            }
+            Some(user) => ready(Ok(user.clone())),
+            None => ready(Err(actix_web::error::ErrorUnauthorized("User not authorized.")))
         }
     }
 }

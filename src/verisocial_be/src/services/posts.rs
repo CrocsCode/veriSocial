@@ -88,7 +88,7 @@ pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>) -> Result<
     }
 }
 
-pub async fn user_timeline(conn: &MySqlPool, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
+pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
     let query = sqlx::query_as!(Post,
         r#"
         SELECT 
@@ -101,7 +101,7 @@ pub async fn user_timeline(conn: &MySqlPool, page_size: u32, offset: u32) -> Res
             u.username,
             u.full_name,
             CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
-            MAX(l.user_id = u.user_id) > 0 AS is_liked
+            MAX(l.user_id = ?) > 0 AS is_liked
         FROM
             posts AS p
         INNER JOIN
@@ -121,6 +121,7 @@ pub async fn user_timeline(conn: &MySqlPool, page_size: u32, offset: u32) -> Res
             created_at DESC
         LIMIT ? OFFSET ?
         "#,
+        user_id,
         page_size,
         offset
     )

@@ -9,7 +9,7 @@ lazy_static!{
 
 pub fn init_config() -> HashMap<String, String> {
     // Dotenv
-    dotenvy::dotenv().ok().unwrap(); 
+    dotenvy::dotenv().ok();
     
     let config_file = Config::builder()
         .add_source(config::Environment::with_prefix("APP"))
