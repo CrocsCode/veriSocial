@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        WHERE \n            p.user_id = ?\n        LIMIT ? OFFSET ?\n        ",
+  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name,\n            CAST(0 AS UNSIGNED) AS likes_count,\n            0 AS is_liked\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        WHERE \n            p.post_id = ?;\n        ",
   "describe": {
     "columns": [
       {
@@ -74,10 +74,28 @@
           "flags": "NOT_NULL | NO_DEFAULT_VALUE",
           "max_size": 400
         }
+      },
+      {
+        "ordinal": 8,
+        "name": "likes_count",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | UNSIGNED | BINARY",
+          "max_size": 21
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "is_liked",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | BINARY",
+          "max_size": 2
+        }
       }
     ],
     "parameters": {
-      "Right": 3
+      "Right": 1
     },
     "nullable": [
       false,
@@ -87,8 +105,10 @@
       false,
       false,
       false,
+      false,
+      false,
       false
     ]
   },
-  "hash": "3116e238ce285c8499d1470a1f0eb60aec9406b4452856eae9da802b37efc19b"
+  "hash": "d8a58ac09854420918112561e42d2a844705cf86ca1cce127207444d83dc6b4e"
 }
