@@ -75,5 +75,5 @@ deploy:
     - docker build -t $REGISTRY_NAME:frontend -f ./src/verisocial_fe/Dockerfile .
     - docker push $REGISTRY_NAME:backend
     - docker push $REGISTRY_NAME:frontend
-  #rules:
-  #  - if: '$CI_COMMIT_BRANCH == "main"'
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'

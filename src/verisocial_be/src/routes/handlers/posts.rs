@@ -35,14 +35,14 @@ pub async fn create_new_post(json: web::Json<NewPost>, app_data: web::Data<AppSt
 }
 
 #[get("/user")]
-pub async fn timeline(app_data: web::Data<AppState<'_>>, query: web::Query<Pagination>) -> impl Responder {
+pub async fn timeline(app_data: web::Data<AppState<'_>>, query: web::Query<Pagination>, user: AuthUser) -> impl Responder {
     let conn = &app_data.into_inner().pool;
 
     let page = query.page.unwrap_or(1);
     let size = query.size.unwrap_or(10);
     let page_offset = (page - 1) * size;
 
-    let result = posts::user_timeline(conn, size, page_offset).await;
+    let result = posts::user_timeline(conn, user.user_id, size, page_offset).await;
     Response::create_get_response(result)
 }
 
@@ -61,7 +61,7 @@ pub async fn for_you_page(user_id: web::Path<u64>,app_data: web::Data<AppState<'
 pub async fn like_post(post: web::Json<LikePost>, user: AuthUser, app_data: web::Data<AppState<'_>>) -> impl Responder {
     let conn = &app_data.pool;
     
-    let like = likes::insert_like(conn, user.user_id, post.into_inner().post_id).await;
+    let like = likes::toggle_like(conn, user.user_id, post.into_inner().post_id).await;
     Response::create_post_response(like)
 }
 
