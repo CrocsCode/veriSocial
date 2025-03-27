@@ -32,7 +32,7 @@ pub async fn auth_middleware(
 
     // User_id to request.
     req.extensions_mut().insert(AuthUser {
-        user_id: token_data.claims.sub.clone(),
+        user_id: token_data.claims.sub,
     });
 
     next.call(req).await
