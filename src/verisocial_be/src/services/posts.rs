@@ -101,13 +101,15 @@ pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offse
             u.username,
             u.full_name,
             CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
-            MAX(l.user_id = ?) > 0 AS is_liked
+            MAX(l2.user_id IS NOT NULL) AS is_liked
         FROM
             posts AS p
         INNER JOIN
             users AS u ON p.user_id = u.user_id
         LEFT JOIN 
             likes AS l ON p.post_id = l.post_id
+        LEFT JOIN
+            likes AS l2 ON p.post_id = l2.post_id AND l2.user_id = ?
         GROUP BY 
             p.post_id,
             p.content,
@@ -116,7 +118,8 @@ pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offse
             p.bot_score,
             u.user_id,
             u.username,
-            u.full_name
+            u.full_name,
+            l2.user_id
         ORDER BY
             created_at DESC
         LIMIT ? OFFSET ?
