@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { connect } from "react-redux";
 import {
   Box,
   Heading,
@@ -15,20 +16,24 @@ import PropTypes from "prop-types";
 import { formatDistanceToNowStrict } from "date-fns";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
+import { likePostRequest } from "../redux/actionCreators/postInteractCreators";
 
 const getRelativeTime = (timestamp) =>
   `${formatDistanceToNowStrict(new Date(timestamp))} ago`;
 
 const formatBase64Image = (base64) => {
   if (!base64) return null;
-  return base64.startsWith("data:image") ? base64 : `data:image/jpeg;base64,${base64}`;
+  return base64.startsWith("data:image")
+    ? base64
+    : `data:image/jpeg;base64,${base64}`;
 };
 
-const PostCard = ({ post, onClick }) => {
+const PostCard = ({ post, onClick, likePostRequest }) => {
   const imageSrc = formatBase64Image(post.base64_image);
-  const initialLikes = post.likeCount !== undefined ? post.likeCount : Math.floor(Math.random() * 100); // TEMP
+  const initialLikes =
+    post["likes-count"] !== undefined ? post["likes-count"] : 0;
   const [likeCount, setLikeCount] = useState(initialLikes);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(!!post["is-liked"]);
   const [isReportOpen, setReportOpen] = useState(false);
 
   const handleLikeClick = (e) => {
@@ -40,6 +45,7 @@ const PostCard = ({ post, onClick }) => {
       setIsLiked(true);
       setLikeCount(likeCount + 1);
     }
+    likePostRequest(post.post_id);
   };
 
   const handleReportClick = (e) => {
@@ -95,7 +101,9 @@ const PostCard = ({ post, onClick }) => {
 
         {/* Content */}
         <Text mb={4}>{post.content}</Text>
-        {imageSrc && <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />}
+        {imageSrc && (
+          <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />
+        )}
 
         {/* Buttons */}
         <HStack spacing={4}>
@@ -113,7 +121,6 @@ const PostCard = ({ post, onClick }) => {
 
           <HStack color="teal.500" fontSize="sm" cursor="pointer">
             <Icon as={FaMessage} boxSize={4} />
-            {/* <Text>Comments</Text> */}
           </HStack>
 
           <HStack
@@ -130,9 +137,7 @@ const PostCard = ({ post, onClick }) => {
               _groupHover={{ transform: "scale(1.2)" }}
               _groupActive={{ transform: "scale(0.9)", color: "red.700" }}
             />
-            {/* <Text>Report</Text> */}
           </HStack>
-
         </HStack>
 
         {/* Bot Score Icon */}
@@ -163,14 +168,21 @@ const PostCard = ({ post, onClick }) => {
 PostCard.propTypes = {
   post: PropTypes.shape({
     base64_image: PropTypes.string,
-    likeCount: PropTypes.number,
+    "likes-count": PropTypes.number,
     "created-at": PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     "full-name": PropTypes.string,
     username: PropTypes.string,
     content: PropTypes.string,
     "bot-score": PropTypes.number,
+    "is-liked": PropTypes.number,
+    post_id: PropTypes.number,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
+  likePostRequest: PropTypes.func.isRequired,
 };
 
-export default PostCard;
+const mapDispatchToProps = {
+  likePostRequest,
+};
+
+export default connect(null, mapDispatchToProps)(PostCard);

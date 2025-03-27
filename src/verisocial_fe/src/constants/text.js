@@ -17,6 +17,16 @@ const T = {
             SUCCESS: "Post Created.",
             FAILURE: "Failed to create Post.",
         }
+    },
+    INTERACTIONS: {
+        POST: {
+            LIKED: "Liked Post.",
+            UNLIKED: "Unliked Post.",
+            LIKE_ERROR: "Error with Post Likes.",
+        }
+    },
+    GENERAL: {
+        ERROR: "Something went wrong.",
     }
 };
 
