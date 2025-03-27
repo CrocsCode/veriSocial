@@ -19,6 +19,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import Comments from "./Comments";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
+import { likePostRequest } from "../redux/actionCreators/postInteractCreators";
 
 const formatBase64Image = (base64) => {
   if (!base64) return null;
@@ -27,11 +28,11 @@ const formatBase64Image = (base64) => {
     : `data:image/jpeg;base64,${base64}`;
 };
 
-const PostFocus = ({ post = null }) => {
-  const initialLikesComputed =
-    post?.likeCount ?? Math.floor(Math.random() * 100);
-  const [likeCount, setLikeCount] = useState(initialLikesComputed);
-  const [isLiked, setIsLiked] = useState(false);
+const PostFocus = ({ post, likePostRequest }) => {
+  const [likeCount, setLikeCount] = useState(
+    post && post["likes-count"] !== undefined ? post["likes-count"] : 0
+  );
+  const [isLiked, setIsLiked] = useState(post ? !!post["is-liked"] : false);
   const [isReportOpen, setReportOpen] = useState(false);
 
   if (!post) {
@@ -52,14 +53,14 @@ const PostFocus = ({ post = null }) => {
     content,
     comments,
     "bot-score": botScore,
+    post_id: postId,
   } = post;
 
   const imageSrc = formatBase64Image(base64Image);
   const relativeTime = `${formatDistanceToNowStrict(new Date(createdAt))} ago`;
 
   // Bot Score
-  const botScoreLevel =
-    botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
+  const botScoreLevel = botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
   const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
   const botScoreColors = {
     1: "#7ABD7E",
@@ -71,8 +72,18 @@ const PostFocus = ({ post = null }) => {
 
   const handleLikeClick = (e) => {
     e.stopPropagation();
-    setIsLiked(!isLiked);
-    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount((prev) => prev - 1);
+    } else {
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
+
+    if (postId) {
+      likePostRequest(postId);
+    }
   };
 
   const handleReportClick = (e) => {
@@ -160,11 +171,11 @@ const PostFocus = ({ post = null }) => {
                 _groupHover={{ transform: "scale(1.2)" }}
                 _groupActive={{ transform: "scale(0.9)", color: "red.700" }}
               />
-              {/* <Text>Report</Text> */}
             </HStack>
 
             <Spacer />
 
+            {/* Bot Score */}
             <Tooltip
               label={`Bot Score: (${formattedBotScore})`}
               placement="top"
@@ -172,11 +183,7 @@ const PostFocus = ({ post = null }) => {
               fontSize="1vh"
             >
               <HStack spacing={1} cursor="default">
-                <Icon
-                  as={FaRobot}
-                  boxSize="1.5rem"
-                  color={botScoreColors[botScoreLevel]}
-                />
+                <Icon as={FaRobot} boxSize="1.5rem" color={botScoreColors[botScoreLevel]} />
                 <Text color={botScoreColors[botScoreLevel]}>{botScoreLevel}</Text>
               </HStack>
             </Tooltip>
@@ -185,15 +192,9 @@ const PostFocus = ({ post = null }) => {
 
         <Divider my={2} borderColor="gray.300" />
 
-        {/* Comments */}
+        {/* Comments Section */}
         <Box mt={6}>
-          <Heading
-            as="h4"
-            size="md"
-            mb={4}
-            color="purple.600"
-            fontWeight="bold"
-          >
+          <Heading as="h4" size="md" mb={4} color="purple.600" fontWeight="bold">
             Comments
           </Heading>
           <Comments initialComments={comments || []} />
@@ -211,13 +212,15 @@ const PostFocus = ({ post = null }) => {
 
 PostFocus.propTypes = {
   post: PropTypes.shape({
+    post_id: PropTypes.number,
     base64_image: PropTypes.string,
-    "created-at": PropTypes.string,
-    likeCount: PropTypes.number,
+    "created-at": PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     "full-name": PropTypes.string,
     username: PropTypes.string,
     content: PropTypes.string,
     "bot-score": PropTypes.number,
+    "likes-count": PropTypes.number,
+    "is-liked": PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
     comments: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -228,6 +231,11 @@ PostFocus.propTypes = {
       })
     ),
   }),
+  likePostRequest: PropTypes.func,
 };
 
-export default connect()(PostFocus);
+const mapDispatchToProps = {
+  likePostRequest,
+};
+
+export default connect(null, mapDispatchToProps)(PostFocus);
