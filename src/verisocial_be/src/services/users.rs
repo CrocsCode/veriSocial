@@ -73,8 +73,8 @@ pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, email: S
     };
 
     if user.verify_password(&password, argon2) {
-        let jwt = auth::generate_jwt(&user.user_id.to_string());
-        let resp = json!({"token": jwt, "id": &user.user_id.to_string()});
+        let jwt = auth::generate_jwt(&user.user_id);
+        let resp = json!({"token": jwt, "id": &user.user_id});
         Ok(resp)
     } else {
         Err(ApiError::AuthError("Passwords don't match".into()))

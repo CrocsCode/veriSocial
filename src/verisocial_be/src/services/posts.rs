@@ -68,7 +68,9 @@ pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>) -> Result<
             p.bot_score,
             u.user_id,
             u.username,
-            u.full_name
+            u.full_name,
+            CAST(0 AS UNSIGNED) AS likes_count,
+            0 AS is_liked
         FROM 
             posts AS p
         INNER JOIN
@@ -97,11 +99,24 @@ pub async fn user_timeline(conn: &MySqlPool, page_size: u32, offset: u32) -> Res
             p.bot_score,
             u.user_id,
             u.username,
-            u.full_name
-        FROM 
+            u.full_name,
+            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
+            MAX(l.user_id = u.user_id) > 0 AS is_liked
+        FROM
             posts AS p
         INNER JOIN
             users AS u ON p.user_id = u.user_id
+        LEFT JOIN 
+            likes AS l ON p.post_id = l.post_id
+        GROUP BY 
+            p.post_id,
+            p.content,
+            p.created_at,
+            p.base64_image,
+            p.bot_score,
+            u.user_id,
+            u.username,
+            u.full_name
         ORDER BY
             created_at DESC
         LIMIT ? OFFSET ?
@@ -129,19 +144,33 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64, page_size: 
             p.base64_image,
             p.bot_score,
             u.username,
-            u.full_name
+            u.full_name,
+            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
+            MAX(l.user_id = ?) > 0 AS is_liked
         FROM
             posts AS p
         INNER JOIN
             users AS u ON p.user_id = u.user_id
         INNER JOIN
             follow f ON p.user_id = f.followee_id
+        LEFT JOIN 
+            likes AS l ON p.post_id = l.post_id
         WHERE
             f.follower_id = ?
+        GROUP BY 
+            p.post_id,
+            p.content,
+            p.created_at,
+            p.base64_image,
+            p.bot_score,
+            p.user_id,
+            u.username,
+            u.full_name
         ORDER BY
             created_at
         LIMIT ? OFFSET ?
         "#,
+        user_id.clone(),
         user_id,
         page_size,
         offset
@@ -166,15 +195,29 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: 
             p.bot_score,
             u.user_id,
             u.username,
-            u.full_name
+            u.full_name,
+            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
+            MAX(l.user_id = ?) > 0 AS is_liked
         FROM 
             posts AS p
         INNER JOIN
             users AS u ON p.user_id = u.user_id
+        LEFT JOIN 
+            likes AS l ON p.post_id = l.post_id
         WHERE 
             p.user_id = ?
+        GROUP BY 
+            p.post_id,
+            p.content,
+            p.created_at,
+            p.base64_image,
+            p.bot_score,
+            p.user_id,
+            u.username,
+            u.full_name
         LIMIT ? OFFSET ?
         "#,
+        user_id.clone(),
         user_id,
         page_size,
         offset
@@ -188,7 +231,7 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: 
     }
 }
 
-pub async fn individual_user_post(conn: &MySqlPool, post_id: u64) -> Result<Post, ApiError> {
+pub async fn individual_user_post(conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<Post, ApiError> {
     // Should include comments. 
     let query = sqlx::query_as!(Post,
         r#"
@@ -200,14 +243,28 @@ pub async fn individual_user_post(conn: &MySqlPool, post_id: u64) -> Result<Post
             p.bot_score,
             u.user_id,
             u.username,
-            u.full_name
+            u.full_name,
+            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
+            MAX(l.user_id = ?) > 0 AS is_liked
         FROM 
             posts AS p
         INNER JOIN
             users AS u ON p.user_id = u.user_id
+        LEFT JOIN 
+            likes AS l ON p.post_id = l.post_id
         WHERE 
-            p.post_id = ?;
+            p.post_id = ?
+        GROUP BY 
+            p.post_id,
+            p.content,
+            p.created_at,
+            p.base64_image,
+            p.bot_score,
+            p.user_id,
+            u.username,
+            u.full_name
         "#,
+        user_id,
         post_id
     )
     .fetch_one(conn)
