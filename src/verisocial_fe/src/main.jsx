@@ -11,6 +11,7 @@ import theme from './styles/theme.js';
 import HomePage from './pages/HomePage.jsx';
 import Layout from "./styles/layout"
 import Notification from './components/Notification.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 
 createRoot(document.getElementById('root')).render(
     <ChakraProvider theme={theme}>
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')).render(
               {/* Login Routes */}
               <Route element={<Layout />}>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/admin" element={<AdminPage />} />
               </Route>
 
               {/* Logout Routes */}
