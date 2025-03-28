@@ -3,7 +3,6 @@ import {
   FETCH_POST_FOCUS_SUCCESS,
   FETCH_POST_FOCUS_FAILURE,
   LIKE_POST_SUCCESS,
-  UPDATE_POST_FOCUS,
   RESET_POST_FOCUS,
 } from "../actionTypes/postInteractTypes";
 
@@ -34,12 +33,6 @@ const postInteractReducer = (state = initialState, action) => {
         ...state,
         loadingFocus: false,
         focusError: action.payload,
-      };
-
-    case UPDATE_POST_FOCUS:
-      return {
-        ...state,
-        postFocus: action.payload,
       };
 
     case RESET_POST_FOCUS:

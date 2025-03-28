@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { FaHeart, FaRegHeart, FaFlag, FaRobot } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
-import { formatDistanceToNowStrict } from "date-fns";
+import { isValid, formatDistanceToNowStrict } from "date-fns";
 import Comments from "./Comments";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
@@ -28,12 +28,21 @@ const formatBase64Image = (base64) => {
     : `data:image/jpeg;base64,${base64}`;
 };
 
-const PostFocus = ({ post, likePostRequest }) => {
-  const [likeCount, setLikeCount] = useState(
-    post && post["likes-count"] !== undefined ? post["likes-count"] : 0
-  );
-  const [isLiked, setIsLiked] = useState(post ? !!post["is-liked"] : false);
+const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
   const [isReportOpen, setReportOpen] = useState(false);
+
+  useEffect(() => {
+    if (post) {
+      setLikeCount(post["likes-count"] ?? 0);
+      setIsLiked(!!post["is-liked"]);
+    }
+  }, [post]);
+
+  if (loadingFocus) {
+    return <Box p="5" borderRadius="md" bg="purple.50" textAlign="center">Loading post...</Box>;
+  }
 
   if (!post) {
     return (
@@ -57,10 +66,14 @@ const PostFocus = ({ post, likePostRequest }) => {
   } = post;
 
   const imageSrc = formatBase64Image(base64Image);
-  const relativeTime = `${formatDistanceToNowStrict(new Date(createdAt))} ago`;
+  const date = new Date(createdAt);
+  const relativeTime = isValid(date)
+    ? `${formatDistanceToNowStrict(date)} ago`
+    : "Unknown time";
 
   // Bot Score
-  const botScoreLevel = botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
+  const botScoreLevel =
+    botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
   const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
   const botScoreColors = {
     1: "#7ABD7E",
@@ -73,6 +86,7 @@ const PostFocus = ({ post, likePostRequest }) => {
   const handleLikeClick = (e) => {
     e.stopPropagation();
 
+    // Optimistic UI update
     if (isLiked) {
       setIsLiked(false);
       setLikeCount((prev) => prev - 1);
@@ -221,21 +235,19 @@ PostFocus.propTypes = {
     "bot-score": PropTypes.number,
     "likes-count": PropTypes.number,
     "is-liked": PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
-    comments: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-        user: PropTypes.string,
-        content: PropTypes.string,
-        createdAt: PropTypes.string,
-        profileImage: PropTypes.string,
-      })
-    ),
+    comments: PropTypes.array,
   }),
-  likePostRequest: PropTypes.func,
+  loadingFocus: PropTypes.bool,
+  likePostRequest: PropTypes.func.isRequired,
 };
+
+const mapStateToProps = (state) => ({
+  post: state.postInteract.postFocus,
+  loadingFocus: state.postInteract.loadingFocus,
+});
 
 const mapDispatchToProps = {
   likePostRequest,
 };
 
-export default connect(null, mapDispatchToProps)(PostFocus);
+export default connect(mapStateToProps, mapDispatchToProps)(PostFocus);
