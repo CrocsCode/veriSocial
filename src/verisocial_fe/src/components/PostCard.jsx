@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
   Box,
@@ -12,7 +13,6 @@ import {
 } from "@chakra-ui/react";
 import { FaHeart, FaRegHeart, FaFlag, FaRobot } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
-import PropTypes from "prop-types";
 import { formatDistanceToNowStrict } from "date-fns";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
@@ -29,21 +29,29 @@ const formatBase64Image = (base64) => {
 };
 
 const PostCard = ({ post, onClick, likePostRequest }) => {
-  const imageSrc = formatBase64Image(post.base64_image);
-  const initialLikes =
-    post["likes-count"] !== undefined ? post["likes-count"] : 0;
-  const [likeCount, setLikeCount] = useState(initialLikes);
-  const [isLiked, setIsLiked] = useState(!!post["is-liked"]);
+  const [likeCount, setLikeCount] = useState(
+    post["likes-count"] !== undefined ? post["likes-count"] : 0
+  );
+  const [isLiked, setIsLiked] = useState(
+    post["is-liked"] != null ? post["is-liked"] : 0
+  );
   const [isReportOpen, setReportOpen] = useState(false);
+
+  useEffect(() => {
+    setLikeCount(post["likes-count"] ?? 0);
+    setIsLiked(post["is-liked"] != null ? post["is-liked"] : 0);
+  }, [post]);
+
+  const imageSrc = formatBase64Image(post.base64_image);
 
   const handleLikeClick = (e) => {
     e.stopPropagation();
-    if (isLiked) {
-      setIsLiked(false);
-      setLikeCount(likeCount - 1);
+    if (isLiked === 1) {
+      setIsLiked(0);
+      setLikeCount((prev) => prev - 1);
     } else {
-      setIsLiked(true);
-      setLikeCount(likeCount + 1);
+      setIsLiked(1);
+      setLikeCount((prev) => prev + 1);
     }
     likePostRequest(post.post_id);
   };
@@ -55,7 +63,8 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
 
   // Bot Score Display and Levels
   const botScore = post["bot-score"];
-  const botScoreLevel = botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
+  const botScoreLevel =
+    botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
   const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
 
   const botScoreColors = {
@@ -109,14 +118,14 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
         <HStack spacing={4}>
           <HStack spacing={1.5} cursor="pointer" onClick={handleLikeClick} role="group">
             <Icon
-              as={isLiked ? FaHeart : FaRegHeart}
+              as={isLiked === 1 ? FaHeart : FaRegHeart}
               boxSize={4}
-              color={isLiked ? "red.500" : "blue.500"}
+              color={isLiked === 1 ? "red.500" : "blue.500"}
               transition="transform 0.2s"
               _groupHover={{ transform: "scale(1.2)" }}
               _groupActive={{ transform: "scale(0.9)" }}
             />
-            <Text fontWeight={isLiked ? "bold" : "normal"}>{likeCount}</Text>
+            <Text fontWeight={isLiked === 1 ? "bold" : "normal"}>{likeCount}</Text>
           </HStack>
 
           <HStack color="teal.500" fontSize="sm" cursor="pointer">
