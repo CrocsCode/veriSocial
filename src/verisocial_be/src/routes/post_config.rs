@@ -10,6 +10,8 @@ pub fn config(config: &mut web::ServiceConfig){
             .wrap(from_fn(auth_middleware))
             .service(handlers::posts::timeline)
             .service(handlers::posts::like_post)
+            .service(handlers::posts::get_comments)
+            .service(handlers::posts::post_comment)
             .service(handlers::posts::create_new_post)
             .service(handlers::posts::for_you_page)
             .service(handlers::posts::retrieve_individual_post)

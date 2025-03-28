@@ -1,0 +1,114 @@
+{
+  "db_name": "MySQL",
+  "query": "\n        SELECT\n            c.comment_id,\n            c.post_id,\n            c.user_id,\n            u.username,\n            u.full_name,\n            c.content,\n            c.created_at,\n            c.bot_score,\n            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,\n            MAX(l2.user_id IS NOT NULL) AS is_liked\n        FROM\n            comments AS c\n        INNER JOIN\n            users AS u ON c.user_id = u.user_id\n        LEFT JOIN\n            likes AS l ON c.comment_id = l.comment_id AND l.comment_id IS NOT NULL\n        LEFT JOIN\n            likes AS l2 ON c.comment_id = l2.comment_id AND l2.user_id = ? AND l2.comment_id IS NOT NULL\n        WHERE\n            c.post_id = ?\n        GROUP BY\n            c.comment_id,\n            c.post_id,\n            c.user_id,\n            u.username,\n            u.full_name,\n            c.content,\n            c.created_at,\n            c.bot_score\n        ORDER BY\n            created_at DESC\n        LIMIT ? OFFSET ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "comment_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | PRIMARY_KEY | UNSIGNED | AUTO_INCREMENT",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "post_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | MULTIPLE_KEY | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "user_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | MULTIPLE_KEY | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "username",
+        "type_info": {
+          "type": "VarString",
+          "flags": "NOT_NULL | UNIQUE_KEY | NO_DEFAULT_VALUE",
+          "max_size": 200
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "full_name",
+        "type_info": {
+          "type": "VarString",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
+          "max_size": 400
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "content",
+        "type_info": {
+          "type": "Blob",
+          "flags": "NOT_NULL | BLOB | NO_DEFAULT_VALUE",
+          "max_size": 262140
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": {
+          "type": "Timestamp",
+          "flags": "NOT_NULL | BINARY | TIMESTAMP",
+          "max_size": 19
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "bot_score",
+        "type_info": {
+          "type": "Float",
+          "flags": "NOT_NULL | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 12
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "likes_count",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | UNSIGNED | BINARY",
+          "max_size": 21
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "is_liked",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "BINARY",
+          "max_size": 1
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "47061f025327d63579b855ebeb01825849dae01a16e2ef013b9c7082a951c6bb"
+}
