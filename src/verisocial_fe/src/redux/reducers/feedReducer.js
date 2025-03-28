@@ -1,4 +1,9 @@
-import { LOAD_FEED_PAGE_REQUEST, LOAD_FEED_PAGE_REQUEST_SUCCESS, LOAD_FEED_PAGE_REQUEST_FAILURE } from "../actionTypes/feedActionTypes";
+import {
+    LOAD_FEED_PAGE_REQUEST,
+    LOAD_FEED_PAGE_REQUEST_SUCCESS,
+    LOAD_FEED_PAGE_REQUEST_FAILURE
+} from "../actionTypes/feedActionTypes";
+import { LIKE_POST_SUCCESS } from "../actionTypes/postInteractTypes";
 
 const initialState = {
     posts: [],
@@ -32,6 +37,29 @@ const feedReducer = (state = initialState, action) => {
                 loading: false,
                 error: action.payload,
             };
+
+        case LIKE_POST_SUCCESS: {
+            const { postId, isLiked } = action.payload;
+            return {
+                ...state,
+                posts: state.posts.map((post) => {
+                    if (post.post_id === postId) {
+                        const updatedLikeCount =
+                            isLiked === 1
+                                ? post["likes-count"] + 1
+                                : post["likes-count"] - 1;
+                        return {
+                            ...post,
+                            "is-liked": isLiked, 
+                            "likes-count": updatedLikeCount,
+                        };
+                    }
+                    return post;
+                }),
+            };
+        }
+
+
 
         default:
             return state;
