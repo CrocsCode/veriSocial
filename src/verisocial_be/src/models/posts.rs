@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 // Store binary data in file, store name of file in DB.
 #[derive(Deserialize, Serialize, sqlx::FromRow, Debug)]
 pub struct Post {
-    #[serde(rename = "post-id")]
     pub post_id: u64,
     #[serde(rename = "user-id")]
     pub user_id: u128,
@@ -29,7 +28,6 @@ pub struct Post {
 pub struct Comment {
     #[serde(rename = "comment-id")]
     pub comment_id: u64,
-    #[serde(rename = "post-id")]
     pub post_id: u64,
     #[serde(rename = "user-id")]
     pub user_id: u128,
@@ -59,7 +57,6 @@ pub struct NewPost {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct NewComment {
-    #[serde(rename = "post-id")]
     pub post_id: u64,
     // Could be passed as part of the URI (for the username or user_id)
     pub content: String,
