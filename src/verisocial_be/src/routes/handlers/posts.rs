@@ -21,7 +21,7 @@ pub async fn retrieve_posts(user_id: web::Path<u64>, app_data: web::Data<AppStat
 #[get("/{user_id}/{post_id}")]
 pub async fn retrieve_individual_post(id: web::Path<(u64, u64)>, app_data: web::Data<AppState<'_>>, user: AuthUser) -> impl Responder {
     let post_id = id.1;
-    let post = posts::individual_user_post(&app_data.pool, post_id, user.user_id).await;
+    let post = posts::individual_user_post(&app_data.pool, user.user_id, post_id).await;
     Response::create_get_response(post)
 }
 
