@@ -30,9 +30,9 @@ pub async fn retrieve_comments_for_post(
         INNER JOIN
             users AS u ON c.user_id = u.user_id
         LEFT JOIN
-            likes AS l ON l.comment_id = l.comment_id
+            likes AS l ON c.comment_id = l.comment_id AND l.comment_id IS NOT NULL
         LEFT JOIN
-            likes AS l2 ON c.comment_id = l2.comment_id AND l2.user_id = ?
+            likes AS l2 ON c.comment_id = l2.comment_id AND l2.user_id = ? AND l2.comment_id IS NOT NULL
         WHERE
             c.post_id = ?
         GROUP BY
