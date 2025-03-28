@@ -1,9 +1,8 @@
 use actix_web::{get, post, web, Responder};
-use crate::models::app_state::Pagination;
 use crate::models::{
-    app_state::AppState, response::Response, posts::{NewPost, LikeEvent}, auth::AuthUser
+    app_state::{AppState, Pagination}, response::Response, posts::{NewPost, LikeEvent, NewComment}, auth::AuthUser
 };
-use crate::services::{posts, likes};
+use crate::services::{comments, likes, posts};
 
 
 #[get("/{user_id}")]
@@ -66,3 +65,22 @@ pub async fn like_post(event: web::Json<LikeEvent>, user: AuthUser, app_data: we
 }
 
 // GET and POST for comments
+#[get("/comments/{post_id}")]
+pub async fn get_comments(post_id: web::Path<u64>, user: AuthUser, app_data: web::Data<AppState<'_>>, query: web::Query<Pagination>) -> impl Responder {
+    let conn = &app_data.pool;
+
+    // Query
+    let page = query.page.unwrap_or(1);
+    let size = query.size.unwrap_or(10);
+    let page_offset = (page - 1) * size;
+
+    let comments = comments::retrieve_comments_for_post(conn, *post_id, user.user_id, size, page_offset).await;
+    Response::create_get_response(comments)
+}
+
+#[post("/comments")]
+pub async fn post_comment(new_comment: web::Json<NewComment>, user: AuthUser, app_data: web::Data<AppState<'_>>) -> impl Responder {
+
+    let new_comment = comments::insert_comment(&app_data, user.user_id, new_comment.into_inner()).await;
+    Response::create_post_response(new_comment)
+}

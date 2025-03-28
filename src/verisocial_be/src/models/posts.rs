@@ -57,11 +57,8 @@ pub struct NewPost {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct NewComment {
-    // I may not need the following.
     #[serde(rename = "post-id")]
     pub post_id: u64,
-    #[serde(rename = "user-id")]
-    pub user_id: u64,
     // Could be passed as part of the URI (for the username or user_id)
     pub content: String,
 }
