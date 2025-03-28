@@ -1,35 +1,40 @@
 use sqlx::MySqlPool;
-use crate::models::response::ApiError;
+use crate::models::{posts::LikeEvent, response::ApiError};
 
 
-pub async fn toggle_like(conn: &MySqlPool, post_id: u64, user_id: u64) -> Result<u16, ApiError> {
+pub async fn toggle_like(conn: &MySqlPool, user_id: u64, event: LikeEvent) -> Result<u16, ApiError> {
+    let post_id = &event.post_id;
+    let comment_id = event.comment_id;
+
     let exist_like = sqlx::query!(
         r#"
-        SELECT user_id FROM likes WHERE post_id = ? AND user_id = ?
+        SELECT user_id FROM likes WHERE post_id = ? AND user_id = ? AND comment_id = ?
         "#,
         post_id,
-        user_id
+        user_id,
+        comment_id
     )
     .fetch_optional(conn)
     .await;
 
     match exist_like {
         // Like exist (remove like)
-        Ok(Some(_)) => remove_like(conn, post_id, user_id).await,
+        Ok(Some(_)) => remove_like(conn, post_id, user_id, comment_id).await,
         // Like does not exist (add like)
-        Ok(None) => insert_like(conn, post_id, user_id).await,
+        Ok(None) => insert_like(conn, post_id, user_id, comment_id).await,
         Err(_) => Err(ApiError::ServerError)
     }
 }
 
-async fn insert_like(conn: &MySqlPool, post_id: u64, user_id: u64) -> Result<u16, ApiError>{
+async fn insert_like(conn: &MySqlPool, post_id: &u64, user_id: u64, comment_id: Option<u64>) -> Result<u16, ApiError>{
     let insert_result = sqlx::query!(
         r#"
-        INSERT INTO likes (post_id, user_id)
-        VALUES (?, ?)
+        INSERT INTO likes (post_id, user_id, comment_id)
+        VALUES (?, ?, ?)
         "#,
         post_id,
-        user_id
+        user_id,
+        comment_id
     )
     .execute(conn)
     .await;
@@ -40,14 +45,15 @@ async fn insert_like(conn: &MySqlPool, post_id: u64, user_id: u64) -> Result<u16
     }
 }
 
-async fn remove_like(conn: &MySqlPool, post_id: u64, user_id: u64) -> Result<u16, ApiError> {
+async fn remove_like(conn: &MySqlPool, post_id: &u64, user_id: u64, comment_id: Option<u64>) -> Result<u16, ApiError> {
     let delete_result = sqlx::query!(
         r#"
         DELETE FROM likes
-        WHERE post_id = ? AND user_id = ?
+        WHERE post_id = ? AND user_id = ? AND comment_id = ?
         "#,
         post_id,
-        user_id
+        user_id,
+        comment_id
     )
     .execute(conn)
     .await;

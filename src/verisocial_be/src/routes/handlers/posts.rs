@@ -1,7 +1,7 @@
 use actix_web::{get, post, web, Responder};
 use crate::models::app_state::Pagination;
 use crate::models::{
-    app_state::AppState, response::Response, posts::{NewPost, LikePost}, auth::AuthUser
+    app_state::AppState, response::Response, posts::{NewPost, LikeEvent}, auth::AuthUser
 };
 use crate::services::{posts, likes};
 
@@ -52,21 +52,17 @@ pub async fn for_you_page(user_id: web::Path<u64>,app_data: web::Data<AppState<'
     let page = query.page.unwrap_or(1);
     let size = query.size.unwrap_or(10);
     let page_offset = (page - 1) * size;
-    println!("fyp");
+
     let posts = posts::user_following_timeline(&app_data.pool, *user_id, size, page_offset).await;
     Response::create_get_response(posts)
 }
 
 #[post("/like")]
-pub async fn like_post(post: web::Json<LikePost>, user: AuthUser, app_data: web::Data<AppState<'_>>) -> impl Responder {
+pub async fn like_post(event: web::Json<LikeEvent>, user: AuthUser, app_data: web::Data<AppState<'_>>) -> impl Responder {
     let conn = &app_data.pool;
     
-    let like = likes::toggle_like(conn, post.into_inner().post_id, user.user_id).await;
+    let like = likes::toggle_like(conn, user.user_id, event.into_inner()).await;
     Response::create_post_response(like)
 }
 
-// Tests for creating post
-// '{
-//     user_id: 1,
-//     content: "I am the best around!"
-// }'
+// GET and POST for comments
