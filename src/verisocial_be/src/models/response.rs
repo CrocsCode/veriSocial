@@ -66,15 +66,15 @@ where T: Serialize
                 status: "failed".into(),
                 message: description
             }),
-            ApiError::UpdateError(description) => HttpResponse::Unauthorized().json(Response {
+            ApiError::UpdateError(description) => HttpResponse::BadRequest().json(Response {
                 status: "failed".into(),
                 message: description
             }),
-            ApiError::DeleteError(description) => HttpResponse::Unauthorized().json(Response {
+            ApiError::DeleteError(description) => HttpResponse::BadRequest().json(Response {
                 status: "failed".into(),
                 message: description
             }),
-            ApiError::AuthError(description) => HttpResponse::Unauthorized().json(Response {
+            ApiError::AuthError(description) => HttpResponse::BadRequest().json(Response {
                 status: "failed".into(),
                 message: description
             }),
