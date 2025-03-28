@@ -6,16 +6,28 @@ pub async fn toggle_like(conn: &MySqlPool, user_id: u64, event: LikeEvent) -> Re
     let post_id = &event.post_id;
     let comment_id = event.comment_id;
 
-    let exist_like = sqlx::query!(
-        r#"
-        SELECT user_id FROM likes WHERE post_id = ? AND user_id = ? AND comment_id = ?
-        "#,
-        post_id,
-        user_id,
-        comment_id
-    )
-    .fetch_optional(conn)
-    .await;
+    let exist_like = if let Some(cid) = comment_id {
+        sqlx::query_scalar!(
+            r#"
+            SELECT like_id FROM likes WHERE post_id = ? AND user_id = ? AND comment_id = ?
+            "#,
+            post_id,
+            user_id,
+            cid
+        )
+        .fetch_optional(conn)
+        .await
+    } else {
+        sqlx::query_scalar!(
+            r#"
+            SELECT like_id FROM likes WHERE post_id = ? AND user_id = ? AND comment_id IS NULL
+            "#,
+            post_id,
+            user_id
+        )
+        .fetch_optional(conn)
+        .await
+    };
 
     match exist_like {
         // Like exist (remove like)
@@ -46,17 +58,31 @@ async fn insert_like(conn: &MySqlPool, post_id: &u64, user_id: u64, comment_id: 
 }
 
 async fn remove_like(conn: &MySqlPool, post_id: &u64, user_id: u64, comment_id: Option<u64>) -> Result<u16, ApiError> {
-    let delete_result = sqlx::query!(
-        r#"
-        DELETE FROM likes
-        WHERE post_id = ? AND user_id = ? AND comment_id = ?
-        "#,
-        post_id,
-        user_id,
-        comment_id
-    )
-    .execute(conn)
-    .await;
+    
+    let delete_result = if let Some(cid) = comment_id {
+        sqlx::query!(
+            r#"
+            DELETE FROM likes
+            WHERE post_id = ? AND user_id = ? AND comment_id = ?
+            "#,
+            post_id,
+            user_id,
+            cid
+        )
+        .execute(conn)
+        .await
+    } else {
+        sqlx::query!(
+            r#"
+            DELETE FROM likes
+            WHERE post_id = ? AND user_id = ? AND comment_id IS NULL
+            "#,
+            post_id,
+            user_id
+        )
+        .execute(conn)
+        .await
+    };
 
     match delete_result {
         Ok(_) => Ok(0),

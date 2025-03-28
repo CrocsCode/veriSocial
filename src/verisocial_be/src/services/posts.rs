@@ -69,6 +69,7 @@ pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>) -> Result<
             u.user_id,
             u.username,
             u.full_name,
+            CAST(0 AS UNSIGNED) AS comment_count,
             CAST(0 AS UNSIGNED) AS likes_count,
             0 AS is_liked
         FROM 
@@ -100,7 +101,8 @@ pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offse
             u.user_id,
             u.username,
             u.full_name,
-            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
+            CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
+            CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,
             MAX(l2.user_id IS NOT NULL) AS is_liked
         FROM
             posts AS p
@@ -110,6 +112,8 @@ pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offse
             likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
         LEFT JOIN
             likes AS l2 ON p.post_id = l2.post_id AND l2.user_id = ? AND l2.comment_id IS NULL
+        LEFT JOIN
+            comments AS c ON c.post_id = p.post_id
         GROUP BY 
             p.post_id,
             p.content,
@@ -149,6 +153,7 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64, page_size: 
             p.bot_score,
             u.username,
             u.full_name,
+            CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
             CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
             MAX(l.user_id = ?) > 0 AS is_liked
         FROM
@@ -159,6 +164,8 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64, page_size: 
             follow f ON p.user_id = f.followee_id
         LEFT JOIN 
             likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
+        LEFT JOIN
+            comments AS c ON c.post_id = p.post_id
         WHERE
             f.follower_id = ?
         GROUP BY 
@@ -200,6 +207,7 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: 
             u.user_id,
             u.username,
             u.full_name,
+            CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
             CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
             MAX(l.user_id = ?) > 0 AS is_liked
         FROM 
@@ -208,6 +216,8 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: 
             users AS u ON p.user_id = u.user_id
         LEFT JOIN 
             likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
+        LEFT JOIN
+            comments AS c ON c.post_id = p.post_id
         WHERE 
             p.user_id = ?
         GROUP BY 
@@ -248,6 +258,7 @@ pub async fn individual_user_post(conn: &MySqlPool, user_id: u64, post_id: u64) 
             u.user_id,
             u.username,
             u.full_name,
+            CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
             CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
             MAX(l.user_id = ?) > 0 AS is_liked
         FROM 
@@ -256,6 +267,8 @@ pub async fn individual_user_post(conn: &MySqlPool, user_id: u64, post_id: u64) 
             users AS u ON p.user_id = u.user_id
         LEFT JOIN 
             likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
+        LEFT JOIN
+            comments AS c ON c.post_id = p.post_id
         WHERE 
             p.post_id = ?
         GROUP BY 

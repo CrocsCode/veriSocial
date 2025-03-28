@@ -15,6 +15,8 @@ pub struct Post {
     pub base64_image: Option<String>,
     #[serde(rename = "created-at")]
     pub created_at: DateTime<Utc>,
+    #[serde(rename = "comment-count")]
+    pub comment_count: u64,
     #[serde(rename = "likes-count")]
     pub likes_count: u64,
     #[serde(rename = "is-liked")]
