@@ -14,50 +14,30 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import { FaHeart, FaRegHeart, FaFlag, FaArrowRight } from "react-icons/fa";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNowStrict } from "date-fns";
+import { connect } from "react-redux";
+import { likePostRequest, createCommentRequest } from "../redux/actionCreators/postInteractCreators";
 
-function Comments({ initialComments = [] }) {
-  const [localComments, setLocalComments] = useState(initialComments);
+function Comments({ initialComments = [], postFocusId, likePostRequest, createCommentRequest }) {
   const [commentText, setCommentText] = useState("");
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
 
-    const newComment = {
-      id: Date.now(), // TEMP
-      user: "TempUser",
-      profileImage: "/path/to/avatar.png", // TEMP
-      content: commentText,
-      createdAt: new Date().toISOString(),
-      liked: false,
-      likeCount: 0,
-    };
+    const content = commentText;
+    createCommentRequest({ post_id: postFocusId, content });
 
-    setLocalComments([...localComments, newComment]);
     setCommentText("");
   };
 
-  const handleCommentLike = (id) => {
-    setLocalComments((prevComments) =>
-      prevComments.map((comment) => {
-        if (comment.id === id) {
-          const isLiked = comment.liked || false;
-          const count = comment.likeCount || 0;
-          return {
-            ...comment,
-            liked: !isLiked,
-            likeCount: isLiked ? count - 1 : count + 1,
-          };
-        }
-        return comment;
-      })
-    );
+  const handleCommentLike = (comment) => {
+    likePostRequest(comment.postId, comment.id);
   };
 
   return (
     <Box>
-      {/* Comment Input*/}
+      {/* Comment Input */}
       <Box as="form" onSubmit={handleCommentSubmit} mb={4}>
         <InputGroup>
           <Input
@@ -80,23 +60,15 @@ function Comments({ initialComments = [] }) {
 
       {/* Comment List */}
       <VStack align="stretch" spacing={4}>
-        {localComments.length > 0 ? (
-          localComments.map((comment) => {
-            const timeAgo = formatDistanceToNow(new Date(comment.createdAt), {
+        {initialComments.length > 0 ? (
+          initialComments.map((comment) => {
+            const timeAgo = formatDistanceToNowStrict(new Date(comment.createdAt), {
               addSuffix: true,
             });
             return (
-              <Box
-                key={comment.id}
-                px={3}
-                bg="transparent"
-              >
+              <Box key={comment.id} px={3} bg="transparent">
                 <HStack align="start" spacing={3}>
-                  <Avatar
-                    size="sm"
-                    name={comment.user}
-                    src={comment.profileImage}
-                  />
+                  <Avatar size="sm" name={comment.user} src={comment.profileImage} />
                   <Box>
                     <HStack spacing={2}>
                       <Text fontWeight="bold">@{comment.user}</Text>
@@ -109,7 +81,7 @@ function Comments({ initialComments = [] }) {
                       <HStack
                         spacing={1.5}
                         cursor="pointer"
-                        onClick={() => handleCommentLike(comment.id)}
+                        onClick={() => handleCommentLike(comment)}
                         role="group"
                       >
                         <Icon
@@ -136,9 +108,7 @@ function Comments({ initialComments = [] }) {
             );
           })
         ) : (
-          <Text color="gray.500">
-            No comments yet. Be the first to comment!
-          </Text>
+          <Text color="gray.500">No comments yet. Be the first to comment!</Text>
         )}
       </VStack>
     </Box>
@@ -149,12 +119,39 @@ Comments.propTypes = {
   initialComments: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      postId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       user: PropTypes.string,
       content: PropTypes.string,
       createdAt: PropTypes.string,
       profileImage: PropTypes.string,
+      liked: PropTypes.bool,
+      likeCount: PropTypes.number,
     })
   ),
+  likePostRequest: PropTypes.func.isRequired,
+  createCommentRequest: PropTypes.func.isRequired,
+  postFocusId: PropTypes.number.isRequired,
 };
 
-export default Comments;
+const mapStateToProps = (state) => {
+  const rawComments = state.postInteract.comments || [];
+  const initialComments = rawComments.map((comment) => ({
+    id: comment["comment-id"],
+    postId: comment.post_id,
+    user: comment.username,
+    content: comment.content,
+    createdAt: comment["created-at"],
+    profileImage: "",
+    liked: comment["is-liked"] === 1,
+    likeCount: comment["likes-count"],
+  }));
+
+  return { initialComments };
+};
+
+const mapDispatchToProps = {
+  likePostRequest,
+  createCommentRequest,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Comments);

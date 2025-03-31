@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { FaHeart, FaRegHeart, FaFlag, FaRobot } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
-import { isValid, formatDistanceToNowStrict } from "date-fns";
+import { isValid, format } from "date-fns";
 import Comments from "./Comments";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
@@ -63,14 +63,15 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
     comments,
     "bot-score": botScore,
     post_id: postId,
+    "comment-count": commentCount,
   } = post;
 
   const imageSrc = formatBase64Image(base64Image);
   const date = new Date(createdAt);
-  const relativeTime = isValid(date)
-    ? `${formatDistanceToNowStrict(date)} ago`
-    : "Unknown time";
-
+  const exactTimestamp = isValid(date)
+  ? format(date, 'MMM dd, yyyy HH:mm')
+  : "Unknown time";
+    
   // Bot Score
   const botScoreLevel =
     botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
@@ -135,7 +136,7 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
               </Box>
             </HStack>
             <Text fontSize="sm" color="gray.400">
-              {relativeTime}
+              {exactTimestamp}
             </Text>
           </HStack>
         </Box>
@@ -167,7 +168,7 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
             {/* Reply */}
             <HStack color="teal.500" fontSize="sm" cursor="pointer">
               <Icon as={FaMessage} boxSize={4} />
-              <Text>Reply</Text>
+              <Text fontWeight={"bold"}>{commentCount}</Text>
             </HStack>
 
             {/* Report */}
@@ -211,7 +212,7 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
           <Heading as="h4" size="md" mb={4} color="purple.600" fontWeight="bold">
             Comments
           </Heading>
-          <Comments initialComments={comments || []} />
+          <Comments initialComments={comments || []} postFocusId={post.post_id} />
         </Box>
       </Box>
 
@@ -236,6 +237,7 @@ PostFocus.propTypes = {
     "likes-count": PropTypes.number,
     "is-liked": PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
     comments: PropTypes.array,
+    "comment-count": PropTypes.number,
   }),
   loadingFocus: PropTypes.bool,
   likePostRequest: PropTypes.func.isRequired,

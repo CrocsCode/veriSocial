@@ -23,6 +23,13 @@ const T = {
             LIKED: "Liked Post.",
             UNLIKED: "Unliked Post.",
             LIKE_ERROR: "Error with Post Likes.",
+        },
+        COMMENT: {
+            LIKED: "Liked Comment.",
+            UNLIKED: "Unliked Comment.",
+            LIKE_ERROR: "Error with Comment Likes.",
+            CREATE: "Successfully created Comment.",
+            CREATE_FAILURE: "Failed to post comment",
         }
     },
     GENERAL: {

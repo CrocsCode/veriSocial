@@ -2,7 +2,16 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { debounce } from "lodash";
-import { Box, VStack, Text, Skeleton, SkeletonText, SkeletonCircle, Icon, HStack } from "@chakra-ui/react";
+import {
+  Box,
+  VStack,
+  Text,
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
+  Icon,
+  HStack,
+} from "@chakra-ui/react";
 import { FaPen } from "react-icons/fa";
 import PostCard from "./PostCard";
 import CreatePostForm from "./CreatePostForm";
@@ -10,7 +19,16 @@ import Modal from "./Modal";
 import { loadFeedPageRequest } from "../redux/actionCreators/feedCreators";
 import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
 
-function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) {
+
+import { loadCommentsRequest } from "../redux/actionCreators/postInteractCreators";
+
+function Feed({
+  onSelectPost,
+  loadFeedPageRequest,
+  feed,
+  resetCreatePostForm,
+  loadCommentsRequest,
+}) {
   const { posts, loading, isLastPage } = feed;
   const [currentPage, setCurrentPage] = useState(1);
   const [isFetching, setIsFetching] = useState(false);
@@ -60,6 +78,11 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleSelectPostWithComments = (post) => {
+    onSelectPost(post);
+    loadCommentsRequest(post.post_id, 1, 10);
+  };
 
   return (
     <Box w="80%" height="100%">
@@ -115,7 +138,7 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
             <PostCard
               key={post.post_id}
               post={post}
-              onClick={() => onSelectPost(post)}
+              onClick={() => handleSelectPostWithComments(post)}
             />
           ))}
 
@@ -170,6 +193,7 @@ Feed.propTypes = {
     isLastPage: PropTypes.bool,
   }).isRequired,
   resetCreatePostForm: PropTypes.func.isRequired,
+  loadCommentsRequest: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -179,6 +203,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = {
   loadFeedPageRequest,
   resetCreatePostForm,
+  loadCommentsRequest,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Feed);
