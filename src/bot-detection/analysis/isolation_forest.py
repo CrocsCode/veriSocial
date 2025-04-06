@@ -29,18 +29,22 @@ class IsolationTree:
         else:
             n_features = X.shape[1]
             valid_features = [i for i in range(n_features) if np.min(X[:, i]) < np.max(X[:, i])] # select features ()
+
             if not valid_features:
                 self.is_leaf = True
                 return
+            
             self.feature = random.choice(valid_features)
             min_val = np.min(X[:, self.feature])
             max_val = np.max(X[:, self.feature])
             self.split = random.uniform(min_val, max_val)
             left_mask = X[:, self.feature] < self.split
             right_mask = ~left_mask
+
             if np.sum(left_mask) == 0 or np.sum(right_mask) == 0:
                 self.is_leaf = True
                 return
+            
             self.left = IsolationTree(X[left_mask], current_depth=self.current_depth + 1, max_depth=self.max_depth)
             self.right = IsolationTree(X[right_mask], current_depth=self.current_depth + 1, max_depth=self.max_depth)
 
@@ -60,6 +64,7 @@ class IsolationForest:
         self.max_samples = max_samples
         self.contamination = contamination
         self.trees = []
+
         if random_state is not None:
             random.seed(random_state)
             np.random.seed(random_state)
@@ -68,7 +73,9 @@ class IsolationForest:
         self.trees = [] # Forest (many trees)
         n_total = X.shape[0]
         self.psi = min(self.max_samples, n_total)
+
         for _ in range(self.n_estimators):
+            
             if self.psi < n_total:
                 indices = np.random.choice(n_total, self.psi, replace=False)
                 X_sub = X[indices]

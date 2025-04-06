@@ -4,6 +4,7 @@ import numpy as np
 def combine_predictions(svm_preds, lof_preds, if_preds, weights=None, threshold=0):
     if weights is None:
         weights = [1, 1, 2] # IF NO WEIGHTS GIVEN
+
     svm_preds = np.array(svm_preds)
     lof_preds = np.array(lof_preds)
     if_preds  = np.array(if_preds)
