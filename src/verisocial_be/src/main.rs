@@ -15,7 +15,7 @@ mod models;
 mod routes;
 mod config;
 
-static MIGRATOR: Migrator = sqlx::migrate!("./db/migrations");
+static MIGRATOR: Migrator = sqlx::migrate!("../db/migrations");
 
 
 /// Main Function for server

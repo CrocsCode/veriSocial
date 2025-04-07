@@ -69,6 +69,7 @@ pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>) -> Result<
             u.user_id,
             u.username,
             u.full_name,
+            u.bot_score AS user_bot_score,
             CAST(0 AS UNSIGNED) AS comment_count,
             CAST(0 AS UNSIGNED) AS likes_count,
             0 AS is_liked
@@ -101,6 +102,7 @@ pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offse
             u.user_id,
             u.username,
             u.full_name,
+            u.bot_score AS user_bot_score,
             CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
             CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,
             MAX(l2.user_id IS NOT NULL) AS is_liked
@@ -153,6 +155,7 @@ pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64, page_size: 
             p.bot_score,
             u.username,
             u.full_name,
+            u.bot_score AS user_bot_score,
             CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
             CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
             MAX(l.user_id = ?) > 0 AS is_liked
@@ -207,6 +210,7 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: 
             u.user_id,
             u.username,
             u.full_name,
+            u.bot_score AS user_bot_score,
             CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
             CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
             MAX(l.user_id = ?) > 0 AS is_liked
@@ -258,6 +262,7 @@ pub async fn individual_user_post(conn: &MySqlPool, user_id: u64, post_id: u64) 
             u.user_id,
             u.username,
             u.full_name,
+            u.bot_score AS user_bot_score,
             CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
             CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
             MAX(l.user_id = ?) > 0 AS is_liked

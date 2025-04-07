@@ -7,6 +7,7 @@ pub struct Post {
     pub post_id: u64,
     #[serde(rename = "user-id")]
     pub user_id: u128,
+    pub user_bot_score: f32,
     pub username: String,
     #[serde(rename = "full-name")]
     pub full_name: String,
