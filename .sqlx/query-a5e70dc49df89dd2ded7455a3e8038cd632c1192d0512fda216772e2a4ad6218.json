@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name,\n            CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,\n            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,\n            MAX(l.user_id = ?) > 0 AS is_liked\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        LEFT JOIN \n            likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL\n        LEFT JOIN\n            comments AS c ON c.post_id = p.post_id\n        WHERE \n            p.post_id = ?\n        GROUP BY \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            p.user_id,\n            u.username,\n            u.full_name\n        ",
+  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name,\n            u.bot_score AS user_bot_score,\n            CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,\n            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,\n            MAX(l.user_id = ?) > 0 AS is_liked\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        LEFT JOIN \n            likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL\n        LEFT JOIN\n            comments AS c ON c.post_id = p.post_id\n        WHERE \n            p.post_id = ?\n        GROUP BY \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            p.user_id,\n            u.username,\n            u.full_name\n        ",
   "describe": {
     "columns": [
       {
@@ -77,6 +77,15 @@
       },
       {
         "ordinal": 8,
+        "name": "user_bot_score",
+        "type_info": {
+          "type": "Float",
+          "flags": "NOT_NULL | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 12
+        }
+      },
+      {
+        "ordinal": 9,
         "name": "comment_count",
         "type_info": {
           "type": "LongLong",
@@ -85,7 +94,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "likes_count",
         "type_info": {
           "type": "LongLong",
@@ -94,7 +103,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "is_liked",
         "type_info": {
           "type": "LongLong",
@@ -117,8 +126,9 @@
       false,
       false,
       false,
+      false,
       true
     ]
   },
-  "hash": "6b202f2893b1f81f857b788b922f6477003c8e489b98d3a00e47006ad6e08e36"
+  "hash": "a5e70dc49df89dd2ded7455a3e8038cd632c1192d0512fda216772e2a4ad6218"
 }
