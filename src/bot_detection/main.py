@@ -6,10 +6,10 @@ import mysql.connector
 from bot_score_update import update_bot_scores
 
 # Analysis
-from analysis.one_class_svm import one_class_svm_detection
-from analysis.lof import lof_detection
-from analysis.isolation_forest import IsolationForest
-from analysis.ensemble import combine_predictions
+from one_class_svm import one_class_svm_detection
+from lof import lof_detection
+from isolation_forest import IsolationForest
+from ensemble import combine_predictions
 
 def main():
     # Instantiate db
