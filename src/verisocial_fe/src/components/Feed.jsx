@@ -18,8 +18,6 @@ import CreatePostForm from "./CreatePostForm";
 import Modal from "./Modal";
 import { loadFeedPageRequest } from "../redux/actionCreators/feedCreators";
 import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
-
-
 import { loadCommentsRequest } from "../redux/actionCreators/postInteractCreators";
 
 function Feed({
@@ -155,6 +153,7 @@ function Feed({
                     borderRadius="lg"
                     boxShadow="md"
                     bg="gray.50"
+                    width="100%"
                   >
                     <Box display="flex" alignItems="center" mb={4}>
                       <SkeletonCircle size="10" mr={4} />
