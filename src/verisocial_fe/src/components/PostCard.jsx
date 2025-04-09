@@ -17,6 +17,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
 import { likePostRequest } from "../redux/actionCreators/postInteractCreators";
+import { getBotScoreLevel, getFormattedBotScore, botScoreColors } from "../utils/botScore";
 
 const getRelativeTime = (timestamp) =>
   `${formatDistanceToNowStrict(new Date(timestamp))} ago`;
@@ -29,12 +30,8 @@ const formatBase64Image = (base64) => {
 };
 
 const PostCard = ({ post, onClick, likePostRequest }) => {
-  const [likeCount, setLikeCount] = useState(
-    post["likes-count"] !== undefined ? post["likes-count"] : 0
-  );
-  const [isLiked, setIsLiked] = useState(
-    post["is-liked"] != null ? post["is-liked"] : 0
-  );
+  const [likeCount, setLikeCount] = useState(post["likes-count"] !== undefined ? post["likes-count"] : 0);
+  const [isLiked, setIsLiked] = useState(post["is-liked"] != null ? post["is-liked"] : 0);
   const [isReportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
@@ -63,17 +60,11 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
 
   // Bot Score Display and Levels
   const botScore = post["bot-score"];
-  const botScoreLevel =
-    botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
-  const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
+  const botScoreLevel = getBotScoreLevel(botScore);
+  const formattedBotScore = getFormattedBotScore(botScore);
 
-  const botScoreColors = {
-    1: "#7ABD7E",
-    2: "#b6d7a8",
-    3: "#F8D66D",
-    4: "#FFB54C",
-    5: "#e06666",
-  };
+  const userBotScore = post["user_bot_score"];
+  const userBotScoreLevel = getBotScoreLevel(userBotScore);
 
   return (
     <>
@@ -87,7 +78,6 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
         cursor="pointer"
         onClick={onClick}
         transition="background-color 0.2s ease"
-        _hover={{ bg: "purple.100" }}
         minH="5vh"
       >
         {/* Timestamp */}
@@ -97,7 +87,20 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
 
         {/* User Info */}
         <HStack align="top" mb={4}>
-          <Avatar name={post["full-name"]} size="md" />
+          <Tooltip
+            label={`User Bot Score: ${userBotScore != null ? userBotScore.toFixed(3) : "N/A"
+              }`}
+            placement="top"
+            hasArrow
+          >
+            <Avatar
+              name={post["full-name"]}
+              size="md"
+              borderWidth="0.3vh"
+              borderStyle="solid"
+              borderColor={botScoreColors[userBotScoreLevel]}
+            />
+          </Tooltip>
           <Box>
             <Heading as="h3" size="sm" mb={1}>
               {post["full-name"]}
@@ -185,6 +188,7 @@ PostCard.propTypes = {
     "bot-score": PropTypes.number,
     "is-liked": PropTypes.number,
     post_id: PropTypes.number,
+    "user_bot_score": PropTypes.number,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
   likePostRequest: PropTypes.func.isRequired,
