@@ -20,7 +20,7 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_BASE_URL: 'http://139.59.175.54:8080/'
+      VITE_API_BASE_URL: 'backend'
     ports:
       - 80:80
 
