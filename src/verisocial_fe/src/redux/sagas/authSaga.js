@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from "redux-saga/effects";
-import { LOGIN_REQUEST, LOGOUT, REGISTER_REQUEST } from "../actionTypes/authActionTypes";
+import { LOGIN_REQUEST, LOGOUT, REGISTER_REQUEST, USER_REQUEST } from "../actionTypes/authActionTypes";
 import { loginSuccess, loginFailure, userSuccess, userFailure } from "../actionCreators/authCreators";
 import { showNotificationRequest } from "../actionCreators/notificationCreators";
 import { registerFailure } from "../actionCreators/authCreators";
@@ -30,7 +30,7 @@ function* handleLogin(action) {
           email: userResponse.message.email,
           full_name: userResponse.message.full_name,
           bio: userResponse.message.bio,
-          bot_score: userResponse.message.bot_score,
+          bot_score: userResponse.message["bot-score"],
           created_at: userResponse.message["created-at"],
         };
         yield put(userSuccess(filteredUser));
@@ -94,10 +94,34 @@ function* handleRegister(action) {
   }
 }
 
+function* handleUserDetails(action) {
+  try {
+    const response = yield call(api.authService.getUser, action.payload);
+
+    if (response.status === "success") {
+      const filteredUser = {
+        user_id: response.message.user_id,
+        username: response.message.username,
+        email: response.message.email,
+        full_name: response.message.full_name,
+        bio: response.message.bio,
+        bot_score: response.message["bot-score"],
+        created_at: response.message["created-at"],
+      };
+      yield put(userSuccess(filteredUser));
+    } else {
+      yield put(userFailure(response.message || "Failed to fetch user details."));
+    }
+  } catch (error) {
+    yield put(userFailure(error.response?.data?.message || "Failed to fetch user details."));
+  }
+}
+
 function* watchAuthActions() {
   yield takeLatest(LOGIN_REQUEST, handleLogin);
   yield takeLatest(LOGOUT, handleLogout);
   yield takeLatest(REGISTER_REQUEST, handleRegister);
+  yield takeLatest(USER_REQUEST, handleUserDetails);
 }
 
 export default watchAuthActions;

@@ -20,6 +20,7 @@ import Comments from "./Comments";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
 import { likePostRequest } from "../redux/actionCreators/postInteractCreators";
+import { getBotScoreLevel, getFormattedBotScore, botScoreColors } from "../utils/botScore";
 
 const formatBase64Image = (base64) => {
   if (!base64) return null;
@@ -70,19 +71,13 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
   const date = new Date(createdAt);
   const exactTimestamp = isValid(date)
   ? format(date, 'MMM dd, yyyy HH:mm')
-  : "Unknown time";
-    
-  // Bot Score
-  const botScoreLevel =
-    botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
-  const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
-  const botScoreColors = {
-    1: "#7ABD7E",
-    2: "#b6d7a8",
-    3: "#F8D66D",
-    4: "#FFB54C",
-    5: "#e06666",
-  };
+    : "Unknown time";
+
+  const postBotScoreLevel = getBotScoreLevel(botScore);
+  const formattedPostBotScore = getFormattedBotScore(botScore);
+
+  const userBotScore = post["user_bot_score"];
+  const userBotScoreLevel = getBotScoreLevel(userBotScore);
 
   const handleLikeClick = (e) => {
     e.stopPropagation();
@@ -125,7 +120,21 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
         <Box mb={4}>
           <HStack justifyContent="space-between">
             <HStack>
-              <Avatar name={fullName} size="lg" />
+              <Tooltip
+                label={`User Bot Score: ${
+                  userBotScore != null ? userBotScore.toFixed(3) : "N/A"
+                }`}
+                placement="top"
+                hasArrow
+              >
+                <Avatar
+                  name={fullName}
+                  size="lg"
+                  borderWidth="0.3vh"
+                  borderStyle="solid"
+                  borderColor={botScoreColors[userBotScoreLevel]}
+                />
+              </Tooltip>
               <Box>
                 <Heading as="h3" size="md">
                   {fullName}
@@ -168,7 +177,7 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
             {/* Reply */}
             <HStack color="teal.500" fontSize="sm" cursor="pointer">
               <Icon as={FaMessage} boxSize={4} />
-              <Text fontWeight={"bold"}>{commentCount}</Text>
+              <Text fontWeight="bold">{commentCount}</Text>
             </HStack>
 
             {/* Report */}
@@ -192,14 +201,20 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
 
             {/* Bot Score */}
             <Tooltip
-              label={`Bot Score: (${formattedBotScore})`}
+              label={`Bot Score: (${formattedPostBotScore})`}
               placement="top"
               hasArrow
               fontSize="1vh"
             >
               <HStack spacing={1} cursor="default">
-                <Icon as={FaRobot} boxSize="1.5rem" color={botScoreColors[botScoreLevel]} />
-                <Text color={botScoreColors[botScoreLevel]}>{botScoreLevel}</Text>
+                <Icon
+                  as={FaRobot}
+                  boxSize="1.5rem"
+                  color={botScoreColors[postBotScoreLevel]}
+                />
+                <Text color={botScoreColors[postBotScoreLevel]}>
+                  {postBotScoreLevel}
+                </Text>
               </HStack>
             </Tooltip>
           </HStack>
@@ -238,6 +253,7 @@ PostFocus.propTypes = {
     "is-liked": PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
     comments: PropTypes.array,
     "comment-count": PropTypes.number,
+    "user_bot_score": PropTypes.number,
   }),
   loadingFocus: PropTypes.bool,
   likePostRequest: PropTypes.func.isRequired,
