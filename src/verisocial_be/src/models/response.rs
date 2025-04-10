@@ -1,4 +1,5 @@
 use actix_web::HttpResponse;
+use std::fmt;
 use serde::{Deserialize, Serialize};
 
 
@@ -17,7 +18,7 @@ pub struct Response<T: Serialize> {
 
 #[derive(Deserialize, Serialize)]
 pub enum ApiError {
-    ServerError,
+    ServerError(String),
     CannotCreateObject(String),
     ObjectNotFound(String),
     UpdateError(String),
@@ -54,9 +55,9 @@ where T: Serialize
 
     pub fn create_error_response(err: ApiError) -> HttpResponse {
         match err {
-            ApiError::ServerError => HttpResponse::InternalServerError().json(Response{
+            ApiError::ServerError(description) => HttpResponse::InternalServerError().json(Response{
                 status: "failed".into(),
-                message: "Internal Server Error"
+                message: "Internal Server Error: ".to_owned() + &description.to_owned() 
             }),
             ApiError::CannotCreateObject(description) => HttpResponse::BadRequest().json(Response {
                 status: "failed".into(),
@@ -82,6 +83,20 @@ where T: Serialize
                 status: "failed".into(),
                 message: description
             })
+        }
+    }
+}
+
+impl fmt::Display for ApiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ApiError::ServerError(msg) => write!(f, "Server error: {}", msg),
+            ApiError::CannotCreateObject(msg) => write!(f, "Cannot create object: {}", msg),
+            ApiError::ObjectNotFound(msg) => write!(f, "Object not found: {}", msg),
+            ApiError::UpdateError(msg) => write!(f, "Update error: {}", msg),
+            ApiError::DeleteError(msg) => write!(f, "Delete error: {}", msg),
+            ApiError::AuthError(msg) => write!(f, "Authentication error: {}", msg),
+            ApiError::CannotUpload(msg) => write!(f, "Cannot upload: {}", msg),
         }
     }
 }

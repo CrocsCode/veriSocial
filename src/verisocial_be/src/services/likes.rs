@@ -34,7 +34,7 @@ pub async fn toggle_like(conn: &MySqlPool, user_id: u64, event: LikeEvent) -> Re
         Ok(Some(_)) => remove_like(conn, post_id, user_id, comment_id).await,
         // Like does not exist (add like)
         Ok(None) => insert_like(conn, post_id, user_id, comment_id).await,
-        Err(_) => Err(ApiError::ServerError)
+        Err(err) => Err(ApiError::ServerError(err.to_string()))
     }
 }
 

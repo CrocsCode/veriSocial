@@ -1,3 +1,4 @@
+use actix_multipart::form::MultipartForm;
 use actix_web::{get, post, web, Responder};
 use crate::models::{
     app_state::{AppState, Pagination}, response::Response, posts::{NewPost, LikeEvent, NewComment}, auth::AuthUser
@@ -26,10 +27,9 @@ pub async fn retrieve_individual_post(id: web::Path<(u64, u64)>, app_data: web::
 }
 
 #[post("/{user_id}")]
-pub async fn create_new_post(json: web::Json<NewPost>, app_data: web::Data<AppState<'_>>) -> impl Responder {
-    let post = json.into_inner();
+pub async fn create_new_post(MultipartForm(form): MultipartForm<NewPost>, app_data: web::Data<AppState<'_>>, user: AuthUser) -> impl Responder {
 
-    let result = posts::create_post(post, &app_data.into_inner()).await;
+    let result = posts::create_post(form, &app_data.into_inner(), user.user_id).await;
     Response::create_get_response(result)
 }
 

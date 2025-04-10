@@ -31,8 +31,8 @@ async fn main() -> std::io::Result<()> {
     let database_url = std::env::var("APP_DATABASE_URL").unwrap();
     let app_url = std::env::var("APP_URL").unwrap();
 
-    println!("DATABASE_URL: {}", database_url);
-    println!("APP_URL: {}", app_url);
+    info!("DATABASE_URL: {}", database_url);
+    info!("APP_URL: {}", app_url);
 
     let pool = match MySqlPoolOptions::new()
         .max_connections(5)

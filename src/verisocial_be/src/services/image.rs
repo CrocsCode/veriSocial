@@ -1,15 +1,16 @@
 use reqwest::Client;
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::models::response::{ApiError, ImageResponse};
 use crate::config::settings::AI_IMAGE_URL;
 
 
-pub async fn image_check(encoded_image: String, post_id: u64, client: &Client) -> Result<ImageResponse, ApiError> {
+pub async fn image_check(image_name: String, post_id: u64, client: &Client) -> Result<ImageResponse, ApiError> {
     // Build response
     let payload = json!({
         "post_id": post_id,
-        "base64_image": encoded_image
+        "image_name": image_name
     });
 
     let resp = client.post(AI_IMAGE_URL.clone())
@@ -26,4 +27,8 @@ pub async fn image_check(encoded_image: String, post_id: u64, client: &Client) -
         Ok(result) => Ok(result),
         Err(err) => Err(ApiError::CannotUpload("Error: ".to_string() + &err.to_string()))
     }
+}
+
+pub async fn upload_image<T>() -> Result<T, ApiError> {
+    todo!()
 }
