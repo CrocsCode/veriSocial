@@ -11,6 +11,10 @@ import theme from './styles/theme.js';
 import HomePage from './pages/HomePage.jsx';
 import Layout from "./styles/layout"
 import Notification from './components/Notification.jsx';
+import { setLogoutHandler } from './api/axiosInstance.js';
+import { logout } from "./redux/actionCreators/authCreators";
+
+setLogoutHandler(() => store.dispatch(logout()));
 
 createRoot(document.getElementById('root')).render(
     <ChakraProvider theme={theme}>
