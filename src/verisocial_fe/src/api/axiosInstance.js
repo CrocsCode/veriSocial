@@ -54,8 +54,6 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => {
-    if (response.status === 200) {
-    }
     return response;
   },
   (error) => {
