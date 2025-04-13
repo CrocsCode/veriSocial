@@ -1,33 +1,37 @@
-use config::Config;
-use std::{collections::HashMap, env};
+use std::env;
+use log::error;
 use lazy_static::lazy_static;
 
 lazy_static!{
     pub static ref SECRET: String = set_secret();
     pub static ref AI_IMAGE_URL: String = set_ai_checker();
     pub static ref MAX_FILE_SIZE: u64 = set_max_file_size();
-}
-
-pub fn init_config() -> HashMap<String, String> {
-    // Dotenv
-    dotenvy::dotenv().ok();
-    
-    let config_file = Config::builder()
-        .add_source(config::Environment::with_prefix("APP"))
-        .build()
-        .unwrap();
-
-    config_file.try_deserialize::<HashMap<String, String>>().unwrap()
+    pub static ref APP_DATABASE_URL: String = set_database_url();
+    pub static ref APP_URL: String = set_server_ip();
+    pub static ref AWS_ENDPOINT: String = set_aws_endpoint();
+    pub static ref AWS_REGION: String = set_aws_region();
 }
 
 fn set_secret() -> String {
     dotenvy::dotenv().ok();
-    env::var("AUTH_SECRET").unwrap()
+    match std::env::var("AUTH_SECRET") {
+        Ok(s) => s,
+        Err(_) => {
+            error!("Expected AUTH_SECRET to be set");
+            std::process::exit(1)
+        }
+    }
 }
 
 fn set_ai_checker() -> String {
     dotenvy::dotenv().ok();
-    env::var("AI_IMAGE_CHECKER_URL").unwrap()
+    match std::env::var("AI_IMAGE_CHECKER_URL") {
+        Ok(s) => s,
+        Err(_) => {
+            error!("Expected AI_IMAGE_CHECKER_URL to be set");
+            std::process::exit(1)
+        }
+    }
 }
 
 fn set_max_file_size() -> u64 {
@@ -36,4 +40,48 @@ fn set_max_file_size() -> u64 {
         .unwrap()
         .parse::<u64>()
         .expect("Can't parse the file size")
+}
+
+fn set_database_url() -> String {
+    dotenvy::dotenv().ok();
+    match std::env::var("APP_DATABASE_URL") {
+        Ok(s) => s,
+        Err(_) => {
+            error!("Expected APP_DATABASE_URL to be set");
+            std::process::exit(1)
+        }
+    }
+}
+
+fn set_server_ip() -> String {
+    dotenvy::dotenv().ok();
+    match std::env::var("APP_URL") {
+        Ok(s) => s,
+        Err(_) => {
+            error!("Expected APP_URL to be set");
+            std::process::exit(1)
+        }
+    }
+}
+
+fn set_aws_endpoint() -> String {
+    dotenvy::dotenv().ok();
+    match std::env::var("AWS_ENDPOINT") {
+        Ok(s) => s,
+        Err(_) =>  {
+            error!("Expected AWS_ENDPOINT to be set");
+            std::process::exit(1)
+        }
+    }
+}
+
+fn set_aws_region() -> String {
+    dotenvy::dotenv().ok();
+    match std::env::var("AWS_REGION") {
+        Ok(s) => s,
+        Err(_) =>  {
+            error!("Expected AWS_REGION to be set");
+            std::process::exit(1)
+        }
+    }
 }

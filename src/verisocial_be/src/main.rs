@@ -3,12 +3,14 @@ use actix_web::http::header;
 use actix_web::{HttpServer, App, web};
 use actix_web::middleware::Logger;
 use argon2::Argon2;
-use reqwest::Client;
+use reqwest::Client as Req_client;
 use env_logger::Env;
 use routes::{auth_config, post_config, user_config};
 use sqlx::migrate::Migrator;
 use sqlx::mysql::MySqlPoolOptions;
 use log::{info, error};
+
+use crate::config::settings;
 
 mod services;
 mod models;
@@ -21,19 +23,23 @@ static MIGRATOR: Migrator = sqlx::migrate!("../db/migrations");
 /// Main Function for server
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Initialise Configuration
-    dotenvy::dotenv().ok();
-    config::settings::init_config();
-
     // Logger
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
-    let database_url = std::env::var("APP_DATABASE_URL").unwrap();
-    let app_url = std::env::var("APP_URL").unwrap();
+    // Initialise Configuration
+    let database_url = (*settings::APP_DATABASE_URL).clone();
+    let app_url = (*settings::APP_URL).clone();
+    let _ = (*settings::SECRET).clone(); // Ensure this value is initialized
+    let max_file_size = (*settings::MAX_FILE_SIZE).clone();
+    let ai_image_url = (*settings::AI_IMAGE_URL).clone();
+    let aws_region = (*settings::AWS_REGION).clone();
+    let aws_endpoint = (*settings::AWS_ENDPOINT).clone();
+
 
     info!("DATABASE_URL: {}", database_url);
     info!("APP_URL: {}", app_url);
 
+    // Init database connection
     let pool = match MySqlPoolOptions::new()
         .max_connections(5)
         .connect(&database_url)
@@ -53,11 +59,21 @@ async fn main() -> std::io::Result<()> {
     MIGRATOR.run(&pool).await.expect("Failed to run migrations");
     info!("Migrations have been applied");
 
-    let client =  Client::new();
-    let app_data = models::app_state::AppState {
+    // Init Bucket Connection
+    let s3_client = config::s3_client::create_spaces_client(aws_endpoint, aws_region).await;
+    info!("Successfully started S3 client!");
+    
+    // Init Client
+    let client =  Req_client::new();
+    info!("Successfully started Reqwest client!");
+
+    let app_data = models::app_config::AppConfig {
         pass_hashing: Argon2::default(), // Password Hashing
         pool,
-        client
+        client,
+        max_file_size,
+        ai_image_url,
+        s3_client
     };
 
     HttpServer::new(move || {
@@ -65,8 +81,6 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(
                 Cors::default()
-                // .allowed_origin(origin) When frontend is defined, this wll be here.
-                    //.allowed_origin("http://localhost:5173") // For testing purposes only (temporary)
                     .allow_any_origin()  // Deployment inside docker compose
                     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
                     .allowed_headers(vec![header::AUTHORIZATION, header::CONTENT_TYPE])

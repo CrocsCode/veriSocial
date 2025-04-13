@@ -4,14 +4,14 @@ use uuid::Uuid;
 use log::error;
 use crate::config::settings;
 use crate::models::{
-    app_state::AppState,
+    app_config::AppConfig,
     posts::{NewPost, Post},
     response::{ApiError, ImageResponse}
 };
 use super::image::image_check;
 
 
-pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>, user_id: u64) -> Result<Post, ApiError> {
+pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id: u64) -> Result<Post, ApiError> {
     let max_file_size = (*settings::MAX_FILE_SIZE).clone();
 
     let image_name = if let Some(file) = new_post.image {    
@@ -40,7 +40,7 @@ pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>, user_id: u
     };
 
     // Start a transaction.
-    let mut tx: Transaction<'_, sqlx::MySql> = match app_state.pool.begin().await {
+    let mut tx: Transaction<'_, sqlx::MySql> = match app_config.pool.begin().await {
         Ok(tx) => tx,
         Err(err) => return Err(ApiError::ServerError(err.to_string())),
     };
