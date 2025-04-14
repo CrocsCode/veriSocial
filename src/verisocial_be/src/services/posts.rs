@@ -1,4 +1,4 @@
-use log::info;
+use log::{debug, info};
 use sqlx::{MySqlPool, Transaction};
 use uuid::Uuid;
 use log::error;
@@ -8,14 +8,15 @@ use crate::models::{
     posts::{NewPost, Post},
     response::{ApiError, ImageResponse}
 };
-use super::image::image_check;
+use super::image::*;
 
 
 pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id: u64) -> Result<Post, ApiError> {
     let max_file_size = (*settings::MAX_FILE_SIZE).clone();
 
-    let image_name = if let Some(file) = new_post.image {    
-        let file_name = file.file_name.clone().unwrap_or("null".to_string());
+    let image_name = if let Some(file) = &new_post.image {    
+        println!("Image detected!");
+        let mut file_name = file.file_name.clone().unwrap_or("null".to_string());
         // Check correct filetypes
         match &file_name[file_name.len() - 4 ..] {
             ".png" | ".jpg" => {},
@@ -34,6 +35,13 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
             },
             _ => {}
         }
+        // Generate file name.
+        file_name = format!("{}-{}.{}",
+            user_id,
+            Uuid::new_v4(),
+            file_name[file_name.len() - 3 ..].to_string()
+        );
+        
         file_name
     } else {
         "null".to_string()
@@ -45,6 +53,8 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         Err(err) => return Err(ApiError::ServerError(err.to_string())),
     };
 
+    println!("TRANSACTION STARTING");
+    // The process of the transaction is below
     let result: Result<Post, ApiError> = async {
         let insert_result = sqlx::query!(
             r#"
@@ -60,6 +70,10 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         .await;
 
         // Upload picture to digitalOcean servers.
+        if let Some(image) = new_post.image {
+            println!("Uploading images");
+            upload_image(image_name, image, &app_config.s3_client).await?;
+        }
         // After send send the picture to bot-checker queue.
 
         let latest_post_id = match insert_result {
