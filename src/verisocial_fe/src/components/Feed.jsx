@@ -20,15 +20,8 @@ import { loadFeedPageRequest } from "../redux/actionCreators/feedCreators";
 import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
 import { loadCommentsRequest } from "../redux/actionCreators/postInteractCreators";
 
-function Feed({
-  onSelectPost,
-  loadFeedPageRequest,
-  feed,
-  resetCreatePostForm,
-  loadCommentsRequest,
-}) {
-  const { posts, loading, isLastPage } = feed;
-  const [currentPage, setCurrentPage] = useState(1);
+function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, loadCommentsRequest, }) {
+  const { posts, loading, isLastPage, currentPage } = feed;
   const [isFetching, setIsFetching] = useState(false);
   const [isCreatePostOpen, setCreatePostOpen] = useState(false);
 
@@ -39,10 +32,10 @@ function Feed({
     if (loading || isLastPage || isFetching) return;
 
     setIsFetching(true);
-    loadFeedPageRequest(currentPage, pageSize);
+    const nextPage = currentPage + 1;
+    loadFeedPageRequest(nextPage, pageSize);
 
     setTimeout(() => {
-      setCurrentPage((prev) => prev + 1);
       setIsFetching(false);
 
       const container = feedContainerRef.current;
@@ -58,15 +51,13 @@ function Feed({
 
     const debouncedScroll = debounce(() => {
       if (
-        container.scrollTop + container.clientHeight >=
-        container.scrollHeight - 50
+        container.scrollTop + container.clientHeight >= container.scrollHeight - 50
       ) {
         fetchPosts();
       }
     }, 500);
 
     container.addEventListener("scroll", debouncedScroll);
-
     return () => {
       container.removeEventListener("scroll", debouncedScroll);
     };
@@ -132,9 +123,9 @@ function Feed({
         }}
       >
         <VStack spacing={4} align="stretch">
-          {posts.map((post) => (
+          {posts.map((post, index) => (
             <PostCard
-              key={post.post_id}
+              key={`post-${post.post_id}-${index}`}
               post={post}
               onClick={() => handleSelectPostWithComments(post)}
             />
@@ -190,13 +181,14 @@ Feed.propTypes = {
     ),
     loading: PropTypes.bool,
     isLastPage: PropTypes.bool,
+    currentPage: PropTypes.number,
   }).isRequired,
   resetCreatePostForm: PropTypes.func.isRequired,
   loadCommentsRequest: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
-  feed: state.feed || { posts: [], loading: false, isLastPage: false },
+  feed: state.feed || { posts: [], loading: false, isLastPage: false, currentPage: 0 },
 });
 
 const mapDispatchToProps = {

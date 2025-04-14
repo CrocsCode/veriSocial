@@ -1,7 +1,13 @@
 import axios from "axios";
+import { logout } from "../redux/actionCreators/authCreators";
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 let authToken = null;
+let logoutHandler = () => {};
+
+export const setLogoutHandler = (handler) => {
+  logoutHandler = handler;
+};
 
 export const setAuthToken = (token) => {
   authToken = token;
@@ -47,8 +53,18 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => Promise.reject(error)
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error && error.code === 401) {
+      logoutHandler(logout());
+    }
+    else if (error && error.code === "ERR_NETWORK") {
+      logoutHandler(logout());
+    }
+    return Promise.reject(error);
+  }
 );
 
 const responseBody = (response) => response.data;
