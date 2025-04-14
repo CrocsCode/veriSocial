@@ -36,6 +36,7 @@ async fn main() -> std::io::Result<()> {
     let aws_endpoint = (*settings::AWS_ENDPOINT).clone();
     let aws_secret = (*settings::AWS_SECRET_ACCESS_KEY).clone();
     let aws_key_id = (*settings::AWS_ACCESS_KEY_ID).clone();
+    let bucket_name = (*settings::BUCKET_NAME).clone();
 
 
     info!("DATABASE_URL: {}", database_url);
@@ -74,7 +75,8 @@ async fn main() -> std::io::Result<()> {
         pool,
         _client : client,
         _ai_image_url: ai_image_url,
-        s3_client
+        s3_client,
+        bucket_name
     };
 
     HttpServer::new(move || {

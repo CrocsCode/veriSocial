@@ -72,7 +72,7 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         // Upload picture to digitalOcean servers.
         if let Some(image) = new_post.image {
             println!("Uploading images");
-            upload_image(image_name, image, &app_config.s3_client).await?;
+            upload_image(image_name, image, &app_config.bucket_name, &app_config.s3_client).await?;
         }
         // After send send the picture to bot-checker queue.
 

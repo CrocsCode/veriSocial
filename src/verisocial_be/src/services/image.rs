@@ -35,7 +35,7 @@ pub async fn _image_check(image_name: String, post_id: u64, client: &Client) -> 
     todo!()
 }
 
-pub async fn upload_image(filename: String, image: TempFile, s3_client: &S3Client) -> Result<(), ApiError> {
+pub async fn upload_image(filename: String, image: TempFile, bucket_name: &String, s3_client: &S3Client) -> Result<(), ApiError> {
     const CHUNK_SIZE: u64 = 1024 * 1024 * 5;
 
     let file_path = image.file.path();
@@ -45,7 +45,7 @@ pub async fn upload_image(filename: String, image: TempFile, s3_client: &S3Clien
     // Start multipart upload request for S3 bucket.
     let multipart_upload_res = match s3_client
         .create_multipart_upload()
-        .bucket("images")
+        .bucket(bucket_name)
         .key(&filename)
         .send()
         .await {
@@ -91,7 +91,7 @@ pub async fn upload_image(filename: String, image: TempFile, s3_client: &S3Clien
         // Could go wrong.
         let upload_part_res = match s3_client
             .upload_part()
-            .bucket("images")
+            .bucket(bucket_name)
             .key(&filename)
             .upload_id(upload_id)
             .body(stream)
@@ -117,7 +117,7 @@ pub async fn upload_image(filename: String, image: TempFile, s3_client: &S3Clien
 
     let _complete_multipart_upload_res = match s3_client
         .complete_multipart_upload()
-        .bucket("images")
+        .bucket(bucket_name)
         .key(&filename)
         .multipart_upload(completed_multipart_upload)
         .upload_id(upload_id)
