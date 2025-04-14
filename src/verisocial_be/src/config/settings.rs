@@ -10,6 +10,8 @@ lazy_static!{
     pub static ref APP_URL: String = set_server_ip();
     pub static ref AWS_ENDPOINT: String = set_aws_endpoint();
     pub static ref AWS_REGION: String = set_aws_region();
+    pub static ref AWS_ACCESS_KEY_ID: String = set_aws_access_key();
+    pub static ref AWS_SECRET_ACCESS_KEY: String = set_aws_secret();
 }
 
 fn set_secret() -> String {
@@ -81,6 +83,28 @@ fn set_aws_region() -> String {
         Ok(s) => s,
         Err(_) =>  {
             error!("Expected AWS_REGION to be set");
+            std::process::exit(1)
+        }
+    }
+}
+
+fn set_aws_access_key() -> String {
+    dotenvy::dotenv().ok();
+    match std::env::var("AWS_ACCESS_KEY_ID") {
+        Ok(s) => s,
+        Err(_) =>  {
+            error!("Expected AWS_ACCESS_KEY_ID to be set");
+            std::process::exit(1)
+        }
+    }
+}
+
+fn set_aws_secret() -> String {
+    dotenvy::dotenv().ok();
+    match std::env::var("AWS_SECRET_ACCESS_KEY") {
+        Ok(s) => s,
+        Err(_) =>  {
+            error!("Expected AWS_SECRET_ACCESS_KEY to be set");
             std::process::exit(1)
         }
     }

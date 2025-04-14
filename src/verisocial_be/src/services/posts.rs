@@ -1,4 +1,4 @@
-use log::{debug, info};
+use log::debug;
 use sqlx::{MySqlPool, Transaction};
 use uuid::Uuid;
 use log::error;
@@ -6,7 +6,7 @@ use crate::config::settings;
 use crate::models::{
     app_config::AppConfig,
     posts::{NewPost, Post},
-    response::{ApiError, ImageResponse}
+    response::ApiError
 };
 use super::image::*;
 
@@ -53,7 +53,7 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         Err(err) => return Err(ApiError::ServerError(err.to_string())),
     };
 
-    println!("TRANSACTION STARTING");
+    debug!("TRANSACTION STARTING FOR POST");
     // The process of the transaction is below
     let result: Result<Post, ApiError> = async {
         let insert_result = sqlx::query!(

@@ -30,10 +30,12 @@ async fn main() -> std::io::Result<()> {
     let database_url = (*settings::APP_DATABASE_URL).clone();
     let app_url = (*settings::APP_URL).clone();
     let _ = (*settings::SECRET).clone(); // Ensure this value is initialized
-    let max_file_size = (*settings::MAX_FILE_SIZE).clone();
+    let _ = (*settings::MAX_FILE_SIZE).clone();
     let ai_image_url = (*settings::AI_IMAGE_URL).clone();
     let aws_region = (*settings::AWS_REGION).clone();
     let aws_endpoint = (*settings::AWS_ENDPOINT).clone();
+    let aws_secret = (*settings::AWS_SECRET_ACCESS_KEY).clone();
+    let aws_key_id = (*settings::AWS_ACCESS_KEY_ID).clone();
 
 
     info!("DATABASE_URL: {}", database_url);
@@ -60,7 +62,7 @@ async fn main() -> std::io::Result<()> {
     info!("Migrations have been applied");
 
     // Init Bucket Connection
-    let s3_client = config::s3_client::create_spaces_client(aws_endpoint, aws_region).await;
+    let s3_client = config::s3_client::create_spaces_client(aws_key_id, aws_secret,aws_endpoint,  aws_region).await;
     info!("Successfully started S3 client!");
     
     // Init Client
@@ -70,9 +72,8 @@ async fn main() -> std::io::Result<()> {
     let app_data = models::app_config::AppConfig {
         pass_hashing: Argon2::default(), // Password Hashing
         pool,
-        client,
-        max_file_size,
-        ai_image_url,
+        _client : client,
+        _ai_image_url: ai_image_url,
         s3_client
     };
 

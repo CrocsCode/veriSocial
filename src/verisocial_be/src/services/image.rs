@@ -2,7 +2,6 @@ use actix_multipart::form::tempfile::TempFile;
 use reqwest::Client;
 use serde_json::json;
 
-use aws_sdk_s3::operation::create_multipart_upload::CreateMultipartUploadOutput;
 use aws_sdk_s3::types::{CompletedMultipartUpload, CompletedPart};
 use aws_sdk_s3::Client as S3Client;
 use aws_sdk_s3::primitives::{ByteStream, Length};
@@ -11,7 +10,7 @@ use crate::models::response::{ApiError, ImageResponse};
 use crate::config::settings::AI_IMAGE_URL;
 
 
-pub async fn image_check(image_name: String, post_id: u64, client: &Client) -> Result<ImageResponse, ApiError> {
+pub async fn _image_check(image_name: String, post_id: u64, client: &Client) -> Result<ImageResponse, ApiError> {
     // Build response
     let payload = json!({
         "post_id": post_id,
@@ -23,32 +22,36 @@ pub async fn image_check(image_name: String, post_id: u64, client: &Client) -> R
         .send()
         .await;
 
-    let succ_resp = match resp {
+    let _succ_resp = match resp {
         Ok(json) => json.json::<ImageResponse>().await,
         Err(err) => return Err(ApiError::CannotUpload("Image Verification failed: ".to_string() + &err.to_string()))
     };
 
-    match succ_resp {
-        Ok(result) => Ok(result),
-        Err(err) => Err(ApiError::CannotUpload("Error: ".to_string() + &err.to_string()))
-    }
+    // match succ_resp {
+    //     Ok(result) => Ok(result),
+    //     Err(err) => Err(ApiError::CannotUpload("Error: ".to_string() + &err.to_string()))
+    // };
+
+    todo!()
 }
 
 pub async fn upload_image(filename: String, image: TempFile, s3_client: &S3Client) -> Result<(), ApiError> {
     const CHUNK_SIZE: u64 = 1024 * 1024 * 5;
-    const MAX_CHUNKS: u64 = 10000;
 
     let file_path = image.file.path();
     let file_size = image.size as u64; // Could throw an error.
 
     // TODO: Create error handling for the following
     // Start multipart upload request for S3 bucket.
-    let multipart_upload_res: CreateMultipartUploadOutput = s3_client
+    let multipart_upload_res = match s3_client
         .create_multipart_upload()
-        .bucket("fyp-jajo-verisocial-image-storage")
+        .bucket("images")
         .key(&filename)
         .send()
-        .await.unwrap();
+        .await {
+            Ok(resp) => resp,
+            Err(err) => return Err(ApiError::CannotUpload(err.to_string()))
+        };
 
     let upload_id = multipart_upload_res.upload_id().ok_or(
         ApiError::ServerError("Could not upload to S3 Bucket".to_string())
@@ -73,25 +76,31 @@ pub async fn upload_image(filename: String, image: TempFile, s3_client: &S3Clien
         };
         
         // Most likely to go wrong?
-        let stream = ByteStream::read_from()
+        let stream = match ByteStream::read_from()
             .path(file_path)
             .offset(chunk_index * CHUNK_SIZE)
             .length(Length::Exact(this_chunk))
             .build()
-            .await
-            .unwrap();
+            .await {
+                Ok(s) => s,
+                Err(err) => return Err(ApiError::CannotUpload(err.to_string()))
+            };
 
         // Chunk index starts from 0 but parts start from 1
         let part_number = (chunk_index as i32) + 1;
         // Could go wrong.
-        let upload_part_res = s3_client
+        let upload_part_res = match s3_client
             .upload_part()
+            .bucket("images")
             .key(&filename)
             .upload_id(upload_id)
             .body(stream)
             .part_number(part_number)
             .send()
-            .await.unwrap();
+            .await {
+                Ok(resp) => resp,
+                Err(err) => return Err(ApiError::CannotUpload(err.to_string()))
+            };
 
         upload_parts.push(
             CompletedPart::builder()
@@ -106,14 +115,17 @@ pub async fn upload_image(filename: String, image: TempFile, s3_client: &S3Clien
         .build();
 
 
-    let _complete_multipart_upload_res = s3_client
+    let _complete_multipart_upload_res = match s3_client
         .complete_multipart_upload()
-        .bucket("fyp-jajo-verisocial-image-storage")
+        .bucket("images")
         .key(&filename)
         .multipart_upload(completed_multipart_upload)
         .upload_id(upload_id)
         .send()
-        .await;
+        .await {
+            Ok(resp) => resp,
+            Err(err) => return Err(ApiError::CannotUpload(err.to_string()))
+        };
 
-    todo!()
+    Ok(())
 }
