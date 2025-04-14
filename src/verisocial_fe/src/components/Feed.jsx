@@ -20,8 +20,15 @@ import { loadFeedPageRequest } from "../redux/actionCreators/feedCreators";
 import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
 import { loadCommentsRequest } from "../redux/actionCreators/postInteractCreators";
 
-function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, loadCommentsRequest, }) {
-  const { posts, loading, isLastPage, currentPage } = feed;
+function Feed({
+  onSelectPost,
+  loadFeedPageRequest,
+  feed,
+  resetCreatePostForm,
+  loadCommentsRequest,
+}) {
+  const { posts, loading, isLastPage } = feed;
+  const [currentPage, setCurrentPage] = useState(1);
   const [isFetching, setIsFetching] = useState(false);
   const [isCreatePostOpen, setCreatePostOpen] = useState(false);
 
@@ -32,10 +39,10 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, lo
     if (loading || isLastPage || isFetching) return;
 
     setIsFetching(true);
-    const nextPage = currentPage + 1;
-    loadFeedPageRequest(nextPage, pageSize);
+    loadFeedPageRequest(currentPage, pageSize);
 
     setTimeout(() => {
+      setCurrentPage((prev) => prev + 1);
       setIsFetching(false);
 
       const container = feedContainerRef.current;
@@ -51,13 +58,15 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, lo
 
     const debouncedScroll = debounce(() => {
       if (
-        container.scrollTop + container.clientHeight >= container.scrollHeight - 50
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 50
       ) {
         fetchPosts();
       }
     }, 500);
 
     container.addEventListener("scroll", debouncedScroll);
+
     return () => {
       container.removeEventListener("scroll", debouncedScroll);
     };
@@ -123,9 +132,9 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, lo
         }}
       >
         <VStack spacing={4} align="stretch">
-          {posts.map((post, index) => (
+          {posts.map((post) => (
             <PostCard
-              key={`post-${post.post_id}-${index}`}
+              key={post.post_id}
               post={post}
               onClick={() => handleSelectPostWithComments(post)}
             />
@@ -181,14 +190,13 @@ Feed.propTypes = {
     ),
     loading: PropTypes.bool,
     isLastPage: PropTypes.bool,
-    currentPage: PropTypes.number,
   }).isRequired,
   resetCreatePostForm: PropTypes.func.isRequired,
   loadCommentsRequest: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
-  feed: state.feed || { posts: [], loading: false, isLastPage: false, currentPage: 0 },
+  feed: state.feed || { posts: [], loading: false, isLastPage: false },
 });
 
 const mapDispatchToProps = {

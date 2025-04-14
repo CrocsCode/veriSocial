@@ -2,7 +2,6 @@ import {
   LOAD_FEED_PAGE_REQUEST,
   LOAD_FEED_PAGE_REQUEST_SUCCESS,
   LOAD_FEED_PAGE_REQUEST_FAILURE,
-  RESET_FEED,
 } from "../actionTypes/feedActionTypes";
 import { LIKE_POST_SUCCESS } from "../actionTypes/postInteractTypes";
 
@@ -38,9 +37,6 @@ const feedReducer = (state = initialState, action) => {
         loading: false,
         error: action.payload,
       };
-
-    case RESET_FEED:
-      return { ...initialState };
 
     case LIKE_POST_SUCCESS: {
       const { postId, isLiked } = action.payload;

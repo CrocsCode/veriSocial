@@ -8,7 +8,6 @@ import api from "../../api";
 import T from "../../constants/text";
 import { axiosInstance } from "../../api/axiosInstance";
 import { setAuthToken } from "../../api/axiosInstance";
-import { resetFeed } from "../actionCreators/feedCreators";
 
 function* handleLogin(action) {
   try {
@@ -20,10 +19,7 @@ function* handleLogin(action) {
       const { id, token } = response.message;
       setAuthToken(token); // In Memory for Initial Login
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
       yield put(loginSuccess(token));
-      yield put(resetFeed());
-      
       const userResponse = yield call(api.authService.getUser, id);
 
       // Check UserDetails from Login Response
