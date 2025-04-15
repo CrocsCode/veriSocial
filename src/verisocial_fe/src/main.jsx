@@ -37,4 +37,3 @@ createRoot(document.getElementById('root')).render(
       </Provider>
     </ChakraProvider>
 );
-

@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n            INSERT INTO posts (user_id, content, base64_image, bot_score)\n            VALUES (?, ?, ?, ?)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "d6ed97e2b234b4254f83e13b875fbf5afc9b2d6ce1cc1ff48931295be76de8c6"
+}

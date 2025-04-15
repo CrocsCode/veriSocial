@@ -1,13 +1,13 @@
 use actix_web::{get, post, web, Responder};
 use crate::models::user::FollowRequest;
 use crate::models::{
-    app_state::AppState, response::Response, user::NewUser, user::AuthDetails
+    app_config::AppConfig, response::Response, user::NewUser, user::AuthDetails
 };
 use crate::services::users;
 
 
 #[get("/user/{user_id}")]
-pub async fn retrieve_user(user_id: web::Path<u64>, app_data: web::Data<AppState<'_>>) -> impl Responder {
+pub async fn retrieve_user(user_id: web::Path<u64>, app_data: web::Data<AppConfig<'_>>) -> impl Responder {
     let id = user_id.into_inner();
     let conn = &app_data.into_inner().pool;
 
@@ -17,13 +17,13 @@ pub async fn retrieve_user(user_id: web::Path<u64>, app_data: web::Data<AppState
 }
 
 #[get("/users")]
-pub async fn retrieve_list_of_users(app_data: web::Data<AppState<'_>>) -> impl Responder {
+pub async fn retrieve_list_of_users(app_data: web::Data<AppConfig<'_>>) -> impl Responder {
     let resp = users::retrieve_user_list(&app_data.into_inner().pool).await;
     Response::create_get_response(resp)
 }
 
 #[post("/user/follow")]
-pub async fn user_follow(json: web::Json<FollowRequest>, app_data: web::Data<AppState<'_>>) -> impl Responder {
+pub async fn user_follow(json: web::Json<FollowRequest>, app_data: web::Data<AppConfig<'_>>) -> impl Responder {
     let follow_request = json.into_inner();
     let conn = &app_data.into_inner().pool;
 
@@ -32,7 +32,7 @@ pub async fn user_follow(json: web::Json<FollowRequest>, app_data: web::Data<App
 }
 
 #[post("/user/unfollow")]
-pub async fn user_unfollow(json: web::Json<FollowRequest>, app_data: web::Data<AppState<'_>>) -> impl Responder {
+pub async fn user_unfollow(json: web::Json<FollowRequest>, app_data: web::Data<AppConfig<'_>>) -> impl Responder {
     let follow_request = json.into_inner();
     let conn = &app_data.into_inner().pool;
 
@@ -41,7 +41,7 @@ pub async fn user_unfollow(json: web::Json<FollowRequest>, app_data: web::Data<A
 }
 
 #[post("/login")]
-pub async fn login_user(json: web::Json<AuthDetails>,data: web::Data<AppState<'_>>) -> impl Responder {
+pub async fn login_user(json: web::Json<AuthDetails>,data: web::Data<AppConfig<'_>>) -> impl Responder {
     let auth = json.into_inner();
     let app_state = &data.into_inner();
 
@@ -51,7 +51,7 @@ pub async fn login_user(json: web::Json<AuthDetails>,data: web::Data<AppState<'_
 }
 
 #[post("/register")]
-pub async fn create_user(json: web::Json<NewUser>, data: web::Data<AppState<'_>>) -> impl Responder {
+pub async fn create_user(json: web::Json<NewUser>, data: web::Data<AppConfig<'_>>) -> impl Responder {
     let new_user = json.into_inner(); // Destructure json into user.
     let app_state = &data.into_inner();
     

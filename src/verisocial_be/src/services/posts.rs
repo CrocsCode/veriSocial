@@ -1,92 +1,128 @@
-use log::info;
-use sqlx::MySqlPool;
-// use uuid::Uuid;
-// use tokio::fs;
-
+use log::debug;
+use sqlx::{MySqlPool, Transaction};
+use uuid::Uuid;
+use log::error;
+use crate::config::settings;
 use crate::models::{
-    app_state::AppState,
+    app_config::AppConfig,
     posts::{NewPost, Post},
-    response::{ApiError, ImageResponse}
+    response::ApiError
 };
+use super::image::*;
 
-use super::image::image_check;
 
+pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id: u64) -> Result<Post, ApiError> {
+    let max_file_size = (*settings::MAX_FILE_SIZE).clone();
 
-pub async fn create_post(new_post: NewPost, app_state: &AppState<'_>) -> Result<Post, ApiError> {
-    // let filepath = if new_post.base64_image.is_some() {
-    //     let data = new_post.base64_image.unwrap(); // Should never happen.
-    //     decode_and_generate_image(new_post.user_id, data).await?
-    // } else {
-    //     "0".to_string()
-    // };
-
-    let score: f64 = if new_post.base64_image.is_some() {
-        let check: ImageResponse = image_check(
-            new_post.base64_image.clone().unwrap(), // This will never panic
-            new_post.user_id,
-            &app_state.client
-        ).await?;
-
-        if check.post_id > 0 {
-            info!("{:?}", check);
+    // Check if there is an image and ensure it's the right format.
+    let image_name = if let Some(file) = &new_post.image {    
+        debug!("Image detected!");
+        let mut file_name = file.file_name.clone().unwrap_or("null".to_string());
+        // Check correct filetypes (Could use Tempfile attributes.)
+        match &file_name[file_name.len() - 4 ..] {
+            ".png" | ".jpg" => {},
+            _ => {
+                return Err(ApiError::CannotUpload("Invalid File type".to_string()))
+            }
         }
+        // Check correct size
+        match file.size {
+            0 => {
+                return Err(ApiError::CannotUpload(" Invalid File type".to_owned()))
+            },
+            length if length > max_file_size as usize => {
+                return Err(ApiError::CannotUpload(" File Too Big".to_owned()))
 
-        if check.class_type == *"real" {
-            1_f64 - check.score
-        } else {
-            check.score
+            },
+            _ => {}
         }
+        // Generate file name.
+        file_name = format!("{}-{}.{}",
+            user_id,
+            Uuid::new_v4(),
+            file_name[file_name.len() - 3 ..].to_string()
+        );
+        
+        Some(create_image_url(&app_config.aws_endpoint, &app_config.bucket_name, file_name))
     } else {
-        0.0
+        None
     };
 
-    let insert_result = sqlx::query!(
-        r#"
-        INSERT INTO posts (user_id, content, base64_image, bot_score)
-        VALUES (?, ?, ?, ?)
-        "#,
-        &new_post.user_id,
-        &new_post.content,
-        new_post.base64_image,
-        score
-    )
-    .execute(&app_state.pool)
-    .await;
-
-    let latest_post_id = match insert_result {
-        Ok(query) => query.last_insert_id(),
-        Err(err) => return Err(ApiError::CannotCreateObject(err.to_string()))
+    // Start a transaction.
+    let mut tx: Transaction<'_, sqlx::MySql> = match app_config.pool.begin().await {
+        Ok(tx) => tx,
+        Err(err) => return Err(ApiError::ServerError(err.to_string())),
     };
 
-    let post_result = sqlx::query_as!(Post,
-        r#"
-        SELECT 
-            p.post_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            u.user_id,
-            u.username,
-            u.full_name,
-            u.bot_score AS user_bot_score,
-            CAST(0 AS UNSIGNED) AS comment_count,
-            CAST(0 AS UNSIGNED) AS likes_count,
-            0 AS is_liked
-        FROM 
-            posts AS p
-        INNER JOIN
-            users AS u ON p.user_id = u.user_id
-        WHERE 
-            p.post_id = ?;
-        "#,
-        latest_post_id
-    ).fetch_one(&app_state.pool)
-    .await;
+    debug!("TRANSACTION STARTING FOR POST");
+    // The process of the transaction is below
+    let result: Result<Post, ApiError> = async {
+        let insert_result = sqlx::query!(
+            r#"
+            INSERT INTO posts (user_id, content, base64_image, bot_score)
+            VALUES (?, ?, ?, ?)
+            "#,
+            user_id,
+            &new_post.content.to_string(),
+            image_name,
+            0.0
+        )
+        .execute(&mut *tx)
+        .await;
 
-    match post_result {
-        Ok(post) => Ok(post),
-        Err(err) => Err(ApiError::CannotCreateObject(err.to_string()))
+        // Upload picture to digitalOcean servers.
+        if let Some(image) = new_post.image {
+            debug!("Uploading image");
+            // Unwrap will not panic due to the previous if let Some handling the cases when there is no image.
+            upload_image(&image_name.unwrap(), image, &app_config.bucket_name, &app_config.s3_client).await?;
+        }
+        // After send send the picture to bot-checker queue.
+
+        let latest_post_id = match insert_result {
+            Ok(query) => query.last_insert_id(),
+            Err(err) => return Err(ApiError::CannotCreateObject(err.to_string()))
+        };
+
+        let post_result = sqlx::query_as!(Post,
+            r#"
+            SELECT 
+                p.post_id,
+                p.content,
+                p.created_at,
+                p.base64_image,
+                p.bot_score,
+                u.user_id,
+                u.username,
+                u.full_name,
+                u.bot_score AS user_bot_score,
+                CAST(0 AS UNSIGNED) AS comment_count,
+                CAST(0 AS UNSIGNED) AS likes_count,
+                0 AS is_liked
+            FROM 
+                posts AS p
+            INNER JOIN
+                users AS u ON p.user_id = u.user_id
+            WHERE 
+                p.post_id = ?;
+            "#,
+            latest_post_id
+        ).fetch_one(&mut *tx)
+        .await
+        .map_err(|err|  ApiError::ServerError(err.to_string()))?;
+
+        Ok(post_result)
+    }.await;
+
+    match result {
+        Ok(post) => {
+            tx.commit().await.map_err(|e| ApiError::ServerError(e.to_string()))?;
+            Ok(post)
+        },
+        Err(err) => {
+            tx.rollback().await.map_err(|rollback_err| ApiError::ServerError(rollback_err.to_string()))?;
+            error!("{}", err);
+            Err(err)
+        }
     }
 }
 

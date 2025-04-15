@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT \n            p.post_id,\n            p.content,\n            p.created_at,\n            p.base64_image,\n            p.bot_score,\n            u.user_id,\n            u.username,\n            u.full_name,\n            u.bot_score AS user_bot_score,\n            CAST(0 AS UNSIGNED) AS comment_count,\n            CAST(0 AS UNSIGNED) AS likes_count,\n            0 AS is_liked\n        FROM \n            posts AS p\n        INNER JOIN\n            users AS u ON p.user_id = u.user_id\n        WHERE \n            p.post_id = ?;\n        ",
+  "query": "\n            SELECT \n                p.post_id,\n                p.content,\n                p.created_at,\n                p.base64_image,\n                p.bot_score,\n                u.user_id,\n                u.username,\n                u.full_name,\n                u.bot_score AS user_bot_score,\n                CAST(0 AS UNSIGNED) AS comment_count,\n                CAST(0 AS UNSIGNED) AS likes_count,\n                0 AS is_liked\n            FROM \n                posts AS p\n            INNER JOIN\n                users AS u ON p.user_id = u.user_id\n            WHERE \n                p.post_id = ?;\n            ",
   "describe": {
     "columns": [
       {
@@ -130,5 +130,5 @@
       false
     ]
   },
-  "hash": "89687cfc5adc894a1d516e6764ab61f381bf858e47ba7d33f0a5be30b84a9da0"
+  "hash": "484f578a3e23c9d1a7f71aff215ca8e6ba01c01ef042f58ae8e75bb9edff1ff6"
 }

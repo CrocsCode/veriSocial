@@ -1,7 +1,7 @@
 use sqlx::MySqlPool;
 
 use crate::models::{
-    app_state::AppState, posts::{Comment, NewComment}, response::ApiError
+    app_config::AppConfig, posts::{Comment, NewComment}, response::ApiError
 };
 
 
@@ -62,7 +62,7 @@ pub async fn retrieve_comments_for_post(
     }
 }
 
-pub async fn insert_comment(app_state: &AppState<'_>, user_id: u64, new_comment: NewComment) -> Result<Comment, ApiError> {
+pub async fn insert_comment(app_state: &AppConfig<'_>, user_id: u64, new_comment: NewComment) -> Result<Comment, ApiError> {
 
     // Check for generated content (Txt not implemented yet so leave empty)
 
