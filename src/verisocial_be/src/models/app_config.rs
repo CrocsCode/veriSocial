@@ -11,7 +11,8 @@ pub struct AppConfig<'a> {
     pub _client: Req_client,
     pub _ai_image_url: String,
     pub s3_client: S3_client,
-    pub bucket_name: String
+    pub bucket_name: String,
+    pub aws_endpoint: String,
 }
 
 #[derive(Deserialize)]

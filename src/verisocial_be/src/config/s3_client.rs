@@ -4,7 +4,7 @@ use aws_sdk_s3::config::{Credentials, SharedCredentialsProvider, Builder};
 use aws_sdk_s3::Client;
 use log::debug;
 
-pub async fn create_spaces_client(access_key_id: String, secret_access_key: String, endpoint_url: String, region: String) -> Client {
+pub async fn create_spaces_client(access_key_id: String, secret_access_key: String, endpoint_url: &String, region: String) -> Client {
     let region_provider = RegionProviderChain::first_try(Region::new(region));
 
     let credentials_provider = SharedCredentialsProvider::new(

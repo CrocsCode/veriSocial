@@ -4,6 +4,7 @@ use serde_json::json;
 
 use aws_sdk_s3::types::{CompletedMultipartUpload, CompletedPart};
 use aws_sdk_s3::Client as S3Client;
+use aws_sdk_s3::types::ObjectCannedAcl;
 use aws_sdk_s3::primitives::{ByteStream, Length};
 
 use crate::models::response::{ApiError, ImageResponse};
@@ -35,18 +36,18 @@ pub async fn _image_check(image_name: String, post_id: u64, client: &Client) -> 
     todo!()
 }
 
-pub async fn upload_image(filename: String, image: TempFile, bucket_name: &String, s3_client: &S3Client) -> Result<(), ApiError> {
-    const CHUNK_SIZE: u64 = 1024 * 1024 * 5;
+pub async fn upload_image(filename: &String, image: TempFile, bucket_name: &String, s3_client: &S3Client) -> Result<(), ApiError> {
+    const CHUNK_SIZE: u64 = 1024 * 1024 * 5; // Make configurable?
 
     let file_path = image.file.path();
     let file_size = image.size as u64; // Could throw an error.
 
-    // TODO: Create error handling for the following
     // Start multipart upload request for S3 bucket.
     let multipart_upload_res = match s3_client
         .create_multipart_upload()
         .bucket(bucket_name)
-        .key(&filename)
+        .key(filename)
+        .acl(ObjectCannedAcl::PublicRead)
         .send()
         .await {
             Ok(resp) => resp,
@@ -75,7 +76,7 @@ pub async fn upload_image(filename: String, image: TempFile, bucket_name: &Strin
             CHUNK_SIZE
         };
         
-        // Most likely to go wrong?
+        // Stream the next part of the file.
         let stream = match ByteStream::read_from()
             .path(file_path)
             .offset(chunk_index * CHUNK_SIZE)
@@ -87,12 +88,12 @@ pub async fn upload_image(filename: String, image: TempFile, bucket_name: &Strin
             };
 
         // Chunk index starts from 0 but parts start from 1
+        // Upload the next part of the file.
         let part_number = (chunk_index as i32) + 1;
-        // Could go wrong.
         let upload_part_res = match s3_client
             .upload_part()
             .bucket(bucket_name)
-            .key(&filename)
+            .key(filename)
             .upload_id(upload_id)
             .body(stream)
             .part_number(part_number)
@@ -118,7 +119,7 @@ pub async fn upload_image(filename: String, image: TempFile, bucket_name: &Strin
     let _complete_multipart_upload_res = match s3_client
         .complete_multipart_upload()
         .bucket(bucket_name)
-        .key(&filename)
+        .key(filename)
         .multipart_upload(completed_multipart_upload)
         .upload_id(upload_id)
         .send()
@@ -128,4 +129,10 @@ pub async fn upload_image(filename: String, image: TempFile, bucket_name: &Strin
         };
 
     Ok(())
+}
+
+pub fn create_image_url(endpoint: &String, bucket_name: &String, filename: String) -> String {
+    let url = format!("{}/{}/{}", endpoint, bucket_name, filename);
+
+    url
 }

@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 
 lazy_static!{
     pub static ref SECRET: String = set_env_var("AUTH_SECRET");
-    pub static ref AI_IMAGE_URL: String = set_env_var("AI_IMAGE_CHECKER");
+    pub static ref AI_IMAGE_URL: String = set_env_var("AI_IMAGE_CHECKER_URL");
     pub static ref MAX_FILE_SIZE: u64 = set_max_file_size();
     pub static ref APP_DATABASE_URL: String = set_env_var("APP_DATABASE_URL");
     pub static ref APP_URL: String = set_env_var("APP_URL");

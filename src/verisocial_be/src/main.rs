@@ -8,7 +8,7 @@ use env_logger::Env;
 use routes::{auth_config, post_config, user_config};
 use sqlx::migrate::Migrator;
 use sqlx::mysql::MySqlPoolOptions;
-use log::{info, error};
+use log::{debug, error, info};
 
 use crate::config::settings;
 
@@ -30,7 +30,7 @@ async fn main() -> std::io::Result<()> {
     let database_url = (*settings::APP_DATABASE_URL).clone();
     let app_url = (*settings::APP_URL).clone();
     let _ = (*settings::SECRET).clone(); // Ensure this value is initialized
-    let _ = (*settings::MAX_FILE_SIZE).clone();
+    let max_file_size = (*settings::MAX_FILE_SIZE).clone();
     let ai_image_url = (*settings::AI_IMAGE_URL).clone();
     let aws_region = (*settings::AWS_REGION).clone();
     let aws_endpoint = (*settings::AWS_ENDPOINT).clone();
@@ -38,8 +38,12 @@ async fn main() -> std::io::Result<()> {
     let aws_key_id = (*settings::AWS_ACCESS_KEY_ID).clone();
     let bucket_name = (*settings::BUCKET_NAME).clone();
 
-
-    info!("DATABASE_URL: {}", database_url);
+    debug!("DATABASE_URL: {}", database_url);
+    debug!("MAX_FILE_SIZE: {} ", max_file_size);
+    debug!("AI_IMAGE_URL: {} ", ai_image_url);
+    debug!("AWS_REGION: {}", aws_region);
+    debug!("AWS_ENDPOINT: {}", aws_endpoint);
+    debug!("BUCKET_NAME: {}", bucket_name);
     info!("APP_URL: {}", app_url);
 
     // Init database connection
@@ -63,7 +67,7 @@ async fn main() -> std::io::Result<()> {
     info!("Migrations have been applied");
 
     // Init Bucket Connection
-    let s3_client = config::s3_client::create_spaces_client(aws_key_id, aws_secret,aws_endpoint,  aws_region).await;
+    let s3_client = config::s3_client::create_spaces_client(aws_key_id, aws_secret, &aws_endpoint,  aws_region).await;
     info!("Successfully started S3 client!");
     
     // Init Client
@@ -76,7 +80,8 @@ async fn main() -> std::io::Result<()> {
         _client : client,
         _ai_image_url: ai_image_url,
         s3_client,
-        bucket_name
+        bucket_name,
+        aws_endpoint
     };
 
     HttpServer::new(move || {

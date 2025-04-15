@@ -14,10 +14,11 @@ use super::image::*;
 pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id: u64) -> Result<Post, ApiError> {
     let max_file_size = (*settings::MAX_FILE_SIZE).clone();
 
+    // Check if there is an image and ensure it's the right format.
     let image_name = if let Some(file) = &new_post.image {    
-        println!("Image detected!");
+        debug!("Image detected!");
         let mut file_name = file.file_name.clone().unwrap_or("null".to_string());
-        // Check correct filetypes
+        // Check correct filetypes (Could use Tempfile attributes.)
         match &file_name[file_name.len() - 4 ..] {
             ".png" | ".jpg" => {},
             _ => {
@@ -27,7 +28,7 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         // Check correct size
         match file.size {
             0 => {
-                return Err(ApiError::CannotUpload(" Invald File type".to_owned()))
+                return Err(ApiError::CannotUpload(" Invalid File type".to_owned()))
             },
             length if length > max_file_size as usize => {
                 return Err(ApiError::CannotUpload(" File Too Big".to_owned()))
@@ -42,9 +43,9 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
             file_name[file_name.len() - 3 ..].to_string()
         );
         
-        file_name
+        Some(create_image_url(&app_config.aws_endpoint, &app_config.bucket_name, file_name))
     } else {
-        "null".to_string()
+        None
     };
 
     // Start a transaction.
@@ -71,8 +72,9 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
 
         // Upload picture to digitalOcean servers.
         if let Some(image) = new_post.image {
-            println!("Uploading images");
-            upload_image(image_name, image, &app_config.bucket_name, &app_config.s3_client).await?;
+            debug!("Uploading image");
+            // Unwrap will not panic due to the previous if let Some handling the cases when there is no image.
+            upload_image(&image_name.unwrap(), image, &app_config.bucket_name, &app_config.s3_client).await?;
         }
         // After send send the picture to bot-checker queue.
 

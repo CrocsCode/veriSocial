@@ -28,8 +28,6 @@ pub async fn retrieve_individual_post(id: web::Path<(u64, u64)>, app_data: web::
 
 #[post("/{user_id}")]
 pub async fn create_new_post(MultipartForm(form): MultipartForm<NewPost>, app_data: web::Data<AppConfig<'_>>, user: AuthUser) -> impl Responder {
-    println!("We are entering a new multipart form:");
-    println!("{:?}", form);
     let result = posts::create_post(form, &app_data.into_inner(), user.user_id).await;
     Response::create_get_response(result)
 }
