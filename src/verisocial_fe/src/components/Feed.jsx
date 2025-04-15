@@ -20,8 +20,6 @@ import { loadFeedPageRequest } from "../redux/actionCreators/feedCreators";
 import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
 import { loadCommentsRequest } from "../redux/actionCreators/postInteractCreators";
 
-
-
 function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, loadCommentsRequest, }) {
   const { posts, loading, isLastPage, currentPage } = feed;
   const [isFetching, setIsFetching] = useState(false);
@@ -181,7 +179,9 @@ Feed.propTypes = {
         post_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       })
     ),
+    loading: PropTypes.bool,
     isLastPage: PropTypes.bool,
+    currentPage: PropTypes.number,
   }).isRequired,
   resetCreatePostForm: PropTypes.func.isRequired,
   loadCommentsRequest: PropTypes.func.isRequired,

@@ -28,9 +28,9 @@ function* handleSubmitCreatePost() {
     // console.log("Payload:", payload); // Debug
     yield call(api.formService.createPost, userDetails.user_id, payload);
     yield put(submitCreatePostFormSuccess(formData));
+    yield put(showNotificationRequest(T.FORM.POST.SUCCESS, "success"));
     yield put(resetFeed());
     yield put((loadFeedPageRequest(1, 8)));
-    yield put(showNotificationRequest(T.FORM.POST.SUCCESS, "success"));
   } catch (error) {
     yield put(submitCreatePostFormFailure(error.message));
     yield put(showNotificationRequest(T.FORM.POST.FAILURE, "error"));

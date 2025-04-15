@@ -16,7 +16,6 @@ import { logout } from "./redux/actionCreators/authCreators";
 
 setLogoutHandler(() => store.dispatch(logout()));
 
-
 createRoot(document.getElementById('root')).render(
     <ChakraProvider theme={theme}>
       <Provider store={store}>
@@ -38,4 +37,3 @@ createRoot(document.getElementById('root')).render(
       </Provider>
     </ChakraProvider>
 );
-

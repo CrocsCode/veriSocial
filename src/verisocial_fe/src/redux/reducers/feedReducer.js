@@ -41,7 +41,7 @@ const feedReducer = (state = initialState, action) => {
 
     case RESET_FEED:
       return { ...initialState };
-  
+
     case LIKE_POST_SUCCESS: {
       const { postId, isLiked } = action.payload;
       return {
