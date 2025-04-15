@@ -4,6 +4,7 @@ import {
 } from "../actionTypes/createPostActionTypes";
 import { submitCreatePostFormSuccess, submitCreatePostFormFailure } from "../actionCreators/createPostActionCreators";
 import { showNotificationRequest } from "../actionCreators/notificationCreators";
+import { loadFeedPageRequest, resetFeed } from "../actionCreators/feedCreators";
 import T from "../../constants/text";
 import api from "../../api";
 
@@ -27,6 +28,8 @@ function* handleSubmitCreatePost() {
     // console.log("Payload:", payload); // Debug
     yield call(api.formService.createPost, userDetails.user_id, payload);
     yield put(submitCreatePostFormSuccess(formData));
+    yield put(resetFeed());
+    yield put((loadFeedPageRequest(1, 8)));
     yield put(showNotificationRequest(T.FORM.POST.SUCCESS, "success"));
   } catch (error) {
     yield put(submitCreatePostFormFailure(error.message));
