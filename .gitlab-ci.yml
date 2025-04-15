@@ -57,6 +57,7 @@ node-build:
     - npm install
     - npm run build
   artifacts:
+    expire_in: 2 hour
     paths:
       - src/verisocial_fe/out/*
 
