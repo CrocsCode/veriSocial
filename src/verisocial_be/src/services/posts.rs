@@ -15,7 +15,7 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
     let max_file_size = (*settings::MAX_FILE_SIZE).clone();
 
     // Check if there is an image and ensure it's the right format.
-    let image_name = if let Some(file) = &new_post.image {    
+    let mut image_name = if let Some(file) = &new_post.image {    
         debug!("Image detected!");
         let mut file_name = file.file_name.clone().unwrap_or("null".to_string());
         // Check correct filetypes (Could use Tempfile attributes.)
@@ -43,7 +43,7 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
             file_name[file_name.len() - 3 ..].to_string()
         );
         
-        Some(create_image_url(&app_config.aws_endpoint, &app_config.bucket_name, file_name))
+        Some(file_name)
     } else {
         None
     };
@@ -57,6 +57,17 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
     debug!("TRANSACTION STARTING FOR POST");
     // The process of the transaction is below
     let result: Result<Post, ApiError> = async {
+        // Upload picture to digitalOcean servers. If this fails the transaction reverts
+        if let Some(image) = new_post.image {
+            debug!("Uploading image");
+
+            // Unwrap will not panic due to the previous if let Some handling the cases when there is no image.
+            let filename = image_name.unwrap();
+            upload_image(&filename, image, &app_config.bucket_name, &app_config.s3_client).await?;
+            // use the image name as the url for retrieving the image in the front-end.
+            image_name = Some(create_image_url(&app_config.aws_endpoint, &app_config.bucket_name, &filename))
+        }
+
         let insert_result = sqlx::query!(
             r#"
             INSERT INTO posts (user_id, content, base64_image, bot_score)
@@ -69,13 +80,6 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         )
         .execute(&mut *tx)
         .await;
-
-        // Upload picture to digitalOcean servers.
-        if let Some(image) = new_post.image {
-            debug!("Uploading image");
-            // Unwrap will not panic due to the previous if let Some handling the cases when there is no image.
-            upload_image(&image_name.unwrap(), image, &app_config.bucket_name, &app_config.s3_client).await?;
-        }
         // After send send the picture to bot-checker queue.
 
         let latest_post_id = match insert_result {
