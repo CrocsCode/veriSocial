@@ -131,7 +131,7 @@ pub async fn upload_image(filename: &String, image: TempFile, bucket_name: &Stri
     Ok(())
 }
 
-pub fn create_image_url(endpoint: &String, bucket_name: &String, filename: String) -> String {
+pub fn create_image_url(endpoint: &String, bucket_name: &String, filename: &String) -> String {
     let url = format!("{}/{}/{}", endpoint, bucket_name, filename);
 
     url
