@@ -15,52 +15,52 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { FaImages } from "react-icons/fa";
-import { updateCreatePostForm, submitCreatePostFormRequest, resetCreatePostForm,
-} from "../redux/actionCreators/createPostActionCreators";
+import { submitCreatePostFormRequest, resetCreatePostForm, } from "../redux/actionCreators/createPostActionCreators";
 import T from "../constants/text";
 
 const CreatePostForm = ({
   postText = '',
-  image = null,
   onClose,
   isLoading = false,
   isSuccess = false,
-  updateCreatePostForm,
   submitCreatePostFormRequest,
   resetCreatePostForm,
 }) => {
   const [localText, setLocalText] = useState(postText);
+  const [localImage, setLocalImage] = useState(null);
   const debounceTimeout = useRef(null);
 
   const handleInputChange = (e) => {
     setLocalText(e.target.value);
     clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
-      updateCreatePostForm("postText", e.target.value);
     }, 300);
   };
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        updateCreatePostForm("image", reader.result);
-      };
-    }
+    if (file) { setLocalImage(file); }
   };
 
   const handleSubmit = () => {
-    submitCreatePostFormRequest();
+    submitCreatePostFormRequest(localText, localImage);
   };
+
+  const imagePreview = localImage ? URL.createObjectURL(localImage) : null;
 
   useEffect(() => {
     if (isSuccess) {
+      setLocalText('');
+      setLocalImage(null);
       resetCreatePostForm();
       onClose();
     }
-  }, [isSuccess, resetCreatePostForm, onClose]);
+    return () => {
+      if (localImage && imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [isSuccess, resetCreatePostForm, onClose, localImage, imagePreview]);
 
   return (
     <Box bg="white" w="30vw" minH="40vh" pt="2vh" p="5" borderRadius="md">
@@ -82,14 +82,14 @@ const CreatePostForm = ({
         />
 
         {/* Image Preview */}
-        {image && (
+        {localImage && (
           <Box position="relative">
-            <Image src={image} alt="Uploaded" borderRadius="md" />
+            <Image src={imagePreview} alt="Uploaded" borderRadius="md" />
             <CloseButton
               position="absolute"
               top={1}
               right={1}
-              onClick={() => updateCreatePostForm("image", null)}
+              onClick={() => setLocalImage(null)}
               bg="white"
               isDisabled={isLoading}
             />
@@ -145,24 +145,20 @@ const CreatePostForm = ({
 
 CreatePostForm.propTypes = {
   postText: PropTypes.string,
-  image: PropTypes.string,
-  updateCreatePostForm: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
   submitCreatePostFormRequest: PropTypes.func.isRequired,
   resetCreatePostForm: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
   isLoading: PropTypes.bool,
   isSuccess: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
   postText: state.createPost.postText || "",
-  image: state.createPost.image || null,
   isLoading: state.createPost.isLoading,
   isSuccess: state.createPost.isSuccess,
 });
 
 const mapDispatchToProps = {
-  updateCreatePostForm,
   submitCreatePostFormRequest,
   resetCreatePostForm,
 };
