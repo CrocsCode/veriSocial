@@ -74,6 +74,7 @@ const requests = {
   post: (url, body) => axiosInstance.post(url, body).then(responseBody),
   put: (url, body) => axiosInstance.put(url, body).then(responseBody),
   del: (url) => axiosInstance.delete(url).then(responseBody),
+  postMultiform: (url, body) => axiosInstance.post(url, body, { headers: { "Content-Type": "multipart/form-data" }, }).then(responseBody),
 };
 
 export { axiosInstance, requests };
