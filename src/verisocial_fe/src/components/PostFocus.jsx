@@ -22,13 +22,6 @@ import ReportForm from "./ReportForm";
 import { likePostRequest } from "../redux/actionCreators/postInteractCreators";
 import { getBotScoreLevel, getFormattedBotScore, botScoreColors } from "../utils/botScore";
 
-const formatBase64Image = (base64) => {
-  if (!base64) return null;
-  return base64.startsWith("data:image")
-    ? base64
-    : `data:image/jpeg;base64,${base64}`;
-};
-
 const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
@@ -67,7 +60,7 @@ const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
     "comment-count": commentCount,
   } = post;
 
-  const imageSrc = formatBase64Image(base64Image);
+  const imageSrc = base64Image;
   const date = new Date(createdAt);
   const exactTimestamp = isValid(date)
   ? format(date, 'MMM dd, yyyy HH:mm')

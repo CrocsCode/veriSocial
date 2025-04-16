@@ -22,13 +22,6 @@ import { getBotScoreLevel, getFormattedBotScore, botScoreColors } from "../utils
 const getRelativeTime = (timestamp) =>
   `${formatDistanceToNowStrict(new Date(timestamp))} ago`;
 
-const formatBase64Image = (base64) => {
-  if (!base64) return null;
-  return base64.startsWith("data:image")
-    ? base64
-    : `data:image/jpeg;base64,${base64}`;
-};
-
 const PostCard = ({ post, onClick, likePostRequest }) => {
   const [likeCount, setLikeCount] = useState(post["likes-count"] !== undefined ? post["likes-count"] : 0);
   const [isLiked, setIsLiked] = useState(post["is-liked"] != null ? post["is-liked"] : 0);
@@ -39,7 +32,7 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
     setIsLiked(post["is-liked"] != null ? post["is-liked"] : 0);
   }, [post]);
 
-  const imageSrc = formatBase64Image(post.base64_image);
+  const imageSrc = post.base64_image;
 
   const handleLikeClick = (e) => {
     e.stopPropagation();
@@ -62,7 +55,6 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
   const botScore = post["bot-score"];
   const botScoreLevel = getBotScoreLevel(botScore);
   const formattedBotScore = getFormattedBotScore(botScore);
-
   const userBotScore = post["user_bot_score"];
   const userBotScoreLevel = getBotScoreLevel(userBotScore);
 
@@ -88,8 +80,7 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
         {/* User Info */}
         <HStack align="top" mb={4}>
           <Tooltip
-            label={`User Bot Score: ${userBotScore != null ? userBotScore.toFixed(3) : "N/A"
-              }`}
+            label={`User Bot Score: ${userBotScore != null ? userBotScore.toFixed(3) : "N/A"}`}
             placement="top"
             hasArrow
           >
