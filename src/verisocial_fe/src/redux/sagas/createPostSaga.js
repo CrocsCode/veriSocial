@@ -8,29 +8,21 @@ import { loadFeedPageRequest, resetFeed } from "../actionCreators/feedCreators";
 import T from "../../constants/text";
 import api from "../../api";
 
-const selectCreatePostForm = (state) => state.createPost;
-const selectUserId = (state) => state.auth.user;
-
-function* handleSubmitCreatePost() {
+function* handleSubmitCreatePost({ payload: { text, imageFile } }) {
   try {
-    const formData = yield select(selectCreatePostForm);
-    const userDetails = yield select(selectUserId);
-    // console.log("Formdata:", formData); // Debug
-    let base64Only = null;
-    if (formData.image) {
-      base64Only = formData.image.replace(/^data:image\/\w+;base64,/, "");
+    const userDetails = yield select((state) => state.auth.user);
+
+    const formData = new FormData();
+    formData.append("content", text);
+    if (imageFile) {
+      formData.append("image", imageFile);
     }
-    const payload = {
-      "user-id": userDetails.user_id,
-      content: formData.postText,
-      base64_image: base64Only || null,
-    };
-    // console.log("Payload:", payload); // Debug
-    yield call(api.formService.createPost, userDetails.user_id, payload);
-    yield put(submitCreatePostFormSuccess(formData));
+
+    yield call(api.formService.createMultipartPost, userDetails.user_id, formData);
+    yield put(submitCreatePostFormSuccess());
     yield put(showNotificationRequest(T.FORM.POST.SUCCESS, "success"));
     yield put(resetFeed());
-    yield put((loadFeedPageRequest(1, 8)));
+    yield put(loadFeedPageRequest(1, 8));
   } catch (error) {
     yield put(submitCreatePostFormFailure(error.message));
     yield put(showNotificationRequest(T.FORM.POST.FAILURE, "error"));

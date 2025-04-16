@@ -12,7 +12,7 @@ const store = configureStore({
         getDefaultMiddleware({
             thunk: false,
             serializableCheck: {
-                ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+                ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE', 'SUBMIT_CREATE_POST_FORM_REQUEST'],
             },
         }).concat(sagaMiddleware),
 });

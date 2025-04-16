@@ -11,8 +11,9 @@ export const updateCreatePostForm = (field, value) => ({
     payload: { field, value },
 });
 
-export const submitCreatePostFormRequest = () => ({
+export const submitCreatePostFormRequest = (text, imageFile) => ({
     type: SUBMIT_CREATE_POST_FORM_REQUEST,
+    payload: { text, imageFile },
 });
 
 export const submitCreatePostFormSuccess = (formData) => ({
