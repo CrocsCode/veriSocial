@@ -10,8 +10,35 @@ from analysis.one_class_svm import one_class_svm_detection
 from analysis.lof import lof_detection
 from analysis.isolation_forest import IsolationForest
 from analysis.ensemble import combine_predictions
+import yaml
+
+def load_ensemble_config(path="config.yaml"):
+    defaults = {
+        "one_class_svm":    0.5,    # incase not given any values
+        "lof":               0.5,
+        "isolation_forest":  2.0,
+        "threshold":         0.0,
+    }
+    try:
+        cfg = yaml.safe_load(open(path)) or {}
+        ann = cfg.get("anomaly", {})
+        w = ann.get("weights", {})
+        return [
+            w.get("one_class_svm",    defaults["one_class_svm"]),
+            w.get("lof",               defaults["lof"]),
+            w.get("isolation_forest",  defaults["isolation_forest"]),
+        ], ann.get("threshold", defaults["threshold"])
+    except Exception:
+        # if error thendefaults
+        return [
+            defaults["one_class_svm"],
+            defaults["lof"],
+            defaults["isolation_forest"],
+        ], defaults["threshold"]
 
 def main():
+    weights, threshold = load_ensemble_config()
+
     # Instantiate db
     db = mysql.connector.connect(
         host="localhost",

@@ -1,0 +1,10 @@
+# for ensemble.py (detector algorithm weighting)
+anomaly:
+  weights:
+    one_class_svm: 0.5
+    lof: 0.5
+    isolation_forest: 2.0
+  threshold: 0.0
+# for updating bot score
+update:
+  multiplier: -0.1     # what to multiply each pred by when updating bot_score

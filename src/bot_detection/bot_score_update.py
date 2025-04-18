@@ -1,12 +1,16 @@
+import yaml
 from mysql.connector.cursor import MySQLCursorDict
 from mysql.connector.pooling import MySQLConnectionPool
 
+try:
+    cfg = yaml.safe_load(open("config.yaml")) or {}
+    MULTIPLIER = cfg.get("update", {}).get("multiplier", -0.1)
+except Exception:
+    MULTIPLIER = -0.1
 
-def update_bot_scores(preds: list[int], user_order: list[str], cursor: MySQLCursorDict, db: MySQLConnectionPool):
-    i = 0
-    for user in user_order:
-        update_operation(user, preds[i], cursor, db)
-        i += 1
+def update_bot_scores( preds: list[int], user_order: list[str], cursor: MySQLCursorDict, db: MySQLConnectionPool):
+    for user, pred in zip(user_order, preds):
+        update_operation(user, pred, cursor, db)
 
 def update_operation(user_id, pred, cursor: MySQLCursorDict, db: MySQLConnectionPool):
     try:
@@ -14,7 +18,7 @@ def update_operation(user_id, pred, cursor: MySQLCursorDict, db: MySQLConnection
         bot_score = cursor.fetchone()["bot_score"]
     
         if bot_score > -1:
-            new_score = bot_score + (pred * -0.1) # I want to set a multiplier for weights.
+            new_score = bot_score + (pred * MULTIPLIER)
             cursor.execute("UPDATE users SET bot_score = %s WHERE user_id = %s", (new_score, user_id,))
         
         db.commit()
