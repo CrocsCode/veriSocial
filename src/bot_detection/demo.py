@@ -1,7 +1,7 @@
+# For testing
 import sys
 import types
 
-# ─── Stub out mysql.connector so sql_data imports work ──────────────────────
 mysql = types.ModuleType("mysql")
 mysql.connector = types.ModuleType("mysql.connector")
 mysql.connector.cursor = types.ModuleType("mysql.connector.cursor")
@@ -13,7 +13,6 @@ sys.modules["mysql.connector"] = mysql.connector
 sys.modules["mysql.connector.cursor"] = mysql.connector.cursor
 sys.modules["mysql.connector.pooling"] = mysql.connector.pooling
 
-# ─── Fallback for sklearn.preprocessing.StandardScaler ────────────────────
 try:
     from sklearn.preprocessing import StandardScaler
 except ImportError:
@@ -21,7 +20,6 @@ except ImportError:
         def fit_transform(self, X):
             return X
 
-# ─── Fallback for parse_sql_results if sql_data can't import ───────────────
 try:
     from sql_data import parse_sql_results
 except ImportError:
@@ -32,7 +30,6 @@ except ImportError:
             for r in sql_results
         ])
 
-# ─── Now your real analysis modules ────────────────────────────────────────
 import yaml
 import numpy as np
 
@@ -116,7 +113,7 @@ def demo():
     {"user_id": "u34", "total_actions": 22,  "avg_interval": 32,  "std_interval": 5.8,  "burst_count": 3},
     {"user_id": "u35", "total_actions": 20,  "avg_interval": 30,  "std_interval": 6.0,  "burst_count": 2},
     {"user_id": "u36", "total_actions": 21,  "avg_interval": 31,  "std_interval": 6.0,  "burst_count": 3},
-    # more bots:
+    # bots:
     {"user_id": "u37", "total_actions": 320, "avg_interval": 2.0, "std_interval": 0.4,  "burst_count": 110},
     {"user_id": "u38", "total_actions": 350, "avg_interval": 1.8, "std_interval": 0.5,  "burst_count": 120},
     {"user_id": "u39", "total_actions": 280, "avg_interval": 2.2, "std_interval": 0.6,  "burst_count": 100},
