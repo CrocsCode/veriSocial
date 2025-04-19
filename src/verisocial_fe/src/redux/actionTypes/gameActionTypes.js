@@ -1,0 +1,1 @@
+export const GAME_EVENT_CLEAR = "GAME_EVENT_CLEAR";
