@@ -3,7 +3,7 @@ import watchAuthActions from './authSaga';
 import { watchNotifications } from './notificationSaga';
 import { watchCreatePost } from './createPostSaga';
 import { watchFeedSaga } from './feedSaga';
-import watchPostInteract from './postInteractSaga';
+import { watchPostInteract } from './postInteractSaga';
 
 export default function* rootSaga() {
     yield all([
