@@ -1,7 +1,9 @@
 import os
 import asyncio
-from fastapi import FastAPI, HTTPException
+import mysql.connector
 import boto3
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from botocore.exceptions import ClientError
 from pydantic import BaseModel
 from PIL import Image
@@ -42,6 +44,15 @@ s3 = session.client(
     aws_secret_access_key=AWS_SECRET_KEY,
 )
 
+# Db initialization
+db = mysql.connector.connect(
+    host= os.getenv("DATABASE_HOST"),
+    port= os.getenv("DATABASE_PORT"),
+    user= os.getenv("DATABASE_USER"),
+    password= os.getenv("DATABASE_SECRET"),
+    database= os.getenv("DATABASE_NAME")
+)
+cursor = db.cursor(dictionary=True)
 
 # App initialization
 app = FastAPI(title="AI Content Detector")
@@ -50,6 +61,11 @@ app = FastAPI(title="AI Content Detector")
 async def startup():
     asyncio.create_task(classifier_worker())
 
+@app.on_event("shutdown")
+async def shutdown():
+    cursor.close()
+    db.close()
+        
 @app.post("/classify")
 async def enqueue(body: RequestBody):
     await queue.put(body)
@@ -67,7 +83,8 @@ async def classifier_worker():
                 classify,
                 req,
                 image
-            )    
+            )
+            _ = await update_post_score(result)
         except:
             raise
         finally:
@@ -84,7 +101,6 @@ def classify(body: RequestBody, image):
     #Create Response (needs to be changed to be custom)
     class_type = pred[0]["label"]
     score = pred[0]["score"]
-    print(f"Image processed, score: {score}")
 
     response = ProcessedPost(post_id=body.post_id, class_type=class_type, score=score)
 
@@ -106,3 +122,10 @@ async def get_image(image_url: str):
         print(f"Error fetching image: {image_url}\nError: {e}")
         return None
 
+async def update_post_score(post: ProcessedPost):
+    try:
+        cursor.execute("UPDATE posts SET bot_score = %s WHERE post_id = %s", (post.score, post.post_id,))
+        db.commit()
+    except Exception as e:
+        print("Transaction failed: ", e)
+        db.rollback()
