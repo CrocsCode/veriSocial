@@ -1,4 +1,5 @@
 use actix_multipart::form::tempfile::TempFile;
+use log::debug;
 use reqwest::Client;
 use serde_json::json;
 
@@ -11,11 +12,11 @@ use crate::models::response::{ApiError, ImageResponse};
 use crate::config::settings::AI_IMAGE_URL;
 
 
-pub async fn _image_check(image_name: String, post_id: u64, client: &Client) -> Result<ImageResponse, ApiError> {
+pub async fn post_check(image_name: String, post_id: u64, client: &Client) -> Result<(), ApiError> {
     // Build response
     let payload = json!({
         "post_id": post_id,
-        "image_name": image_name
+        "image_url": image_name
     });
 
     let resp = client.post(AI_IMAGE_URL.clone())
@@ -23,17 +24,18 @@ pub async fn _image_check(image_name: String, post_id: u64, client: &Client) -> 
         .send()
         .await;
 
-    let _succ_resp = match resp {
+    let succ_resp = match resp {
         Ok(json) => json.json::<ImageResponse>().await,
-        Err(err) => return Err(ApiError::CannotUpload("Image Verification failed: ".to_string() + &err.to_string()))
+        Err(err) => return Err(ApiError::CannotUpload("Queuing image verification failed: ".to_string() + &err.to_string()))
     };
 
-    // match succ_resp {
-    //     Ok(result) => Ok(result),
-    //     Err(err) => Err(ApiError::CannotUpload("Error: ".to_string() + &err.to_string()))
-    // };
-
-    todo!()
+    match succ_resp {
+        Ok(status) => {
+            debug!("{}", status.status);
+            Ok(())
+        },
+        Err(err) => return Err(ApiError::ServerError(err.to_string()))
+    }
 }
 
 pub async fn upload_image(filename: &String, image: TempFile, bucket_name: &String, s3_client: &S3Client) -> Result<(), ApiError> {

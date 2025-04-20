@@ -8,8 +8,7 @@ use aws_sdk_s3::Client as S3_client;
 pub struct AppConfig<'a> {
     pub pass_hashing: Argon2<'a>,
     pub pool: MySqlPool,
-    pub _client: Req_client,
-    pub _ai_image_url: String,
+    pub client: Req_client,
     pub s3_client: S3_client,
     pub bucket_name: String,
     pub aws_endpoint: String,

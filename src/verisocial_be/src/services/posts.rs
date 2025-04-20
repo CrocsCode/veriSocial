@@ -48,6 +48,8 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         None
     };
 
+    let bot_content_filename = image_name.clone();
+
     // Start a transaction.
     let mut tx: Transaction<'_, sqlx::MySql> = match app_config.pool.begin().await {
         Ok(tx) => tx,
@@ -80,11 +82,16 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         )
         .execute(&mut *tx)
         .await;
-        // After send send the picture to bot-checker queue.
 
+        // After send send the picture to bot-checker queue.
         let latest_post_id = match insert_result {
             Ok(query) => query.last_insert_id(),
             Err(err) => return Err(ApiError::CannotCreateObject(err.to_string()))
+        };
+        
+        if let Some(name) = bot_content_filename {
+            debug!("Queuing post for bot content detection");
+            post_check(name, latest_post_id, &app_config.client).await?;
         };
 
         let post_result = sqlx::query_as!(Post,
