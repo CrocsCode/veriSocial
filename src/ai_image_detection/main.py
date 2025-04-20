@@ -1,4 +1,5 @@
 import os
+import asyncio
 from fastapi import FastAPI, HTTPException
 import boto3
 from botocore.exceptions import ClientError
@@ -12,10 +13,13 @@ class RequestBody(BaseModel):
     post_id: int
     image_url: str
 
-class ResponseBody(BaseModel):
+class ProcessedPost(BaseModel):
     post_id: int
     class_type: str
     score: float
+
+# Initialize in memory queue.
+queue: asyncio.Queue[RequestBody] = asyncio.Queue()
 
 # AI initialization
 # Downloads model everytime again (not that good for now)
@@ -38,28 +42,55 @@ s3 = session.client(
     aws_secret_access_key=AWS_SECRET_KEY,
 )
 
+
 # App initialization
 app = FastAPI(title="AI Content Detector")
 
-@app.post("/classify")
-async def classify(body: RequestBody):
-    image = get_image(body.image_url)
+@app.on_event("startup")
+async def startup():
+    asyncio.create_task(classifier_worker())
 
+@app.post("/classify")
+async def enqueue(body: RequestBody):
+    await queue.put(body)
+    return {"status":"accepted"}
+
+# Classifying worker
+async def classifier_worker():
+    loop = asyncio.get_running_loop()
+    while True:
+        try:
+            req: RequestBody = await queue.get()
+            image = await get_image(req.image_url)
+            result: ProcessedPost = await loop.run_in_executor(
+                None,
+                classify,
+                req,
+                image
+            )    
+        except:
+            raise
+        finally:
+            queue.task_done()
+
+def classify(body: RequestBody, image):
     if image is None:
-        raise HTTPException(status_code=500)
+        print("Error")
+        raise 
 
     # Write the AI classification function
     pred = classifier(image)
 
-    #Create Response
+    #Create Response (needs to be changed to be custom)
     class_type = pred[0]["label"]
     score = pred[0]["score"]
+    print(f"Image processed, score: {score}")
 
-    response = ResponseBody(post_id=body.post_id, class_type=class_type, score=score)
+    response = ProcessedPost(post_id=body.post_id, class_type=class_type, score=score)
 
     return response
 
-def get_image(image_url: str):
+async def get_image(image_url: str):
     try:
         key = image_url.split("/")[-1]
 
@@ -67,10 +98,11 @@ def get_image(image_url: str):
             Bucket=IMAGE_PREFIX,
             Key=key
         )
-        
+
         data = resp["Body"].read()
         img = Image.open(BytesIO(data))
         return img
     except ClientError as e:
         print(f"Error fetching image: {image_url}\nError: {e}")
         return None
+
