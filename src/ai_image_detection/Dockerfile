@@ -1,13 +1,25 @@
-# Use the official miniconda image as the base
-FROM continuumio/miniconda3
+FROM mambaorg/micromamba:1.5.6
 
-# Setup the enviroment
-COPY environment.yml /tmp/environment.yml
+# Set env variables to avoid micromamba warnings
+ENV MAMBA_ROOT_PREFIX=/opt/conda \
+    PATH=/opt/conda/bin:$PATH \
+    CONDA_PREFIX=/opt/conda \
+    ENV_NAME=myenv
 
-RUN conda env create -f /tmp/environment.yml
+# Set working directory
+WORKDIR /app
 
-ENV PATH /opt/conda/envs/ml-ai-detect/bin:$PATH
+# Copy environment.yml
+COPY ./src/bot_detection/environment.yml .
 
-COPY main.py .
+# Create environment
+RUN micromamba create -y -n $ENV_NAME -f environment.yml && \
+    micromamba clean --all --yes
+
+# Activate env for future RUN and CMD
+SHELL ["micromamba", "run", "-n", "myenv", "--"]
+
+# Copy your project files (after env creation to keep layers clean)
+COPY ./src/ai_image_detection/* .
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
