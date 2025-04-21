@@ -1,8 +1,8 @@
 use actix_multipart::form::MultipartForm;
 use actix_web::{get, post, web, Responder};
-use crate::models::{
-    app_config::{AppConfig, Pagination}, response::Response, posts::{NewPost, LikeEvent, NewComment}, auth::AuthUser
-};
+use crate::{models::{
+    app_config::{AppConfig, Pagination}, auth::AuthUser, posts::{LikeEvent, NewComment, NewPost}, response::Response
+}, services::game};
 use crate::services::{comments, likes, posts};
 
 
@@ -44,15 +44,11 @@ pub async fn timeline(app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagi
     Response::create_get_response(result)
 }
 
-#[get("/fyp/{user_id}")]
-pub async fn for_you_page(user_id: web::Path<u64>,app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagination>) -> impl Responder {
-    // Query
-    let page = query.page.unwrap_or(1);
-    let size = query.size.unwrap_or(10);
-    let page_offset = (page - 1) * size;
+#[get("/game")]
+pub async fn game_pop_up(app_data: web::Data<AppConfig<'_>>, user: AuthUser) -> impl Responder {
 
-    let posts = posts::user_following_timeline(&app_data.pool, *user_id, size, page_offset).await;
-    Response::create_get_response(posts)
+    let post = game::individual_game_post(&app_data.pool, user.user_id).await;
+    Response::create_get_response(post)
 }
 
 #[post("/like")]
