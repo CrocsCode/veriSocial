@@ -5,6 +5,7 @@ import {
   RESET_FEED,
 } from "../actionTypes/feedActionTypes";
 import { LIKE_POST_SUCCESS } from "../actionTypes/postInteractTypes";
+import { GAME_EVENT_CLEAR } from "../actionTypes/gameActionTypes";
 
 const initialState = {
   posts: [],
@@ -58,6 +59,14 @@ const feedReducer = (state = initialState, action) => {
           }
           return post;
         }),
+      };
+    };
+
+    case GAME_EVENT_CLEAR: {
+      const { gameEventId } = action.payload;
+      return {
+        ...state,
+        posts: state.posts.filter(post => post.post_id !== gameEventId),
       };
     }
 

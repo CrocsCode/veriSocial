@@ -98,7 +98,7 @@ function* handleCreateComment(action) {
 }
 
 
-function* watchPostInteract() {
+export function* watchPostInteract() {
   yield all([
     takeLatest(FETCH_POST_FOCUS_REQUEST, handleFetchPostFocus),
     takeLatest(LIKE_POST_REQUEST, handleLikePost),
@@ -106,5 +106,3 @@ function* watchPostInteract() {
     takeLatest(CREATE_COMMENT_REQUEST, handleCreateComment),
   ]);
 }
-
-export default watchPostInteract;
