@@ -5,9 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug)]
 pub struct ImageResponse {
-    pub _post_id: usize,
-    pub _class_type: String,
-    pub _score: f64
+    pub status: String,
 }
 
 #[derive(Deserialize, Serialize)]

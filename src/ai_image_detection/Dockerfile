@@ -1,13 +1,14 @@
-# Use the official miniconda image as the base
-FROM continuumio/miniconda3
+FROM python:3.13-slim
 
-# Setup the enviroment
-COPY environment.yml /tmp/environment.yml
+# Install uv.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-RUN conda env create -f /tmp/environment.yml
+# Copy the application into the container.
+COPY ./src/ai_image_detection/. /app
+COPY .env.production /app/.env
+# Install the application dependencies.
+WORKDIR /app
+RUN uv sync --frozen --no-cache
 
-ENV PATH /opt/conda/envs/ml-ai-detect/bin:$PATH
-
-COPY main.py .
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Run the application.
+CMD ["/app/.venv/bin/uvicorn", "main:app", "--port", "8000", "--host", "0.0.0.0"]

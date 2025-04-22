@@ -48,6 +48,8 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         None
     };
 
+    let bot_content_filename = image_name.clone();
+
     // Start a transaction.
     let mut tx: Transaction<'_, sqlx::MySql> = match app_config.pool.begin().await {
         Ok(tx) => tx,
@@ -80,11 +82,16 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         )
         .execute(&mut *tx)
         .await;
-        // After send send the picture to bot-checker queue.
 
+        // After send send the picture to bot-checker queue.
         let latest_post_id = match insert_result {
             Ok(query) => query.last_insert_id(),
             Err(err) => return Err(ApiError::CannotCreateObject(err.to_string()))
+        };
+        
+        if let Some(name) = bot_content_filename {
+            debug!("Queuing post for bot content detection");
+            post_check(name, latest_post_id, &app_config.client).await?;
         };
 
         let post_result = sqlx::query_as!(Post,
@@ -179,61 +186,6 @@ pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offse
 
     match query {
         Ok(posts) => Ok(posts),
-        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
-    }
-}
-
-pub async fn user_following_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
-    let query = sqlx::query_as!(Post,
-        r#"
-        SELECT
-            p.post_id,
-            p.user_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            u.username,
-            u.full_name,
-            u.bot_score AS user_bot_score,
-            CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
-            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
-            MAX(l.user_id = ?) > 0 AS is_liked
-        FROM
-            posts AS p
-        INNER JOIN
-            users AS u ON p.user_id = u.user_id
-        INNER JOIN
-            follow f ON p.user_id = f.followee_id
-        LEFT JOIN 
-            likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
-        LEFT JOIN
-            comments AS c ON c.post_id = p.post_id
-        WHERE
-            f.follower_id = ?
-        GROUP BY 
-            p.post_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            p.user_id,
-            u.username,
-            u.full_name
-        ORDER BY
-            created_at
-        LIMIT ? OFFSET ?
-        "#,
-        user_id.clone(),
-        user_id,
-        page_size,
-        offset
-    )
-    .fetch_all(conn)
-    .await;
-
-    match query {
-        Ok(result) => Ok(result),
         Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
     }
 }
