@@ -13,7 +13,7 @@ pub fn config(config: &mut web::ServiceConfig){
             .service(handlers::posts::get_comments)
             .service(handlers::posts::post_comment)
             .service(handlers::posts::create_new_post)
-            .service(handlers::posts::for_you_page)
+            .service(handlers::posts::game_pop_up)
             .service(handlers::posts::retrieve_individual_post)
             .service(handlers::posts::retrieve_posts)
         );

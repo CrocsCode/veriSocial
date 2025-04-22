@@ -77,8 +77,7 @@ async fn main() -> std::io::Result<()> {
     let app_data = models::app_config::AppConfig {
         pass_hashing: Argon2::default(), // Password Hashing
         pool,
-        _client : client,
-        _ai_image_url: ai_image_url,
+        client,
         s3_client,
         bucket_name,
         aws_endpoint

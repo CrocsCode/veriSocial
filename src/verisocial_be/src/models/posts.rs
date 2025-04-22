@@ -69,3 +69,9 @@ pub struct LikeEvent {
     pub post_id: u64,
     pub comment_id: Option<u64>
 }
+
+#[derive(Deserialize, Serialize)]
+pub struct GamePost {
+    pub low_score_post: Post,
+    pub high_score_post: Post,
+}
