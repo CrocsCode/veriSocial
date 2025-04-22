@@ -102,7 +102,10 @@ def classify(body: RequestBody, image):
     class_type = pred[0]["label"]
     score = pred[0]["score"]
 
-    response = ProcessedPost(post_id=body.post_id, class_type=class_type, score=score)
+    if class_type == "real":
+        response = ProcessedPost(post_id=body.post_id, class_type=class_type, score=1 - score)
+    else:
+        response = ProcessedPost(post_id=body.post_id, class_type=class_type, score=score)
 
     return response
 
