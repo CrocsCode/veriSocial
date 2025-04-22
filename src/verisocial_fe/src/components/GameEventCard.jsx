@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { connect } from "react-redux";
 import { clearGameEvent } from "../redux/actionCreators/gameCreators";
 import {
   Box,
+  Flex,
   HStack,
   Image,
   Text,
@@ -22,7 +23,8 @@ function GameEventCard({ postId, botImage, humanImage, clearGameEvent }) {
     const botOnLeft = Math.random() < 0.5;
     setOptions(
       botOnLeft
-        ? [{ src: botImage, type: "bot" }, { src: humanImage, type: "human" },] : [{ src: humanImage, type: "human" }, { src: botImage, type: "bot" },]
+        ? [{ src: botImage, type: "bot" }, { src: humanImage, type: "human" },]
+        : [{ src: humanImage, type: "human" }, { src: botImage, type: "bot" },]
     );
   }, [botImage, humanImage]);
 
@@ -52,7 +54,7 @@ function GameEventCard({ postId, botImage, humanImage, clearGameEvent }) {
       transition="transform 0.3s ease-in-out"
       minH="7vh"
     >
-      <Text fontSize="sm" fontWeight="bold" mb={3}>
+      <Text fontSize="1.2vh" fontWeight="bold" mb={3}>
         Which one is AI generated?
       </Text>
 
@@ -60,24 +62,26 @@ function GameEventCard({ postId, botImage, humanImage, clearGameEvent }) {
       {!result && (
         <HStack spacing={4}>
           {options.map((opt, idx) => (
-            <Box
+            <Flex
               key={idx}
               flex={1}
-              textAlign="center"
+              direction="column"
+              align="center"
               cursor="pointer"
               onClick={() => handleChoose(opt.type)}
             >
               <Image
                 src={opt.src}
-                alt="Option"
+                alt={`Option ${idx === 0 ? "A" : "B"}`}
                 borderRadius="md"
-                maxH="200px"
+                maxH="25vh"
                 objectFit="cover"
+                mb={2}
               />
-              <Text mt={2} fontSize="xs" color="gray.600">
+              <Text fontSize="xs" color="gray.600">
                 Option {idx === 0 ? "A" : "B"}
               </Text>
-            </Box>
+            </Flex>
           ))}
         </HStack>
       )}
