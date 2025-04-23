@@ -36,6 +36,7 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64) -> Result<Game
             comments AS c ON c.post_id = p.post_id
         WHERE 
             p.bot_score < ?
+            AND p.base64_image IS NOT NULL
         GROUP BY 
             p.post_id,
             p.content,
@@ -45,6 +46,8 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64) -> Result<Game
             p.user_id,
             u.username,
             u.full_name
+        ORDER BY
+            RAND()
         "#,
         user_id,
         low_bot_score_threshold
@@ -52,6 +55,7 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64) -> Result<Game
     .fetch_one(conn)
     .await;
 
+    // Order by rand to provide more random posts
     let high_bot_score_query = sqlx::query_as!(Post,
         r#"
         SELECT 
@@ -77,6 +81,7 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64) -> Result<Game
             comments AS c ON c.post_id = p.post_id
         WHERE 
             p.bot_score > ?
+            AND p.base64_image IS NOT NULL
         GROUP BY 
             p.post_id,
             p.content,
@@ -86,6 +91,8 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64) -> Result<Game
             p.user_id,
             u.username,
             u.full_name
+        ORDER BY
+            RAND()
         "#,
         user_id,
         high_bot_score_threshold
@@ -100,7 +107,7 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64) -> Result<Game
 
     let high_score_post = match high_bot_score_query {
         Ok(post) => post,
-        Err(_) => return Err(ApiError::CannotUpload("No post with low enough bot score".to_string()))
+        Err(_) => return Err(ApiError::CannotUpload("No post with high enough bot score".to_string()))
     };
 
     Ok(GamePost {
