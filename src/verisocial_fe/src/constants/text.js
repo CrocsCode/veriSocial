@@ -10,6 +10,8 @@ const T = {
         REGISTER_SUCCESS: "Account created successfully! Please log in.",
         REGISTER_FAILURE: "Registration failed. Please try again.",
         REGISTER_NETWORK_ERROR: "Network error during registration. Please check your connection.",
+
+        PASSWORD_MATCH_ERROR: "Passwords do not match."
     },
     FORM: {
         POST: {
@@ -29,7 +31,7 @@ const T = {
             UNLIKED: "Unliked Comment.",
             LIKE_ERROR: "Error with Comment Likes.",
             CREATE: "Successfully created Comment.",
-            CREATE_FAILURE: "Failed to post comment",
+            CREATE_FAILURE: "Failed to post comment.",
         }
     },
     GENERAL: {

@@ -4,10 +4,8 @@ import { connect } from "react-redux";
 import Feed from "../components/Feed";
 import PostFocus from "../components/PostFocus";
 import ProfileCard from "../components/ProfileCard";
-import SettingsCard from "../components/SettingsCard";
 import TrendCard from "../components/TrendCard";
 import LeaderboardCard from "../components/LeaderboardCard";
-import DailyChallengesCard from "../components/DailyChallengesCard";
 import Modal from "../components/Modal";
 import PropTypes from "prop-types";
 import {
@@ -44,7 +42,6 @@ function HomePage({
         {/* Left Column */}
         <VStack w="22.5%" spacing={4} h="100%" p={4} ml="5%">
           <ProfileCard />
-          <SettingsCard />
         </VStack>
 
         {/* Main Container */}
@@ -71,7 +68,6 @@ function HomePage({
         <VStack w="22.5%" spacing={4} h="100%" p={4} mr="5%">
           <TrendCard />
           <LeaderboardCard />
-          <DailyChallengesCard />
         </VStack>
       </Flex>
     </Box>

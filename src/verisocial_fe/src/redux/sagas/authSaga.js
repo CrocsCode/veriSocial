@@ -1,4 +1,4 @@
-import { call, put, takeLatest } from "redux-saga/effects";
+import { call, put, takeLatest, delay } from "redux-saga/effects";
 import { LOGIN_REQUEST, LOGOUT, REGISTER_REQUEST, USER_REQUEST } from "../actionTypes/authActionTypes";
 import { loginSuccess, loginFailure, userSuccess, userFailure } from "../actionCreators/authCreators";
 import { showNotificationRequest } from "../actionCreators/notificationCreators";
@@ -67,14 +67,13 @@ function* handleRegister(action) {
     const { username, name, email, password, confirmPassword } = action.payload;
 
     if (password !== confirmPassword) {
-      yield put(registerFailure("Passwords do not match."));
-      yield put(showNotificationRequest("Passwords do not match.", "error"));
+      yield put(registerFailure(T.AUTH.PASSWORD_MATCH_ERROR));
+      yield put(showNotificationRequest(T.AUTH.PASSWORD_MATCH_ERROR, "error"));
       return;
     }
 
-    const finalUsername = username && username.startsWith("@")
-      ? username
-      : `@${name.replace(/\s+/g, "").toLowerCase()}`;
+    const base = username && username.length > 0 ? username : name;
+    const finalUsername = base.replace(/^@/, "").replace(/\s+/g, "").toLowerCase();
 
     const response = yield call(api.authService.register, {
       username: finalUsername,
@@ -87,6 +86,7 @@ function* handleRegister(action) {
 
     if (response.status === "success") {
       yield put(showNotificationRequest(T.AUTH.REGISTER_SUCCESS, "success"));
+      yield delay(1250);
       window.location.reload();
     } else {
       yield put(registerFailure(response.data.message || T.AUTH.REGISTER_FAILURE));

@@ -26,13 +26,13 @@ const ProfileCard = ({ user, userRequest }) => {
       borderWidth="1px"
       borderRadius="md"
       boxShadow="md"
-      w="100%"
+      w="80%"
       textAlign="center"
       minH="30vh"
       position="relative"
     >
       {/* Banner */}
-      <Box bg="purple.200" h="30%" w="100%" borderTopRadius="md">
+      <Box bg="purple.200" h="40%" w="100%" borderTopRadius="md">
         <Text color="white" fontWeight="bold" pt={2}>
           Banner
         </Text>
@@ -42,61 +42,38 @@ const ProfileCard = ({ user, userRequest }) => {
         justify="center"
         align="center"
         position="absolute"
-        top="30%"
-        left="17.5%"
+        top="40%"
+        left="50%"
         transform="translate(-50%, -50%)"
         zIndex={2}
       >
         <Avatar
-          src="https://via.placeholder.com/150"
           name={user.full_name}
           borderWidth="0.5vh"
           borderColor="white"
-          boxSize="7vh"
+          boxSize="10vh"
         />
       </Flex>
 
       {/* Content */}
-      <Box position="relative" textAlign="left" p="5%" pt="15%">
-        <HStack spacing={2} mb="2%">
-          <Heading as="h3" size="md" noOfLines={1}>
-            {user.full_name}
-          </Heading>
-          <Text fontSize="sm" mb="-1%" color="gray.500">
-            {user.username}
-          </Text>
-        </HStack>
-
-        {/* Bio Box */}
-        <Box
-          bg="gray.100"
-          borderWidth="1px"
-          borderRadius="md"
-          p={3}
-          mb={4}
-          textAlign="left"
-          minH="10vh"
-          mt="1%"
+      <Box position="relative" textAlign="center" p="5%" pt="17.5%">
+        <Heading as="h3" size="md" noOfLines={1} fontSize="1.75vh" mb="2%">
+          {user.full_name}
+        </Heading>
+        <Text fontSize="sm" color="gray.500" mb="2%">
+          @{user.username}
+        </Text>
+        <Tooltip
+          label={`Bot Score: (${formattedBotScore})`}
+          placement="top"
+          hasArrow
+          fontSize="1vh"
         >
-          <Text fontSize="sm" color="gray.600">
-            {user.bio}
-          </Text>
-        </Box>
-
-        {/* Bot Icon */}
-        <Box position="absolute" top="0" right="0" p={2}>
-          <Tooltip
-            label={`Bot Score: (${formattedBotScore})`}
-            placement="top"
-            hasArrow
-            fontSize="1vh"
-          >
-            <HStack spacing={1}>
-              <Icon as={FaRobot} boxSize="1.5rem" color={botScoreColors[botScoreLevel]} />
-              <Text color={botScoreColors[botScoreLevel]}>{botScoreLevel}</Text>
-            </HStack>
-          </Tooltip>
-        </Box>
+          <HStack spacing={1} justify="center" pt="2vh">
+            <Text color={botScoreColors[botScoreLevel]}></Text>
+            <Icon as={FaRobot} boxSize="3.5rem" color={botScoreColors[botScoreLevel]} />
+          </HStack>
+        </Tooltip>
       </Box>
     </Box>
   );
