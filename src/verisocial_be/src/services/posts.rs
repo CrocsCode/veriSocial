@@ -203,15 +203,17 @@ pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: 
             u.username,
             u.full_name,
             u.bot_score AS user_bot_score,
-            CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
-            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
-            MAX(l.user_id = ?) > 0 AS is_liked
+            CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
+            CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,
+            MAX(l2.user_id IS NOT NULL) AS is_liked
         FROM 
             posts AS p
         INNER JOIN
             users AS u ON p.user_id = u.user_id
         LEFT JOIN 
             likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
+        LEFT JOIN
+            likes AS l2 ON p.post_id = l2.post_id AND l2.user_id = ? AND l2.comment_id IS NULL
         LEFT JOIN
             comments AS c ON c.post_id = p.post_id
         WHERE 
@@ -255,15 +257,17 @@ pub async fn individual_user_post(conn: &MySqlPool, user_id: u64, post_id: u64) 
             u.username,
             u.full_name,
             u.bot_score AS user_bot_score,
-            CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,
-            CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,
-            MAX(l.user_id = ?) > 0 AS is_liked
+            CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
+            CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,
+            MAX(l2.user_id IS NOT NULL) AS is_liked
         FROM 
             posts AS p
         INNER JOIN
             users AS u ON p.user_id = u.user_id
         LEFT JOIN 
             likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
+        LEFT JOIN
+            likes AS l2 ON p.post_id = l2.post_id AND l2.user_id = ? AND l2.comment_id IS NULL
         LEFT JOIN
             comments AS c ON c.post_id = p.post_id
         WHERE 
