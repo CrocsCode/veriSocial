@@ -48,6 +48,9 @@ rust-build:
   artifacts:
     paths:
       - target/release/verisocial_be
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
 
 node-build:
   image: node:23-alpine
@@ -60,6 +63,9 @@ node-build:
     expire_in: 2 hour
     paths:
       - src/verisocial_fe/out/*
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
 
 
 # Deployment stage
