@@ -27,8 +27,9 @@ const ProfileCard = ({ user, userRequest }) => {
       borderRadius="md"
       boxShadow="md"
       w="80%"
+      h="30vh"
+      overflow="hidden"
       textAlign="center"
-      minH="30vh"
       position="relative"
     >
       {/* Banner */}
@@ -56,22 +57,31 @@ const ProfileCard = ({ user, userRequest }) => {
       </Flex>
 
       {/* Content */}
-      <Box position="relative" textAlign="center" p="5%" pt="17.5%">
+      <Box px="5%" pt="17.5%" textAlign="center">
         <Heading as="h3" size="md" noOfLines={1} fontSize="1.75vh" mb="2%">
           {user.full_name}
         </Heading>
         <Text fontSize="sm" color="gray.500" mb="2%">
           @{user.username}
         </Text>
+      </Box>
+
+      <Box
+        position="absolute"
+        bottom="5%"
+        left="50%"
+        transform="translateX(-50%)"
+        zIndex={2}
+      >
         <Tooltip
           label={`Bot Score: (${formattedBotScore})`}
           placement="top"
           hasArrow
           fontSize="1vh"
         >
-          <HStack spacing={1} justify="center" pt="2vh">
+          <HStack spacing={1} align="center">
+            <Icon as={FaRobot} boxSize="3.5rem" color={botScoreColors[botScoreLevel]}/>
             <Text color={botScoreColors[botScoreLevel]}></Text>
-            <Icon as={FaRobot} boxSize="3.5rem" color={botScoreColors[botScoreLevel]} />
           </HStack>
         </Tooltip>
       </Box>
