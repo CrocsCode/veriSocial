@@ -1,10 +1,15 @@
-import { screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 import { renderProviders } from '../../utils/renderProviders';
 import LoginPage from '../../pages/LoginPage';
 
-describe('Login Form', () => {
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+describe('LoginForm Component', () => {
   it('updates inputs and submits login', () => {
     const store = configureStore({ reducer: state => state });
     const dispatchSpy = vi.spyOn(store, 'dispatch');
