@@ -176,9 +176,9 @@ pub async fn user_game_event_list(conn: &MySqlPool, user_id: u64) -> Result<Vec<
             g.is_correct AS `is_correct: bool`
         FROM
             gameEvents AS g
-        INNER JOIN
+        LEFT JOIN
             posts AS p_correct ON g.correct_post_id = p_correct.post_id
-        INNER JOIN
+        LEFT JOIN
             posts AS p_wrong ON g.wrong_post_id = p_wrong.post_id
         WHERE
             g.user_id = ?
