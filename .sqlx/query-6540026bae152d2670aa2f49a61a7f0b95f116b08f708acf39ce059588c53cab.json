@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n        INSERT INTO gameEvents (user_id, correct_post_id, wrong_post_id, is_correct)\n        VALUES (?, ?, ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "6540026bae152d2670aa2f49a61a7f0b95f116b08f708acf39ce059588c53cab"
+}
