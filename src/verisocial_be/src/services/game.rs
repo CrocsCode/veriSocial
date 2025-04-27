@@ -1,7 +1,12 @@
 use sqlx::MySqlPool;
 use crate::models::{
-    posts::Post,
-    posts::GamePost,
+    posts::{
+        GameEvent,
+        Post,
+        IncomingEvent,
+        GamePost,
+        SendGameEvent
+    },
     response::ApiError
 };
 
@@ -114,4 +119,77 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64) -> Result<Game
         low_score_post,
         high_score_post
     })
+}
+
+pub async fn new_game_event(conn: &MySqlPool, event: IncomingEvent, user_id: u64) -> Result<GameEvent, ApiError> {
+    
+    let new_game_event = sqlx::query!(
+        r#"
+        INSERT INTO gameEvents (user_id, correct_post_id, wrong_post_id, is_correct)
+        VALUES (?, ?, ?, ?)
+        "#,
+        user_id,
+        event.correct_post_id,
+        event.wrong_post_id,
+        event.result
+    )
+    .execute(conn)
+    .await;
+
+    let latest_event_id = match new_game_event {
+        Ok(query) => query.last_insert_id(),
+        Err(err) => return Err(ApiError::CannotCreateObject(err.to_string()))
+    };
+
+    let game_event = sqlx::query_as!(GameEvent,
+        r#"
+        SELECT
+            g.event_id,
+            g.user_id,
+            g.correct_post_id,
+            g.wrong_post_id,
+            g.is_correct AS `is_correct: bool`
+        FROM
+            gameEvents AS g
+        WHERE
+            g.event_id = ?;
+        "#,
+        latest_event_id
+    ).fetch_one(conn)
+    .await;
+
+    match game_event {
+        Ok(game_event) => Ok(game_event),
+        Err(err) => Err(ApiError::ServerError(err.to_string()))
+    }
+}
+
+pub async fn user_game_event_list(conn: &MySqlPool, user_id: u64) -> Result<Vec<SendGameEvent>, ApiError> {
+
+    let event_query = sqlx::query_as!(SendGameEvent,
+        r#"
+        SELECT
+            g.event_id,
+            g.user_id,
+            p_correct.base64_image AS correct_image_url,
+            p_wrong.base64_image AS wrong_image_url,
+            g.is_correct AS `is_correct: bool`
+        FROM
+            gameEvents AS g
+        INNER JOIN
+            posts AS p_correct ON g.correct_post_id = p_correct.post_id
+        INNER JOIN
+            posts AS p_wrong ON g.wrong_post_id = p_wrong.post_id
+        WHERE
+            g.user_id = ?
+        "#,
+        user_id
+    )
+    .fetch_all(conn)
+    .await;
+
+    match event_query {
+        Ok(events) => Ok(events),
+        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found for events.".to_string()))
+    }
 }

@@ -99,7 +99,8 @@ async fn main() -> std::io::Result<()> {
             .service(routes::teapot::teapot)
             .configure(auth_config::config)
             .configure(user_config::config)
-            .configure(post_config::config)
+            .configure(post_config::post_config)
+            .configure(post_config::game_config)
     })
     .bind((app_url, 8080))?
     .run()
