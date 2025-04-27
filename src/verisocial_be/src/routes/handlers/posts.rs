@@ -46,7 +46,7 @@ pub async fn timeline(app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagi
 }
 
 // GAME ROUTES ----------------------------------------------------------------------------------------------------------------------
-#[get("/")]
+#[get("")]
 pub async fn game_pop_up(app_data: web::Data<AppConfig<'_>>, user: AuthUser) -> impl Responder {
     let post = game::individual_game_post(&app_data.pool, user.user_id).await;
     Response::create_get_response(post)
