@@ -133,6 +133,8 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, lo
                   postId={post.post_id}
                   botImage={post.bot_image}
                   humanImage={post.human_image}
+                  correctPostId={post.correct_post_id}
+                  wrongPostId={post.wrong_post_id}
                 />
               );
             }
@@ -202,6 +204,8 @@ Feed.propTypes = {
           post_type: PropTypes.oneOf(["game"]),
           bot_image: PropTypes.string.isRequired,
           human_image: PropTypes.string.isRequired,
+          correct_post_id: PropTypes.number,
+          wrong_post_id: PropTypes.number,
         }),
       ])
     ),
