@@ -25,6 +25,7 @@ describe("GameEventCard Component", () => {
         botImage={botImage}
         humanImage={humanImage}
         clearGameEvent={vi.fn()}
+        addGameEventScore={vi.fn()}
       />
     );
 
@@ -46,6 +47,7 @@ describe("GameEventCard Component", () => {
         botImage={botImage}
         humanImage={humanImage}
         clearGameEvent={mockClear}
+        addGameEventScore={vi.fn()}
       />
     );
 

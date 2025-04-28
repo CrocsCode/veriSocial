@@ -16,20 +16,22 @@ function* loadFeedPageSaga(action) {
           const gameResponse = yield call(api.gameService.getGameEvent);
           const { low_score_post, high_score_post } = gameResponse.message;
 
-          const lowImage  = low_score_post?.base64_image  || low_score_post?.image;
+          const lowImage = low_score_post?.base64_image || low_score_post?.image;
           const highImage = high_score_post?.base64_image || high_score_post?.image;
 
           if (low_score_post && high_score_post && lowImage && highImage) {
             const gamePost = {
-              post_id:     `game-${Date.now()}`,
-              post_type:   "game",
-              bot_image:   highImage,
+              post_id: `game-${Date.now()}`,
+              post_type: "game",
+              bot_image: highImage,
               human_image: lowImage,
-              created_at:  new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              correct_post_id: low_score_post.post_id,
+              wrong_post_id: high_score_post.post_id,
             };
 
             const insertAt = Math.floor(Math.random() * (posts.length + 1));
-          posts = [...posts.slice(0, insertAt), gamePost, ...posts.slice(insertAt),];
+            posts = [...posts.slice(0, insertAt), gamePost, ...posts.slice(insertAt),];
           }
         } catch (gameErr) {
           yield put(loadFeedPageFailure(gameErr)); // TEMP
