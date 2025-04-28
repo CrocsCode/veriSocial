@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { clearGameEvent } from "../redux/actionCreators/gameCreators";
+import { clearGameEvent, addGameEventScore } from "../redux/actionCreators/gameCreators";
 import {
   Box,
   Flex,
@@ -14,7 +14,15 @@ import {
 } from "@chakra-ui/react";
 import { AiOutlineCheckCircle, AiOutlineCloseCircle } from "react-icons/ai";
 
-function GameEventCard({ postId, botImage, humanImage, clearGameEvent }) {
+function GameEventCard({
+  postId,
+  botImage,
+  humanImage,
+  correctPostId,
+  wrongPostId,
+  clearGameEvent,
+  addGameEventScore,
+}) {
   const [options, setOptions] = useState([]);
   const [result, setResult] = useState(null);
   const [exiting, setExiting] = useState(false);
@@ -32,6 +40,8 @@ function GameEventCard({ postId, botImage, humanImage, clearGameEvent }) {
     if (result) return; // only once
     const isCorrect = pickedType === "bot";
     setResult(isCorrect ? "correct" : "wrong");
+
+    addGameEventScore(isCorrect, correctPostId, wrongPostId);
 
     setTimeout(() => {
       setExiting(true);
@@ -110,13 +120,17 @@ function GameEventCard({ postId, botImage, humanImage, clearGameEvent }) {
 
 const mapDispatchToProps = {
   clearGameEvent,
+  addGameEventScore,
 };
 
 GameEventCard.propTypes = {
   postId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   botImage: PropTypes.string.isRequired,
   humanImage: PropTypes.string.isRequired,
+  correctPostId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  wrongPostId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   clearGameEvent: PropTypes.func.isRequired,
+  addGameEventScore: PropTypes.func.isRequired,
 };
 
 export default connect(null, mapDispatchToProps)(GameEventCard);

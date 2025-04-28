@@ -23,6 +23,7 @@ function* handleAddGameEventScore(action) {
         yield put(loadGameEventListRequest());
       } else {
         yield put(showNotificationRequest(T.GAME.RESULT.WRONG, 'info'));
+        yield put(loadGameEventListRequest());
       }
     } else {
       yield put(showNotificationRequest(T.GAME.ERROR, 'error'));
