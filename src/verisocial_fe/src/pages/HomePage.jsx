@@ -6,6 +6,7 @@ import PostFocus from "../components/PostFocus";
 import ProfileCard from "../components/ProfileCard";
 import TrendCard from "../components/TrendCard";
 import LeaderboardCard from "../components/LeaderboardCard";
+import GameStatisticCard from "../components/GameStatisticCard";
 import Modal from "../components/Modal";
 import PropTypes from "prop-types";
 import {
@@ -42,6 +43,7 @@ function HomePage({
         {/* Left Column */}
         <VStack w="22.5%" spacing={4} h="100%" p={4} ml="5%">
           <ProfileCard />
+          <GameStatisticCard />
         </VStack>
 
         {/* Main Container */}
