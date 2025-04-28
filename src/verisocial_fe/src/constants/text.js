@@ -34,6 +34,13 @@ const T = {
             CREATE_FAILURE: "Failed to post comment.",
         }
     },
+    GAME: {
+        RESULT: {
+            CORRECT: "Correct!",
+            WRONG: "Better luck next time!",
+        },
+        ERROR: "Error in updating Game Score."
+    },
     GENERAL: {
         ERROR: "Something went wrong.",
     }
