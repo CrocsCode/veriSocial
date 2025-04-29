@@ -23,7 +23,8 @@ chrono = { version = "0.4.39", features = ["serde"] }
 uuid = { version = "1.12.0", features = ["serde", "v4"] }
 argon2 = "0.5.3"
 sqlx = { version = "0.8.3", features = ["mysql", "runtime-tokio", "chrono"] }
-tokio = { version = "1.44.2", features = ["fs"]}
 tokio-util = "0.7.12"
 lazy_static = "1.5.0"
 reqwest = {version ="0.12.11", features = ["json"]}
+mockall = "0.13.1"
+async-trait = "0.1.88"
