@@ -11,11 +11,15 @@ use sqlx::mysql::MySqlPoolOptions;
 use log::{debug, error, info};
 
 use crate::config::settings;
+use repositories::{
+    user_repo::UserRepo,
+};
 
 mod services;
 mod models;
 mod routes;
 mod config;
+mod repositories;
 
 static MIGRATOR: Migrator = sqlx::migrate!("../db/migrations");
 
@@ -74,6 +78,9 @@ async fn main() -> std::io::Result<()> {
     let client =  Req_client::new();
     info!("Successfully started Reqwest client!");
 
+    // Initialize repositories
+    let user_repo = web::Data::new(UserRepo::new());
+
     let app_data = models::app_config::AppConfig {
         pass_hashing: Argon2::default(), // Password Hashing
         pool,
@@ -95,6 +102,7 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600)
             )
             .app_data(actix_web::web::PayloadConfig::new(usize::MAX))
+            .app_data(user_repo.clone())
             .app_data(web::Data::new(app_data.clone()))
             .service(routes::teapot::teapot)
             .configure(auth_config::config)
