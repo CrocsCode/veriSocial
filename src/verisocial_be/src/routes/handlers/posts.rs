@@ -1,18 +1,19 @@
 use actix_multipart::form::MultipartForm;
 use actix_web::{get, post, web, Responder};
-use crate::models::{
+use crate::{models::{
     app_config::{AppConfig, Pagination}, 
     auth::AuthUser,
     posts::{IncomingEvent, LikeEvent, NewComment, NewPost},
     reports::NewReport, 
     response::Response
-};
+}, repositories::likes_repo::LikesTrait};
 use crate::repositories::{
     post_repo::PostRepo,
     game_event_repo::GameEventRepo,
-    comment_repo::CommentRepo
+    comment_repo::CommentRepo,
+    likes_repo::LikesRepo
 };
-use crate::services::{comments, likes, posts, reports, game};
+use crate::services::{comments, posts, reports, game};
 
 // POST Routes ----------------------------------------------------------------------------------------------------------------------
 #[get("/{user_id}")]
@@ -74,10 +75,10 @@ pub async fn list_game_events_for_user(app_data: web::Data<AppConfig<'_>>, user:
 
 // LIKE Routes ----------------------------------------------------------------------------------------------------------------------
 #[post("/like")]
-pub async fn like_post(event: web::Json<LikeEvent>, user: AuthUser, app_data: web::Data<AppConfig<'_>>) -> impl Responder {
+pub async fn like_post(event: web::Json<LikeEvent>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, likes_repo: web::Data<LikesRepo>) -> impl Responder {
     let conn = &app_data.pool;
     
-    let like = likes::toggle_like(conn, user.user_id, event.into_inner()).await;
+    let like = likes_repo.toggle(conn, user.user_id, event.into_inner()).await;
     Response::create_post_response(like)
 }
 
