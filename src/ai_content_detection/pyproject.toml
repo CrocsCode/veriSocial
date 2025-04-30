@@ -1,5 +1,5 @@
 [project]
-name = "ai-image-detection"
+name = "ai-content-detection"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

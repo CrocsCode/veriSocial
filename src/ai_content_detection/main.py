@@ -1,8 +1,11 @@
 import os
 import asyncio
-import mysql.connector
+import traceback
 import boto3
-from contextlib import asynccontextmanager
+from contextlib import contextmanager
+from typing import Generator
+from mysql.connector import pooling, Error
+from mysql.connector.connection_cext import CMySQLConnection
 from fastapi import FastAPI
 from botocore.exceptions import ClientError
 from pydantic import BaseModel
@@ -13,7 +16,8 @@ from transformers import pipeline
 # Simple body
 class RequestBody(BaseModel):
     post_id: int
-    image_url: str
+    text: str
+    image_url: str | None
 
 class ProcessedPost(BaseModel):
     post_id: int
@@ -25,7 +29,8 @@ queue: asyncio.Queue[RequestBody] = asyncio.Queue()
 
 # AI initialization
 # Downloads model everytime again (not that good for now)
-classifier = pipeline("image-classification", model="NYUAD-ComNets/AI-generated_images_detector", device="cpu")
+image_classifier = pipeline("image-classification", model="NYUAD-ComNets/AI-generated_images_detector", device="cpu")
+#text_classifier = pipeline()
 
 # S3 Client Initalization
 SPACE_NAME = "fyp-jajo-verisocial-image-storage" # Won't change in our project
@@ -44,27 +49,25 @@ s3 = session.client(
     aws_secret_access_key=AWS_SECRET_KEY,
 )
 
-# Db initialization
-db = mysql.connector.connect(
-    host= os.getenv("DATABASE_HOST"),
-    port= os.getenv("DATABASE_PORT"),
-    user= os.getenv("DATABASE_USER"),
-    password= os.getenv("DATABASE_SECRET"),
-    database= os.getenv("DATABASE_NAME")
-)
-cursor = db.cursor(dictionary=True)
-
 # App initialization
 app = FastAPI(title="AI Content Detector")
 
 @app.on_event("startup")
 async def startup():
+    # Create a worker for classification
     asyncio.create_task(classifier_worker())
 
-@app.on_event("shutdown")
-async def shutdown():
-    cursor.close()
-    db.close()
+    # Create MySql pool
+    app.state.mysql_pool = pooling.MySQLConnectionPool(
+        pool_name="mypool",
+        pool_size=3,
+        pool_reset_session=True,
+        host= os.getenv("DATABASE_HOST"),
+        port= os.getenv("DATABASE_PORT"),
+        user= os.getenv("DATABASE_USER"),
+        password= os.getenv("DATABASE_SECRET"),
+        database= os.getenv("DATABASE_NAME"),
+    )
         
 @app.post("/classify")
 async def enqueue(body: RequestBody):
@@ -74,29 +77,42 @@ async def enqueue(body: RequestBody):
 # Classifying worker
 async def classifier_worker():
     loop = asyncio.get_running_loop()
+
     while True:
+        # Wait for a new job, but break cleanly on cancel
         try:
-            req: RequestBody = await queue.get()
+            req = await queue.get()
+        except asyncio.CancelledError:
+            print("Classifier worker cancelled; exiting.")
+            break
+
+        # Process it, catching only Exception 
+        try:
             image = await get_image(req.image_url)
-            result: ProcessedPost = await loop.run_in_executor(
-                None,
-                classify,
-                req,
-                image
-            )
-            _ = await update_post_score(result)
-        except:
-            raise
+            if image is None:
+                print(f"Could not fetch image for post {req.post_id}")
+            else:
+                result = await loop.run_in_executor(None, classify, req, image)
+                await update_post_score(result)
+        except Exception:
+            print(f"Error processing post {req.post_id}")
+            traceback.print_exc()
         finally:
+            # Mark it done exactly once per successful queue.get()
             queue.task_done()
 
-def classify(body: RequestBody, image):
-    if image is None:
-        print("Error")
-        raise 
+@contextmanager
+def get_db_connection() -> Generator[CMySQLConnection, None, None]:
+    try:
+        conn = app.state.mysql_pool.get_connection()
+        yield conn
+    finally:
+        conn.close()
 
+def classify(body: RequestBody, image):
     # Write the AI classification function
-    pred = classifier(image)
+    pred = image_classifier(image)
+    # text_score = text_classifier(text)
 
     #Create Response (needs to be changed to be custom)
     class_type = pred[0]["label"]
@@ -127,8 +143,15 @@ async def get_image(image_url: str):
 
 async def update_post_score(post: ProcessedPost):
     try:
-        cursor.execute("UPDATE posts SET bot_score = %s WHERE post_id = %s", (post.score, post.post_id,))
-        db.commit()
-    except Exception as e:
-        print("Transaction failed: ", e)
-        db.rollback()
+        # grab a fresh pooled connection
+        with get_db_connection() as db:
+            cursor = db.cursor()
+            cursor.execute(
+                "UPDATE posts SET bot_score = %s WHERE post_id = %s",
+                (post.score, post.post_id),
+            )
+            db.commit()
+            cursor.close()
+    except Error as e:
+        print("Transaction failed:", e)
+        traceback.print_exc()
