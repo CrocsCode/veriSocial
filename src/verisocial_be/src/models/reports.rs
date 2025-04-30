@@ -29,7 +29,7 @@ pub struct NewReport {
 pub struct ReportInfo {
     pub report_id: u64,
     pub reportee_id: u64,
-    pub reported_id: u64,
+    pub reported_id: Option<u64>,
     pub post_id: u64,
     pub ai_content: bool,
     pub bot_behaviour: bool,

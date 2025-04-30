@@ -101,6 +101,7 @@ async fn main() -> std::io::Result<()> {
             .configure(user_config::config)
             .configure(post_config::post_config)
             .configure(post_config::game_config)
+            .configure(post_config::admin_config)
     })
     .bind((app_url, 8080))?
     .run()

@@ -1,9 +1,9 @@
 use actix_multipart::form::MultipartForm;
 use actix_web::{get, post, web, Responder};
 use crate::{models::{
-    app_config::{AppConfig, Pagination}, auth::AuthUser, posts::{IncomingEvent, LikeEvent, NewComment, NewPost}, response::Response
+    app_config::{AppConfig, Pagination}, auth::AuthUser, posts::{IncomingEvent, LikeEvent, NewComment, NewPost}, reports::NewReport, response::Response
 }, services::game};
-use crate::services::{comments, likes, posts};
+use crate::services::{comments, likes, posts, reports};
 
 
 // POST Routes ----------------------------------------------------------------------------------------------------------------------
@@ -94,3 +94,15 @@ pub async fn post_comment(new_comment: web::Json<NewComment>, user: AuthUser, ap
 }
 
 // REPORT Routes ----------------------------------------------------------------------------------------------------------------------
+#[post("/report")]
+pub async fn report_post(new_report: web::Json<NewReport>, user: AuthUser, app_data: web::Data<AppConfig<'_>>) -> impl Responder {
+    let new_report = reports::create_report(&app_data.pool, user.user_id, new_report.into_inner()).await;
+    Response::create_post_response(new_report)
+}
+
+// There should be logic to check if this is an admin route on the middleware.
+#[get("/report")]
+pub async fn get_all_reports(app_data: web::Data<AppConfig<'_>>) -> impl Responder {
+    let reports = reports::list_reports(&app_data.pool).await;
+    Response::create_get_response(reports)
+}
