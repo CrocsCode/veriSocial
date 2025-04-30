@@ -16,7 +16,8 @@ use repositories::{
     post_repo::PostRepo,
     comment_repo::CommentRepo,
     game_event_repo::GameEventRepo,
-    likes_repo::LikesRepo
+    likes_repo::LikesRepo,
+    report_repo::ReportRepo
 };
 
 mod services;
@@ -88,6 +89,7 @@ async fn main() -> std::io::Result<()> {
     let comment_repo = web::Data::new(CommentRepo::new());
     let game_event_repo = web::Data::new(GameEventRepo::new());
     let likes_repo = web::Data::new(LikesRepo::new());
+    let report_repo = web::Data::new(ReportRepo::new());
 
     let app_data = models::app_config::AppConfig {
         pass_hashing: Argon2::default(), // Password Hashing
@@ -115,6 +117,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(comment_repo.clone())
             .app_data(game_event_repo.clone())
             .app_data(likes_repo.clone())
+            .app_data(report_repo.clone())
             .app_data(web::Data::new(app_data.clone()))
             .service(routes::teapot::teapot)
             .configure(auth_config::config)

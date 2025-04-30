@@ -6,12 +6,13 @@ use crate::{models::{
     posts::{IncomingEvent, LikeEvent, NewComment, NewPost},
     reports::NewReport, 
     response::Response
-}, repositories::likes_repo::LikesTrait};
+}, repositories::{likes_repo::LikesTrait, report_repo::ReportTrait}};
 use crate::repositories::{
     post_repo::PostRepo,
     game_event_repo::GameEventRepo,
     comment_repo::CommentRepo,
-    likes_repo::LikesRepo
+    likes_repo::LikesRepo,
+    report_repo::ReportRepo
 };
 use crate::services::{comments, posts, reports, game};
 
@@ -104,14 +105,14 @@ pub async fn post_comment(new_comment: web::Json<NewComment>, user: AuthUser, ap
 
 // REPORT Routes ----------------------------------------------------------------------------------------------------------------------
 #[post("/report")]
-pub async fn report_post(new_report: web::Json<NewReport>, user: AuthUser, app_data: web::Data<AppConfig<'_>>) -> impl Responder {
-    let new_report = reports::create_report(&app_data.pool, user.user_id, new_report.into_inner()).await;
+pub async fn report_post(new_report: web::Json<NewReport>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, report_repo: web::Data<ReportRepo>) -> impl Responder {
+    let new_report = reports::create_report(&app_data.pool, user.user_id, new_report.into_inner(), &report_repo).await;
     Response::create_post_response(new_report)
 }
 
 // There should be logic to check if this is an admin route on the middleware.
 #[get("/report")]
-pub async fn get_all_reports(app_data: web::Data<AppConfig<'_>>) -> impl Responder {
-    let reports = reports::list_reports(&app_data.pool).await;
+pub async fn get_all_reports(app_data: web::Data<AppConfig<'_>>, report_repo: web::Data<ReportRepo>) -> impl Responder {
+    let reports = report_repo.list_reports(&app_data.pool).await;
     Response::create_get_response(reports)
 }
