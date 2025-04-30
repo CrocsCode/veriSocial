@@ -39,7 +39,7 @@ async fn main() -> std::io::Result<()> {
     let database_url = (*settings::APP_DATABASE_URL).clone();
     let app_url = (*settings::APP_URL).clone();
     let _ = (*settings::SECRET).clone(); // Ensure this value is initialized
-    let max_file_size = (*settings::MAX_FILE_SIZE).clone();
+    let max_file_size = *settings::MAX_FILE_SIZE;
     let ai_image_url = (*settings::AI_IMAGE_URL).clone();
     let aws_region = (*settings::AWS_REGION).clone();
     let aws_endpoint = (*settings::AWS_ENDPOINT).clone();

@@ -1,3 +1,6 @@
+#![allow(clippy::too_many_arguments)] // These are needed for specifically this file only
+#![allow(clippy::ptr_arg)]
+
 use aws_sdk_s3::Client as s3_client;
 use reqwest::Client as req_client;
 use log::{debug, error};
@@ -74,11 +77,11 @@ impl PostTrait for PostRepo {
     
                 // Unwrap will not panic due to the previous if let Some handling the cases when there is no image.
                 let filename = image_name.unwrap();
-                upload_image(&filename, image, &bucket_name, &s3_client).await?;
+                upload_image(&filename, image, bucket_name, s3_client).await?;
                 // use the image name as the url for retrieving the image in the front-end.
-                image_name = Some(create_image_url(&aws_endpoint, &bucket_name, &filename))
+                image_name = Some(create_image_url(aws_endpoint, bucket_name, &filename))
             }
-    
+     
             let insert_result = sqlx::query!(
                 r#"
                 INSERT INTO posts (user_id, content, base64_image, bot_score)

@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n            SELECT like_id FROM likes WHERE post_id = ? AND user_id = ? AND comment_id = ?\n            ",
+  "query": "\n                SELECT like_id FROM likes WHERE post_id = ? AND user_id = ? AND comment_id = ?\n                ",
   "describe": {
     "columns": [
       {
@@ -20,5 +20,5 @@
       false
     ]
   },
-  "hash": "5d142747553878851d126bcc1091fa56a7b322b90a2b2bb6b335fd1f12cf9205"
+  "hash": "ea4c011ca66b96dfc0477e3399200c62d7456e3c3804a2df25dc75a8ba322d27"
 }

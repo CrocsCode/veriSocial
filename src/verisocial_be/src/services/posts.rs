@@ -11,7 +11,7 @@ use crate::repositories::post_repo::{PostRepo, PostTrait};
 
 
 pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id: u64, post_repo: &PostRepo) -> Result<Post, ApiError> {
-    let max_file_size = (*settings::MAX_FILE_SIZE).clone();
+    let max_file_size = *settings::MAX_FILE_SIZE;
 
     // Check if there is an image and ensure it's the right format.
     let image_name = if let Some(file) = &new_post.image {    
@@ -39,7 +39,7 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         file_name = format!("{}-{}.{}",
             user_id,
             Uuid::new_v4(),
-            file_name[file_name.len() - 3 ..].to_string()
+            &file_name[file_name.len() - 3 ..]
         );
         
         Some(file_name)

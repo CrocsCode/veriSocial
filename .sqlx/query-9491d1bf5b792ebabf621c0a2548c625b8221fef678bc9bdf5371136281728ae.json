@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT\n            g.event_id,\n            g.user_id,\n            g.correct_post_id,\n            g.wrong_post_id,\n            g.is_correct AS `is_correct: bool`\n        FROM\n            gameEvents AS g\n        WHERE\n            g.event_id = ?;\n        ",
+  "query": "\n            SELECT\n                g.event_id,\n                g.user_id,\n                g.correct_post_id,\n                g.wrong_post_id,\n                g.is_correct AS `is_correct: bool`\n            FROM\n                gameEvents AS g\n            WHERE\n                g.event_id = ?;\n            ",
   "describe": {
     "columns": [
       {
@@ -60,5 +60,5 @@
       false
     ]
   },
-  "hash": "888d4e038278d6a269ab2e382373f47032fcb9ada0872c9f4d97d6b213d7208a"
+  "hash": "9491d1bf5b792ebabf621c0a2548c625b8221fef678bc9bdf5371136281728ae"
 }

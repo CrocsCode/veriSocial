@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT * FROM users where email = ?;\n        ",
+  "query": "\n            SELECT * FROM users\n            ",
   "describe": {
     "columns": [
       {
@@ -77,7 +77,7 @@
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 0
     },
     "nullable": [
       false,
@@ -90,5 +90,5 @@
       false
     ]
   },
-  "hash": "06a8a08b8366b732431132875def482effb76d9543268a038ea831bcacda5363"
+  "hash": "3c4fb214380b4a0a378f895741b10dec5b81c2e1a032b7bfd75234887a4963e3"
 }
