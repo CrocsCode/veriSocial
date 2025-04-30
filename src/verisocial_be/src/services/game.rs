@@ -1,8 +1,7 @@
 use sqlx::MySqlPool;
 use crate::{models::{
     posts::{
-        GameEvent, GamePost, IncomingEvent, SendGameEvent
-    },
+        GameEvent, GamePost, IncomingEvent},
     response::ApiError
 }, 
     repositories::{
@@ -27,12 +26,5 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64, post_repo: &Po
 
 pub async fn new_game_event(conn: &MySqlPool, new_event: IncomingEvent, user_id: u64, game_event_repo: &GameEventRepo) -> Result<GameEvent, ApiError> {
     let new_game_id = game_event_repo.create(conn, new_event, user_id).await?;
-    let new_game_event = game_event_repo.find_game_event(conn, new_game_id).await;
-
-    new_game_event
-}
-
-pub async fn user_game_event_list(conn: &MySqlPool, user_id: u64, game_event_repo: &GameEventRepo) -> Result<Vec<SendGameEvent>, ApiError> {
-    let game_events = game_event_repo.list_game_events_for_user(conn, user_id).await;
-    game_events
+    game_event_repo.find_game_event(conn, new_game_id).await
 }

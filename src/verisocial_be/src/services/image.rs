@@ -34,11 +34,11 @@ pub async fn post_check(image_name: String, post_id: u64, client: &Client) -> Re
             debug!("{}", status.status);
             Ok(())
         },
-        Err(err) => return Err(ApiError::ServerError(err.to_string()))
+        Err(err) => Err(ApiError::ServerError(err.to_string()))
     }
 }
 
-pub async fn upload_image(filename: &String, image: TempFile, bucket_name: &String, s3_client: &S3Client) -> Result<(), ApiError> {
+pub async fn upload_image(filename: &str, image: TempFile, bucket_name: &str, s3_client: &S3Client) -> Result<(), ApiError> {
     const CHUNK_SIZE: u64 = 1024 * 1024 * 5; // Make configurable?
 
     let file_path = image.file.path();

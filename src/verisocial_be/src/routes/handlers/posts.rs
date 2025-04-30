@@ -6,7 +6,7 @@ use crate::{models::{
     posts::{IncomingEvent, LikeEvent, NewComment, NewPost},
     reports::NewReport, 
     response::Response
-}, repositories::{likes_repo::LikesTrait, report_repo::ReportTrait}};
+}, repositories::{comment_repo::CommentTrait, game_event_repo::GameEventTrait, likes_repo::LikesTrait, report_repo::ReportTrait}};
 use crate::repositories::{
     post_repo::PostRepo,
     game_event_repo::GameEventRepo,
@@ -70,7 +70,7 @@ pub async fn add_game_event(new_event: web::Json<IncomingEvent>, app_data: web::
 
 #[get("/game_events")]
 pub async fn list_game_events_for_user(app_data: web::Data<AppConfig<'_>>, user: AuthUser, game_event_repo: web::Data<GameEventRepo>) -> impl Responder {
-    let event_list = game::user_game_event_list(&app_data.pool, user.user_id, &game_event_repo).await;
+    let event_list = game_event_repo.list_game_events_for_user(&app_data.pool, user.user_id).await;
     Response::create_get_response(event_list)
 }
 
@@ -86,14 +86,12 @@ pub async fn like_post(event: web::Json<LikeEvent>, user: AuthUser, app_data: we
 // COMMENT Routes ----------------------------------------------------------------------------------------------------------------------
 #[get("/comments/{post_id}")]
 pub async fn get_comments(post_id: web::Path<u64>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagination>, comment_repo: web::Data<CommentRepo>) -> impl Responder {
-    let conn = &app_data.pool;
-
     // Query
     let page = query.page.unwrap_or(1);
     let size = query.size.unwrap_or(10);
     let page_offset = (page - 1) * size;
 
-    let comments = comments::retrieve_comments_for_post(conn, *post_id, user.user_id, size, page_offset, &comment_repo).await;
+    let comments = comment_repo.list_comments_for_post(&app_data.pool, post_id.into_inner(), user.user_id, page, page_offset).await;
     Response::create_get_response(comments)
 }
 
