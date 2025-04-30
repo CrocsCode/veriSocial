@@ -8,6 +8,7 @@ import {
     REGISTER_FAILURE,
     USER_SUCCESS,
     USER_FAILURE,
+    USER_REQUEST,
 } from "../actionTypes/authActionTypes";
 
 export const loginRequest = (credentials) => ({
@@ -43,6 +44,11 @@ export const registerFailure = (error) => ({
     type: REGISTER_FAILURE,
     payload: error,
 });
+
+export const userRequest = (userId) => ({
+    type: USER_REQUEST,
+    payload: userId,
+})
 
 export const userSuccess = (userDetails) => ({
     type: USER_SUCCESS,

@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n            INSERT INTO reports (user_id, post_id, ai_content, bot_behaviour, other, additional_details)\n            VALUES (?, ?, ?, ?, ?, ?)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "cb2a6e5292d494f71aa44f49ca71e48917d5156fe623ca248eb686d47acf1e95"
+}

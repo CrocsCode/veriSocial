@@ -1,5 +1,5 @@
-import { call, put, takeLatest } from "redux-saga/effects";
-import { LOGIN_REQUEST, LOGOUT, REGISTER_REQUEST } from "../actionTypes/authActionTypes";
+import { call, put, takeLatest, delay } from "redux-saga/effects";
+import { LOGIN_REQUEST, LOGOUT, REGISTER_REQUEST, USER_REQUEST } from "../actionTypes/authActionTypes";
 import { loginSuccess, loginFailure, userSuccess, userFailure } from "../actionCreators/authCreators";
 import { showNotificationRequest } from "../actionCreators/notificationCreators";
 import { registerFailure } from "../actionCreators/authCreators";
@@ -8,6 +8,7 @@ import api from "../../api";
 import T from "../../constants/text";
 import { axiosInstance } from "../../api/axiosInstance";
 import { setAuthToken } from "../../api/axiosInstance";
+import { resetFeed } from "../actionCreators/feedCreators";
 
 function* handleLogin(action) {
   try {
@@ -19,7 +20,10 @@ function* handleLogin(action) {
       const { id, token } = response.message;
       setAuthToken(token); // In Memory for Initial Login
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
       yield put(loginSuccess(token));
+      yield put(resetFeed());
+      
       const userResponse = yield call(api.authService.getUser, id);
 
       // Check UserDetails from Login Response
@@ -30,7 +34,7 @@ function* handleLogin(action) {
           email: userResponse.message.email,
           full_name: userResponse.message.full_name,
           bio: userResponse.message.bio,
-          bot_score: userResponse.message.bot_score,
+          bot_score: userResponse.message["bot-score"],
           created_at: userResponse.message["created-at"],
         };
         yield put(userSuccess(filteredUser));
@@ -63,14 +67,13 @@ function* handleRegister(action) {
     const { username, name, email, password, confirmPassword } = action.payload;
 
     if (password !== confirmPassword) {
-      yield put(registerFailure("Passwords do not match."));
-      yield put(showNotificationRequest("Passwords do not match.", "error"));
+      yield put(registerFailure(T.AUTH.PASSWORD_MATCH_ERROR));
+      yield put(showNotificationRequest(T.AUTH.PASSWORD_MATCH_ERROR, "error"));
       return;
     }
 
-    const finalUsername = username && username.startsWith("@")
-      ? username
-      : `@${name.replace(/\s+/g, "").toLowerCase()}`;
+    const base = username && username.length > 0 ? username : name;
+    const finalUsername = base.replace(/^@/, "").replace(/\s+/g, "").toLowerCase();
 
     const response = yield call(api.authService.register, {
       username: finalUsername,
@@ -83,6 +86,7 @@ function* handleRegister(action) {
 
     if (response.status === "success") {
       yield put(showNotificationRequest(T.AUTH.REGISTER_SUCCESS, "success"));
+      yield delay(1250);
       window.location.reload();
     } else {
       yield put(registerFailure(response.data.message || T.AUTH.REGISTER_FAILURE));
@@ -94,10 +98,34 @@ function* handleRegister(action) {
   }
 }
 
+function* handleUserDetails(action) {
+  try {
+    const response = yield call(api.authService.getUser, action.payload);
+
+    if (response.status === "success") {
+      const filteredUser = {
+        user_id: response.message.user_id,
+        username: response.message.username,
+        email: response.message.email,
+        full_name: response.message.full_name,
+        bio: response.message.bio,
+        bot_score: response.message["bot-score"],
+        created_at: response.message["created-at"],
+      };
+      yield put(userSuccess(filteredUser));
+    } else {
+      yield put(userFailure(response.message || "Failed to fetch user details."));
+    }
+  } catch (error) {
+    yield put(userFailure(error.response?.data?.message || "Failed to fetch user details."));
+  }
+}
+
 function* watchAuthActions() {
   yield takeLatest(LOGIN_REQUEST, handleLogin);
   yield takeLatest(LOGOUT, handleLogout);
   yield takeLatest(REGISTER_REQUEST, handleRegister);
+  yield takeLatest(USER_REQUEST, handleUserDetails);
 }
 
 export default watchAuthActions;

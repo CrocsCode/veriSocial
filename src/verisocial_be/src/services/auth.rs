@@ -1,20 +1,10 @@
 use jsonwebtoken::{encode, Header, EncodingKey};
-use serde::{Deserialize, Serialize};
 use chrono::{Utc, Duration};
 
+use crate::models::auth::Claims;
 use crate::config::settings::SECRET;
-/// TODO:
-/// - Encode JWT (by generation)
-/// - Decode JWT (Middleware does this)
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Claims {
-    sub: String,
-    iss: String,
-    exp: usize,
-}
-
-pub fn generate_jwt(user_id: &String) -> String {
+pub fn generate_jwt(user_id: &u64) -> String {
     let expiration = Utc::now()
         .checked_add_signed(Duration::seconds(3600)) // 1 Hour
         .expect("Valid Timestamp") // Look into error solving

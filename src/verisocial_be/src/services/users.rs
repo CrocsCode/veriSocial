@@ -2,133 +2,43 @@ use serde_json::{json, Value};
 use sqlx::MySqlPool;
 use argon2::Argon2;
 use crate::services::auth;
+use crate::repositories::user_repo::{UserRepo, UserTrait};
 use crate::models::{
     response::ApiError,
-    user::{FollowRequest, NewUser, User},
+    user::{NewUser, User},
 };
 
-pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUser) -> Result<User, ApiError> {
+pub async fn create_user(conn: &MySqlPool, argon2: &Argon2<'_>, new_user: NewUser, user_repo: &UserRepo) -> Result<User, ApiError> {
     let password_hash = User::create_password_hash(&new_user.password, argon2);
 
-    let result_1 = sqlx::query!(
-        r#"
-        INSERT INTO users (username, email, password_hash, full_name, bio, bot_score)
-        VALUES (?, ?, ?, ?, ?, ?)
-        "#,
-        &new_user.username,
-        &new_user.email,
-        password_hash,
-        &new_user.full_name,
-        &new_user.bio,
-        &new_user.bot_score
-    )
-    .execute(conn)
-    .await;
+    let latest_user_id = user_repo.create(conn, new_user, password_hash).await?;
+    let created_user = user_repo.find_user_with_id(conn, latest_user_id).await?;
 
-    let latest_user_id = match result_1 {
-        Ok(query_result) => query_result.last_insert_id(),
-        Err(e) => return Err(ApiError::CannotCreateObject(e.to_string()))
-    };
-
-    let result_2 = sqlx::query_as!(User,
-        r#"
-        SELECT * FROM users WHERE user_id = ?;
-        "#,
-        latest_user_id
-    ) 
-    .fetch_one(conn)
-    .await;
-
-    match result_2 {
-        Ok(user) => Ok(user),
-        Err(err) => Err(ApiError::CannotCreateObject("Could not find recently created object: ".to_string() + &err.to_string()))
-    }
+    Ok(created_user)
 }
 
-pub async fn retrieve_user_list(conn: &MySqlPool) -> Result<Vec<User>, ApiError> {
-    let query = sqlx::query_as!(User,
-    r#"
-    SELECT * FROM users
-    "#
-    ).fetch_all(conn).await;
+pub async fn retrieve_user_list(conn: &MySqlPool, user_repo: &UserRepo) -> Result<Vec<User>, ApiError> {
+    let user_list = user_repo.find_all(conn).await?;
 
-    match query {
-        Ok(resp) => Ok(resp),
-        Err(err) => Err(ApiError::ObjectNotFound("Can't retrieve list of users at this time:\n ".to_string() + &err.to_string()))
-    }
+    Ok(user_list)
 }
 
-pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, email: String, password: String) -> Result<Value, ApiError> {
-    let result = sqlx::query_as!(User,
-        r#"
-        SELECT * FROM users where email = ?;
-        "#,
-        email
-    ).fetch_one(conn).await;
+pub async fn verify_auth_details(conn: &MySqlPool, argon2: &Argon2<'_>, email: String, password: String, user_repo: &UserRepo)  -> Result<Value, ApiError> {
 
-    // Create user login logic
-    let user= match result {
-        Ok(user) => user,
-        Err(_) => return Err(ApiError::AuthError("Username not found".into()))
-    };
+    let user = user_repo.find_user_with_email(conn, email).await?;
 
     if user.verify_password(&password, argon2) {
-        let jwt = auth::generate_jwt(&user.user_id.to_string());
-        let resp = json!({"token": jwt, "id": &user.user_id.to_string()});
+        let jwt = auth::generate_jwt(&user.user_id);
+        let resp = json!({"token": jwt, "id": &user.user_id});
         Ok(resp)
     } else {
         Err(ApiError::AuthError("Passwords don't match".into()))
     }
 }
 
-pub async fn retrieve_user(conn: &MySqlPool, user_id: u64) -> Result<User, ApiError> {
-    let result = sqlx::query_as!(User,
-        r#"
-        SELECT * FROM users WHERE user_id = ?;
-        "#,
-        user_id
-    )
-    .fetch_one(conn).await;
+pub async fn retrieve_user(conn: &MySqlPool, user_id: u64, user_repo: &UserRepo) -> Result<User, ApiError> {
 
-    match result {
-        Ok(user) => Ok(user),
-        Err(e) => Err(ApiError::CannotCreateObject(e.to_string()))
-    }
-}
-
-pub async fn add_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Result<String, ApiError> {
-    let query = sqlx::query!(
-        r#"
-        INSERT INTO follow (followee_id, follower_id) VALUES (?, ?)
-        "#,
-        follow_request.followee_id,
-        follow_request.follower_id
-    )
-    .execute(conn)
-    .await;
-
-    match query {
-        Ok(_) => Ok("Success".to_string()),
-        Err(err) => Err(ApiError::CannotCreateObject("Users with specified IDs can't be found:\n".to_string() + &err.to_string()))
-    }
-}
-
-pub async fn remove_follow(follow_request: FollowRequest, conn: &MySqlPool) -> Result<String, ApiError> {
-    let query = sqlx::query!(
-        r#"
-        DELETE FROM
-            follow
-        WHERE
-            follower_id = ? OR followee_id = ?
-        "#,
-        follow_request.follower_id,
-        follow_request.followee_id
-    )
-    .execute(conn)
-    .await;
-
-    match query {
-        Ok(_) => Ok("Unfollow operation success!".to_string()),
-        Err(_) => Err(ApiError::DeleteError("Could not unfollow.".to_string()))
-    }
+    let user = user_repo.find_user_with_id(conn, user_id).await?;
+    
+    Ok(user)
 }

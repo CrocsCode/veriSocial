@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 import {
   Box,
   Heading,
@@ -11,35 +13,37 @@ import {
 } from "@chakra-ui/react";
 import { FaHeart, FaRegHeart, FaFlag, FaRobot } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
-import PropTypes from "prop-types";
 import { formatDistanceToNowStrict } from "date-fns";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
+import { likePostRequest } from "../redux/actionCreators/postInteractCreators";
+import { getBotScoreLevel, getFormattedBotScore, botScoreColors } from "../utils/botScore";
 
 const getRelativeTime = (timestamp) =>
   `${formatDistanceToNowStrict(new Date(timestamp))} ago`;
 
-const formatBase64Image = (base64) => {
-  if (!base64) return null;
-  return base64.startsWith("data:image") ? base64 : `data:image/jpeg;base64,${base64}`;
-};
-
-const PostCard = ({ post, onClick }) => {
-  const imageSrc = formatBase64Image(post.base64_image);
-  const initialLikes = post.likeCount !== undefined ? post.likeCount : Math.floor(Math.random() * 100); // TEMP
-  const [likeCount, setLikeCount] = useState(initialLikes);
-  const [isLiked, setIsLiked] = useState(false);
+const PostCard = ({ post, onClick, likePostRequest }) => {
+  const [likeCount, setLikeCount] = useState(post["likes-count"] !== undefined ? post["likes-count"] : 0);
+  const [isLiked, setIsLiked] = useState(post["is-liked"] != null ? post["is-liked"] : 0);
   const [isReportOpen, setReportOpen] = useState(false);
+
+  useEffect(() => {
+    setLikeCount(post["likes-count"] ?? 0);
+    setIsLiked(post["is-liked"] != null ? post["is-liked"] : 0);
+  }, [post]);
+
+  const imageSrc = post.base64_image;
 
   const handleLikeClick = (e) => {
     e.stopPropagation();
-    if (isLiked) {
-      setIsLiked(false);
-      setLikeCount(likeCount - 1);
+    if (isLiked === 1) {
+      setIsLiked(0);
+      setLikeCount((prev) => prev - 1);
     } else {
-      setIsLiked(true);
-      setLikeCount(likeCount + 1);
+      setIsLiked(1);
+      setLikeCount((prev) => prev + 1);
     }
+    likePostRequest(post.post_id);
   };
 
   const handleReportClick = (e) => {
@@ -49,16 +53,10 @@ const PostCard = ({ post, onClick }) => {
 
   // Bot Score Display and Levels
   const botScore = post["bot-score"];
-  const botScoreLevel = botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
-  const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
-
-  const botScoreColors = {
-    1: "#7ABD7E",
-    2: "#b6d7a8",
-    3: "#F8D66D",
-    4: "#FFB54C",
-    5: "#e06666",
-  };
+  const botScoreLevel = getBotScoreLevel(botScore);
+  const formattedBotScore = getFormattedBotScore(botScore);
+  const userBotScore = post["user_bot_score"];
+  const userBotScoreLevel = getBotScoreLevel(userBotScore);
 
   return (
     <>
@@ -72,7 +70,6 @@ const PostCard = ({ post, onClick }) => {
         cursor="pointer"
         onClick={onClick}
         transition="background-color 0.2s ease"
-        _hover={{ bg: "purple.100" }}
         minH="5vh"
       >
         {/* Timestamp */}
@@ -82,7 +79,19 @@ const PostCard = ({ post, onClick }) => {
 
         {/* User Info */}
         <HStack align="top" mb={4}>
-          <Avatar name={post["full-name"]} size="md" />
+          <Tooltip
+            label={`User Bot Score: ${userBotScore != null ? userBotScore.toFixed(3) : "N/A"}`}
+            placement="top"
+            hasArrow
+          >
+            <Avatar
+              name={post["full-name"]}
+              size="md"
+              borderWidth="0.3vh"
+              borderStyle="solid"
+              borderColor={botScoreColors[userBotScoreLevel]}
+            />
+          </Tooltip>
           <Box>
             <Heading as="h3" size="sm" mb={1}>
               {post["full-name"]}
@@ -95,25 +104,26 @@ const PostCard = ({ post, onClick }) => {
 
         {/* Content */}
         <Text mb={4}>{post.content}</Text>
-        {imageSrc && <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />}
+        {imageSrc && (
+          <Image src={imageSrc} alt="Post content" borderRadius="md" mb={4} />
+        )}
 
         {/* Buttons */}
         <HStack spacing={4}>
           <HStack spacing={1.5} cursor="pointer" onClick={handleLikeClick} role="group">
             <Icon
-              as={isLiked ? FaHeart : FaRegHeart}
+              as={isLiked === 1 ? FaHeart : FaRegHeart}
               boxSize={4}
-              color={isLiked ? "red.500" : "blue.500"}
+              color={isLiked === 1 ? "red.500" : "blue.500"}
               transition="transform 0.2s"
               _groupHover={{ transform: "scale(1.2)" }}
               _groupActive={{ transform: "scale(0.9)" }}
             />
-            <Text fontWeight={isLiked ? "bold" : "normal"}>{likeCount}</Text>
+            <Text fontWeight={isLiked === 1 ? "bold" : "normal"}>{likeCount}</Text>
           </HStack>
 
           <HStack color="teal.500" fontSize="sm" cursor="pointer">
             <Icon as={FaMessage} boxSize={4} />
-            {/* <Text>Comments</Text> */}
           </HStack>
 
           <HStack
@@ -130,9 +140,7 @@ const PostCard = ({ post, onClick }) => {
               _groupHover={{ transform: "scale(1.2)" }}
               _groupActive={{ transform: "scale(0.9)", color: "red.700" }}
             />
-            {/* <Text>Report</Text> */}
           </HStack>
-
         </HStack>
 
         {/* Bot Score Icon */}
@@ -153,7 +161,7 @@ const PostCard = ({ post, onClick }) => {
 
       {isReportOpen && (
         <Modal isOpen={isReportOpen} onClose={() => setReportOpen(false)}>
-          <ReportForm onClose={() => setReportOpen(false)} />
+          <ReportForm postId={post.post_id} onClose={() => setReportOpen(false)} />
         </Modal>
       )}
     </>
@@ -163,14 +171,22 @@ const PostCard = ({ post, onClick }) => {
 PostCard.propTypes = {
   post: PropTypes.shape({
     base64_image: PropTypes.string,
-    likeCount: PropTypes.number,
+    "likes-count": PropTypes.number,
     "created-at": PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     "full-name": PropTypes.string,
     username: PropTypes.string,
     content: PropTypes.string,
     "bot-score": PropTypes.number,
+    "is-liked": PropTypes.number,
+    post_id: PropTypes.number,
+    "user_bot_score": PropTypes.number,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
+  likePostRequest: PropTypes.func.isRequired,
 };
 
-export default PostCard;
+const mapDispatchToProps = {
+  likePostRequest,
+};
+
+export default connect(null, mapDispatchToProps)(PostCard);

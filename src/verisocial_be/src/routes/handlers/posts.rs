@@ -1,13 +1,24 @@
+use actix_multipart::form::MultipartForm;
 use actix_web::{get, post, web, Responder};
-use crate::models::app_state::Pagination;
-use crate::models::{
-    app_state::AppState, response::Response, posts::NewPost
+use crate::{models::{
+    app_config::{AppConfig, Pagination}, 
+    auth::AuthUser,
+    posts::{IncomingEvent, LikeEvent, NewComment, NewPost},
+    reports::NewReport, 
+    response::Response
+}, repositories::{comment_repo::CommentTrait, game_event_repo::GameEventTrait, likes_repo::LikesTrait, report_repo::ReportTrait}};
+use crate::repositories::{
+    post_repo::PostRepo,
+    game_event_repo::GameEventRepo,
+    comment_repo::CommentRepo,
+    likes_repo::LikesRepo,
+    report_repo::ReportRepo
 };
-use crate::services::posts;
+use crate::services::{comments, posts, reports, game};
 
-
+// POST Routes ----------------------------------------------------------------------------------------------------------------------
 #[get("/{user_id}")]
-pub async fn retrieve_posts(user_id: web::Path<u64>, app_data: web::Data<AppState<'_>>, query: web::Query<Pagination>) -> impl Responder {
+pub async fn retrieve_posts(user_id: web::Path<u64>, app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagination>, post_repo: web::Data<PostRepo>) -> impl Responder {
     let id = user_id.into_inner();
     let conn = &app_data.into_inner().pool;
 
@@ -15,50 +26,91 @@ pub async fn retrieve_posts(user_id: web::Path<u64>, app_data: web::Data<AppStat
     let size = query.size.unwrap_or(10);
     let page_offset = (page - 1) * size;
 
-    let posts = posts::user_posts(conn, id, size, page_offset).await;
+    let posts = posts::user_posts(conn, id, size, page_offset, &post_repo).await;
     Response::create_get_response(posts)
 }
 
 #[get("/{user_id}/{post_id}")]
-pub async fn retrieve_individual_post(id: web::Path<(u64, u64)>, app_data: web::Data<AppState<'_>>) -> impl Responder {
+pub async fn retrieve_individual_post(id: web::Path<(u64, u64)>, app_data: web::Data<AppConfig<'_>>, user: AuthUser, post_repo: web::Data<PostRepo>) -> impl Responder {
     let post_id = id.1;
-    let post = posts::individual_user_post(&app_data.pool, post_id).await;
+    let post = posts::individual_user_post(&app_data.pool, user.user_id, post_id, &post_repo).await;
     Response::create_get_response(post)
 }
 
 #[post("/{user_id}")]
-pub async fn create_new_post(json: web::Json<NewPost>, app_data: web::Data<AppState<'_>>) -> impl Responder {
-    let post = json.into_inner();
-
-    let result = posts::create_post(post, &app_data.into_inner()).await;
+pub async fn create_new_post(MultipartForm(form): MultipartForm<NewPost>, app_data: web::Data<AppConfig<'_>>, user: AuthUser, post_repo: web::Data<PostRepo>) -> impl Responder {
+    let result = posts::create_post(form, &app_data.into_inner(), user.user_id, &post_repo).await;
     Response::create_get_response(result)
 }
 
 #[get("/user")]
-pub async fn timeline(app_data: web::Data<AppState<'_>>, query: web::Query<Pagination>) -> impl Responder {
+pub async fn timeline(app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagination>, user: AuthUser, post_repo: web::Data<PostRepo>) -> impl Responder {
     let conn = &app_data.into_inner().pool;
 
     let page = query.page.unwrap_or(1);
     let size = query.size.unwrap_or(10);
     let page_offset = (page - 1) * size;
 
-    let result = posts::user_timeline(conn, size, page_offset).await;
+    let result = posts::user_timeline(conn, user.user_id, size, page_offset, &post_repo).await;
     Response::create_get_response(result)
 }
 
-#[get("/fyp/{user_id}")]
-pub async fn for_you_page(user_id: web::Path<u64>,app_data: web::Data<AppState<'_>>, query: web::Query<Pagination>) -> impl Responder {
+// GAME ROUTES ----------------------------------------------------------------------------------------------------------------------
+#[get("")]
+pub async fn game_pop_up(app_data: web::Data<AppConfig<'_>>, user: AuthUser, post_repo: web::Data<PostRepo>) -> impl Responder {
+    let post = game::individual_game_post(&app_data.pool, user.user_id, &post_repo).await;
+    Response::create_get_response(post)
+}
+
+#[post("/add_event")]
+pub async fn add_game_event(new_event: web::Json<IncomingEvent>, app_data: web::Data<AppConfig<'_>>, user: AuthUser, game_event_repo: web::Data<GameEventRepo>) -> impl Responder {
+    let new_game_event = game::new_game_event(&app_data.pool, new_event.into_inner(), user.user_id, &game_event_repo).await;
+    Response::create_post_response(new_game_event)
+}
+
+#[get("/game_events")]
+pub async fn list_game_events_for_user(app_data: web::Data<AppConfig<'_>>, user: AuthUser, game_event_repo: web::Data<GameEventRepo>) -> impl Responder {
+    let event_list = game_event_repo.list_game_events_for_user(&app_data.pool, user.user_id).await;
+    Response::create_get_response(event_list)
+}
+
+// LIKE Routes ----------------------------------------------------------------------------------------------------------------------
+#[post("/like")]
+pub async fn like_post(event: web::Json<LikeEvent>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, likes_repo: web::Data<LikesRepo>) -> impl Responder {
+    let conn = &app_data.pool;
+    
+    let like = likes_repo.toggle(conn, user.user_id, event.into_inner()).await;
+    Response::create_post_response(like)
+}
+
+// COMMENT Routes ----------------------------------------------------------------------------------------------------------------------
+#[get("/comments/{post_id}")]
+pub async fn get_comments(post_id: web::Path<u64>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagination>, comment_repo: web::Data<CommentRepo>) -> impl Responder {
     // Query
     let page = query.page.unwrap_or(1);
     let size = query.size.unwrap_or(10);
     let page_offset = (page - 1) * size;
 
-    let posts = posts::user_following_timeline(&app_data.pool, *user_id, size, page_offset).await;
-    Response::create_get_response(posts)
+    let comments = comment_repo.list_comments_for_post(&app_data.pool, post_id.into_inner(), user.user_id, page, page_offset).await;
+    Response::create_get_response(comments)
 }
 
-// Tests for creating post
-// '{
-//     user_id: 1,
-//     content: "I am the best around!"
-// }'
+#[post("/comments")]
+pub async fn post_comment(new_comment: web::Json<NewComment>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, comment_repo: web::Data<CommentRepo>) -> impl Responder {
+    let new_comment = comments::insert_comment(&app_data.pool, user.user_id, new_comment.into_inner(), &comment_repo).await;
+    Response::create_post_response(new_comment)
+}
+
+// REPORT Routes ----------------------------------------------------------------------------------------------------------------------
+#[post("/report")]
+pub async fn report_post(new_report: web::Json<NewReport>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, report_repo: web::Data<ReportRepo>) -> impl Responder {
+    let new_report = reports::create_report(&app_data.pool, user.user_id, new_report.into_inner(), &report_repo).await;
+    Response::create_post_response(new_report)
+}
+
+// There should be logic to check if this is an admin route on the middleware.
+#[get("/report")]
+pub async fn get_all_reports(app_data: web::Data<AppConfig<'_>>, report_repo: web::Data<ReportRepo>) -> impl Responder {
+    let reports = report_repo.list_reports(&app_data.pool).await;
+    Response::create_get_response(reports)
+}

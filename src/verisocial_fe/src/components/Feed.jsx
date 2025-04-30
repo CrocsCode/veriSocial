@@ -2,17 +2,27 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { debounce } from "lodash";
-import { Box, VStack, Text, Skeleton, SkeletonText, SkeletonCircle, Icon, HStack } from "@chakra-ui/react";
+import {
+  Box,
+  VStack,
+  Text,
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
+  Icon,
+  HStack,
+} from "@chakra-ui/react";
 import { FaPen } from "react-icons/fa";
 import PostCard from "./PostCard";
+import GameEventCard from "./GameEventCard";
 import CreatePostForm from "./CreatePostForm";
 import Modal from "./Modal";
 import { loadFeedPageRequest } from "../redux/actionCreators/feedCreators";
 import { resetCreatePostForm } from "../redux/actionCreators/createPostActionCreators";
+import { loadCommentsRequest } from "../redux/actionCreators/postInteractCreators";
 
-function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) {
-  const { posts, loading, isLastPage } = feed;
-  const [currentPage, setCurrentPage] = useState(1);
+function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, loadCommentsRequest, }) {
+  const { posts, loading, isLastPage, currentPage } = feed;
   const [isFetching, setIsFetching] = useState(false);
   const [isCreatePostOpen, setCreatePostOpen] = useState(false);
 
@@ -23,10 +33,10 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
     if (loading || isLastPage || isFetching) return;
 
     setIsFetching(true);
-    loadFeedPageRequest(currentPage, pageSize);
+    const nextPage = currentPage + 1;
+    loadFeedPageRequest(nextPage, pageSize);
 
     setTimeout(() => {
-      setCurrentPage((prev) => prev + 1);
       setIsFetching(false);
 
       const container = feedContainerRef.current;
@@ -42,15 +52,13 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
 
     const debouncedScroll = debounce(() => {
       if (
-        container.scrollTop + container.clientHeight >=
-        container.scrollHeight - 50
+        container.scrollTop + container.clientHeight >= container.scrollHeight - 50
       ) {
         fetchPosts();
       }
     }, 500);
 
     container.addEventListener("scroll", debouncedScroll);
-
     return () => {
       container.removeEventListener("scroll", debouncedScroll);
     };
@@ -60,6 +68,11 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleSelectPostWithComments = (post) => {
+    onSelectPost(post);
+    loadCommentsRequest(post.post_id, 1, 10);
+  };
 
   return (
     <Box w="80%" height="100%">
@@ -111,13 +124,29 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
         }}
       >
         <VStack spacing={4} align="stretch">
-          {posts.map((post) => (
-            <PostCard
-              key={post.post_id}
-              post={post}
-              onClick={() => onSelectPost(post)}
-            />
-          ))}
+          {posts.map((post, index) => {
+            // for game post rendering
+            if (post.post_type === "game") {
+              return (
+                <GameEventCard
+                  key={`game-${post.post_id}-${index}`}
+                  postId={post.post_id}
+                  botImage={post.bot_image}
+                  humanImage={post.human_image}
+                  correctPostId={post.correct_post_id}
+                  wrongPostId={post.wrong_post_id}
+                />
+              );
+            }
+            // else normal post
+            return (
+              <PostCard
+                key={`post-${post.post_id}-${index}`}
+                post={post}
+                onClick={() => handleSelectPostWithComments(post)}
+              />
+            );
+          })}
 
           {/* Skeleton Load */}
           {loading && (
@@ -132,6 +161,7 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm }) 
                     borderRadius="lg"
                     boxShadow="md"
                     bg="gray.50"
+                    width="100%"
                   >
                     <Box display="flex" alignItems="center" mb={4}>
                       <SkeletonCircle size="10" mr={4} />
@@ -162,23 +192,39 @@ Feed.propTypes = {
   loadFeedPageRequest: PropTypes.func.isRequired,
   feed: PropTypes.shape({
     posts: PropTypes.arrayOf(
-      PropTypes.shape({
-        post_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-      })
+      PropTypes.oneOfType([
+        // normal post
+        PropTypes.shape({
+          post_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+          post_type: PropTypes.oneOf(["normal"]),
+        }),
+        // game post
+        PropTypes.shape({
+          post_id: PropTypes.string,
+          post_type: PropTypes.oneOf(["game"]),
+          bot_image: PropTypes.string.isRequired,
+          human_image: PropTypes.string.isRequired,
+          correct_post_id: PropTypes.number,
+          wrong_post_id: PropTypes.number,
+        }),
+      ])
     ),
     loading: PropTypes.bool,
     isLastPage: PropTypes.bool,
+    currentPage: PropTypes.number,
   }).isRequired,
   resetCreatePostForm: PropTypes.func.isRequired,
+  loadCommentsRequest: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
-  feed: state.feed || { posts: [], loading: false, isLastPage: false },
+  feed: state.feed || { posts: [], loading: false, isLastPage: false, currentPage: 0 },
 });
 
 const mapDispatchToProps = {
   loadFeedPageRequest,
   resetCreatePostForm,
+  loadCommentsRequest,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Feed);

@@ -1,7 +1,7 @@
 import { requests } from "./axiosInstance";
 
 const formService = {
-    createPost: (userId, postData) => requests.post(`/posts/${userId}`, postData)
+  createMultipartPost: (userId, postData) => requests.postMultiform(`/posts/${userId}`, postData),
 };
 
 export default formService;

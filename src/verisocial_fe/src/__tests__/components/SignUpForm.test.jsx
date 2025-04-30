@@ -1,9 +1,14 @@
-import { screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { renderProviders } from '../../utils/renderProviders';
 import LoginPage from '../../pages/LoginPage';
 
-describe('Login to SignUp Switch', () => {
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+describe('SignUpForm Component', () => {
   it('switches to SignUp form from Login form', () => {
     renderProviders(<LoginPage />);
 

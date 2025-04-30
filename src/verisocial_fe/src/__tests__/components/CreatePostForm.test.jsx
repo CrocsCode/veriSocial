@@ -1,35 +1,46 @@
-import { screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { screen, fireEvent, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderProviders } from "../../utils/renderProviders";
 import CreatePostForm from "../../components/CreatePostForm";
-import { updateCreatePostForm, submitCreatePostFormRequest, submitCreatePostFormSuccess } from "../../redux/actionCreators/createPostActionCreators";
 
-describe("Create Post Form", () => {
-  it("Text Input and Submit test", async () => {
-    const preloadedState = {
-      createPost: { postText: "", image: null, isLoading: false },
-    };
-    const mockOnClose = vi.fn();
-    const { store } = renderProviders(
-      <CreatePostForm onClose={mockOnClose} />,
-      { preloadedState }
-    );
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 
-    const textArea = screen.getByPlaceholderText("What's on your mind?");
-    expect(textArea).toBeDefined();
+const UnwrappedCreatePostForm = CreatePostForm.WrappedComponent || CreatePostForm;
 
-    fireEvent.change(textArea, { target: { value: "Test Post" } });
-    store.dispatch(updateCreatePostForm("postText", "Test Post"));
-    expect(store.getState().createPost.postText).toBe("Test Post");
+describe("CreatePostForm Component", () => {
+  const baseProps = {
+    postText: "",
+    onClose: vi.fn(),
+    isLoading: false,
+    isSuccess: false,
+    submitCreatePostFormRequest: vi.fn(),
+    resetCreatePostForm: vi.fn(),
+  };
 
-    const postButton = screen.getByText("Post");
+  it("enable post button when there is content", () => {
+    renderProviders(<UnwrappedCreatePostForm {...baseProps} />);
+
+    const postButton = screen.getByRole("button", { name: /post/i });
+    const textarea = screen.getByRole("textbox");
+    expect(postButton.disabled).toBe(true);
+
+    fireEvent.change(textarea, { target: { value: "Hello World" } });
+    expect(postButton.disabled).toBe(false);
+
     fireEvent.click(postButton);
+    expect(baseProps.submitCreatePostFormRequest).toHaveBeenCalledWith("Hello World", null);
+  });
 
-    store.dispatch(submitCreatePostFormRequest());
-    store.dispatch(submitCreatePostFormSuccess({ postText: "Test Post", image: null }));
+  it("closes when cancel is clicked", () => {
+    renderProviders(<UnwrappedCreatePostForm {...baseProps} />);
 
-    await waitFor(() => {
-      expect(store.getState().createPost.postText).toBe("");
-    });
+    const cancelButton = screen.getByRole("button", { name: /cancel/i });
+    fireEvent.click(cancelButton);
+
+    expect(baseProps.resetCreatePostForm).toHaveBeenCalled();
+    expect(baseProps.onClose).toHaveBeenCalled();
   });
 });

@@ -4,16 +4,28 @@ import { connect } from "react-redux";
 import Feed from "../components/Feed";
 import PostFocus from "../components/PostFocus";
 import ProfileCard from "../components/ProfileCard";
-import SettingsCard from "../components/SettingsCard";
 import TrendCard from "../components/TrendCard";
 import LeaderboardCard from "../components/LeaderboardCard";
-import DailyChallengesCard from "../components/DailyChallengesCard";
+import GameStatisticCard from "../components/GameStatisticCard";
 import Modal from "../components/Modal";
 import PropTypes from "prop-types";
+import {
+  fetchPostFocusRequest,
+  resetPostFocus,
+} from "../redux/actionCreators/postInteractCreators";
 
-function HomePage({ isAuthenticated }) {
-  const [selectedPost, setSelectedPost] = useState(null);
+function HomePage({
+  isAuthenticated,
+  userId,
+  fetchPostFocusRequest,
+  resetPostFocus,
+}) {
   const [isPostModalOpen, setPostModalOpen] = useState(false);
+
+  const handleSelectPost = (post) => {
+    fetchPostFocusRequest(userId, post.post_id);
+    setPostModalOpen(true);
+  };
 
   if (!isAuthenticated) {
     return (
@@ -31,19 +43,14 @@ function HomePage({ isAuthenticated }) {
         {/* Left Column */}
         <VStack w="22.5%" spacing={4} h="100%" p={4} ml="5%">
           <ProfileCard />
-          <SettingsCard />
+          <GameStatisticCard />
         </VStack>
 
         {/* Main Container */}
         <Flex w="45%" h="100%" justify="space-between">
           <Box w="2px" bg="purple.500" alignSelf="stretch" ml="5%" />
           <Box w="90%" display="flex" justifyContent="center" alignItems="center">
-            <Feed
-              onSelectPost={(post) => {
-                setSelectedPost(post);
-                setPostModalOpen(true);
-              }}
-            />
+            <Feed onSelectPost={handleSelectPost} />
           </Box>
           <Box w="2px" bg="purple.500" alignSelf="stretch" mr="5%" />
         </Flex>
@@ -53,17 +60,16 @@ function HomePage({ isAuthenticated }) {
           isOpen={isPostModalOpen}
           onClose={() => {
             setPostModalOpen(false);
-            setSelectedPost(null);
+            resetPostFocus();
           }}
         >
-          <PostFocus post={selectedPost} />
+          <PostFocus />
         </Modal>
 
         {/* Right Column */}
         <VStack w="22.5%" spacing={4} h="100%" p={4} mr="5%">
           <TrendCard />
           <LeaderboardCard />
-          <DailyChallengesCard />
         </VStack>
       </Flex>
     </Box>
@@ -72,10 +78,19 @@ function HomePage({ isAuthenticated }) {
 
 HomePage.propTypes = {
   isAuthenticated: PropTypes.bool.isRequired,
+  userId: PropTypes.number,
+  fetchPostFocusRequest: PropTypes.func.isRequired,
+  resetPostFocus: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
   isAuthenticated: state.auth.isAuthenticated,
+  userId: state.auth.user.user_id,
 });
 
-export default connect(mapStateToProps)(HomePage);
+const mapDispatchToProps = {
+  fetchPostFocusRequest,
+  resetPostFocus,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomePage);

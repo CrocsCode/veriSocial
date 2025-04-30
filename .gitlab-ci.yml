@@ -48,6 +48,9 @@ rust-build:
   artifacts:
     paths:
       - target/release/verisocial_be
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
 
 node-build:
   image: node:23-alpine
@@ -57,8 +60,12 @@ node-build:
     - npm install
     - npm run build
   artifacts:
+    expire_in: 2 hour
     paths:
       - src/verisocial_fe/out/*
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
 
 
 # Deployment stage
@@ -73,5 +80,7 @@ deploy:
     - echo "$REGISTRY_PASSWORD" | docker login -u $REGISTRY_USER --password-stdin
     - docker build -t $REGISTRY_NAME:backend -f ./src/verisocial_be/Dockerfile .
     - docker build -t $REGISTRY_NAME:frontend -f ./src/verisocial_fe/Dockerfile .
+    - docker push $REGISTRY_NAME:backend
+    - docker push $REGISTRY_NAME:frontend
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'

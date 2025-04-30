@@ -6,19 +6,44 @@ import api from "../../api";
 function* loadFeedPageSaga(action) {
   try {
     const { page, pageSize } = action.payload;
-    // console.log("Calling API with:", page, pageSize); // Debug
-
     const response = yield call(api.feedService.getPosts, page, pageSize);
-    // console.log("Full API Response:", response); // Debug
 
     if (response.status === "success" && Array.isArray(response.message)) {
-      const isLastPage = response.message.length < pageSize;
-      yield put(loadFeedPageSuccess(response.message, page, isLastPage));
+      let posts = response.message;
+
+      if (Math.random() < 0.33) { // 1/3 chance to spawn game event
+        try {
+          const gameResponse = yield call(api.gameService.getGameEvent);
+          const { low_score_post, high_score_post } = gameResponse.message;
+
+          const lowImage = low_score_post?.base64_image || low_score_post?.image;
+          const highImage = high_score_post?.base64_image || high_score_post?.image;
+
+          if (low_score_post && high_score_post && lowImage && highImage) {
+            const gamePost = {
+              post_id: `game-${Date.now()}`,
+              post_type: "game",
+              bot_image: highImage,
+              human_image: lowImage,
+              created_at: new Date().toISOString(),
+              correct_post_id: low_score_post.post_id,
+              wrong_post_id: high_score_post.post_id,
+            };
+
+            const insertAt = Math.floor(Math.random() * (posts.length + 1));
+            posts = [...posts.slice(0, insertAt), gamePost, ...posts.slice(insertAt),];
+          }
+        } catch (gameErr) {
+          yield put(loadFeedPageFailure(gameErr)); // TEMP
+        }
+      }
+
+      const isLastPage = posts.length < pageSize;
+      yield put(loadFeedPageSuccess(posts, page, isLastPage));
     } else {
       yield put(loadFeedPageFailure(response.message));
     }
   } catch (error) {
-    // console.error("API Error:", error.message); // Debug
     yield put(loadFeedPageFailure(error.message));
   }
 }

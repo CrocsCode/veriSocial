@@ -10,6 +10,8 @@ const T = {
         REGISTER_SUCCESS: "Account created successfully! Please log in.",
         REGISTER_FAILURE: "Registration failed. Please try again.",
         REGISTER_NETWORK_ERROR: "Network error during registration. Please check your connection.",
+
+        PASSWORD_MATCH_ERROR: "Passwords do not match."
     },
     FORM: {
         POST: {
@@ -17,6 +19,42 @@ const T = {
             SUCCESS: "Post Created.",
             FAILURE: "Failed to create Post.",
         }
+    },
+    INTERACTIONS: {
+        POST: {
+            LIKED: "Liked Post.",
+            UNLIKED: "Unliked Post.",
+            LIKE_ERROR: "Error with Post Likes.",
+        },
+        COMMENT: {
+            LIKED: "Liked Comment.",
+            UNLIKED: "Unliked Comment.",
+            LIKE_ERROR: "Error with Comment Likes.",
+            CREATE: "Successfully created Comment.",
+            CREATE_FAILURE: "Failed to post comment.",
+        }
+    },
+    GAME: {
+        RESULT: {
+            CORRECT: "Correct!",
+            WRONG: "Better luck next time!",
+        },
+        ERROR: "Error in updating Game Score."
+    },
+    REPORT: {
+        POST: {
+            SUCCESS: "Report submitted successfully.",
+            ERROR: "Failed to submit report.",
+        },
+        FORM: {
+            SELECT_ERROR_NOTIFICATION: "Please select at least one reason before submitting.",
+            SELECT_ERROR_DISPLAY: "Select at least one reason.",
+            OTHER_DETAILS_ERROR_NOTIFICATION: "Please provide details when selecting “Other.”",
+            OTHER_DETAILS_ERROR_DISPLAY: "Required when “Other” is selected.",
+        }
+    },
+    GENERAL: {
+        ERROR: "Something went wrong.",
     }
 };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
@@ -15,24 +15,28 @@ import {
 } from "@chakra-ui/react";
 import { FaHeart, FaRegHeart, FaFlag, FaRobot } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
-import { formatDistanceToNowStrict } from "date-fns";
+import { isValid, format } from "date-fns";
 import Comments from "./Comments";
 import Modal from "./Modal";
 import ReportForm from "./ReportForm";
+import { likePostRequest } from "../redux/actionCreators/postInteractCreators";
+import { getBotScoreLevel, getFormattedBotScore, botScoreColors } from "../utils/botScore";
 
-const formatBase64Image = (base64) => {
-  if (!base64) return null;
-  return base64.startsWith("data:image")
-    ? base64
-    : `data:image/jpeg;base64,${base64}`;
-};
-
-const PostFocus = ({ post = null }) => {
-  const initialLikesComputed =
-    post?.likeCount ?? Math.floor(Math.random() * 100);
-  const [likeCount, setLikeCount] = useState(initialLikesComputed);
+const PostFocus = ({ post, loadingFocus, likePostRequest }) => {
+  const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isReportOpen, setReportOpen] = useState(false);
+
+  useEffect(() => {
+    if (post) {
+      setLikeCount(post["likes-count"] ?? 0);
+      setIsLiked(!!post["is-liked"]);
+    }
+  }, [post]);
+
+  if (loadingFocus) {
+    return <Box p="5" borderRadius="md" bg="purple.50" textAlign="center">Loading post...</Box>;
+  }
 
   if (!post) {
     return (
@@ -52,27 +56,37 @@ const PostFocus = ({ post = null }) => {
     content,
     comments,
     "bot-score": botScore,
+    post_id: postId,
+    "comment-count": commentCount,
   } = post;
 
-  const imageSrc = formatBase64Image(base64Image);
-  const relativeTime = `${formatDistanceToNowStrict(new Date(createdAt))} ago`;
+  const imageSrc = base64Image;
+  const date = new Date(createdAt);
+  const exactTimestamp = isValid(date)
+  ? format(date, 'MMM dd, yyyy HH:mm')
+    : "Unknown time";
 
-  // Bot Score
-  const botScoreLevel =
-    botScore != null ? Math.max(1, Math.ceil(botScore * 5)) : 1;
-  const formattedBotScore = botScore != null ? botScore.toFixed(3) : "N/A";
-  const botScoreColors = {
-    1: "#7ABD7E",
-    2: "#b6d7a8",
-    3: "#F8D66D",
-    4: "#FFB54C",
-    5: "#e06666",
-  };
+  const postBotScoreLevel = getBotScoreLevel(botScore);
+  const formattedPostBotScore = getFormattedBotScore(botScore);
+
+  const userBotScore = post["user_bot_score"];
+  const userBotScoreLevel = getBotScoreLevel(userBotScore);
 
   const handleLikeClick = (e) => {
     e.stopPropagation();
-    setIsLiked(!isLiked);
-    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+
+    // Optimistic UI update
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount((prev) => prev - 1);
+    } else {
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
+
+    if (postId) {
+      likePostRequest(postId);
+    }
   };
 
   const handleReportClick = (e) => {
@@ -99,7 +113,21 @@ const PostFocus = ({ post = null }) => {
         <Box mb={4}>
           <HStack justifyContent="space-between">
             <HStack>
-              <Avatar name={fullName} size="lg" />
+              <Tooltip
+                label={`User Bot Score: ${
+                  userBotScore != null ? userBotScore.toFixed(3) : "N/A"
+                }`}
+                placement="top"
+                hasArrow
+              >
+                <Avatar
+                  name={fullName}
+                  size="lg"
+                  borderWidth="0.3vh"
+                  borderStyle="solid"
+                  borderColor={botScoreColors[userBotScoreLevel]}
+                />
+              </Tooltip>
               <Box>
                 <Heading as="h3" size="md">
                   {fullName}
@@ -110,7 +138,7 @@ const PostFocus = ({ post = null }) => {
               </Box>
             </HStack>
             <Text fontSize="sm" color="gray.400">
-              {relativeTime}
+              {exactTimestamp}
             </Text>
           </HStack>
         </Box>
@@ -142,7 +170,7 @@ const PostFocus = ({ post = null }) => {
             {/* Reply */}
             <HStack color="teal.500" fontSize="sm" cursor="pointer">
               <Icon as={FaMessage} boxSize={4} />
-              <Text>Reply</Text>
+              <Text fontWeight="bold">{commentCount}</Text>
             </HStack>
 
             {/* Report */}
@@ -160,13 +188,13 @@ const PostFocus = ({ post = null }) => {
                 _groupHover={{ transform: "scale(1.2)" }}
                 _groupActive={{ transform: "scale(0.9)", color: "red.700" }}
               />
-              {/* <Text>Report</Text> */}
             </HStack>
 
             <Spacer />
 
+            {/* Bot Score */}
             <Tooltip
-              label={`Bot Score: (${formattedBotScore})`}
+              label={`Bot Score: (${formattedPostBotScore})`}
               placement="top"
               hasArrow
               fontSize="1vh"
@@ -175,9 +203,11 @@ const PostFocus = ({ post = null }) => {
                 <Icon
                   as={FaRobot}
                   boxSize="1.5rem"
-                  color={botScoreColors[botScoreLevel]}
+                  color={botScoreColors[postBotScoreLevel]}
                 />
-                <Text color={botScoreColors[botScoreLevel]}>{botScoreLevel}</Text>
+                <Text color={botScoreColors[postBotScoreLevel]}>
+                  {postBotScoreLevel}
+                </Text>
               </HStack>
             </Tooltip>
           </HStack>
@@ -185,24 +215,18 @@ const PostFocus = ({ post = null }) => {
 
         <Divider my={2} borderColor="gray.300" />
 
-        {/* Comments */}
+        {/* Comments Section */}
         <Box mt={6}>
-          <Heading
-            as="h4"
-            size="md"
-            mb={4}
-            color="purple.600"
-            fontWeight="bold"
-          >
+          <Heading as="h4" size="md" mb={4} color="purple.600" fontWeight="bold">
             Comments
           </Heading>
-          <Comments initialComments={comments || []} />
+          <Comments initialComments={comments || []} postFocusId={post.post_id} />
         </Box>
       </Box>
 
       {isReportOpen && (
         <Modal isOpen={isReportOpen} onClose={() => setReportOpen(false)}>
-          <ReportForm onClose={() => setReportOpen(false)} />
+          <ReportForm postId={post.post_id} onClose={() => setReportOpen(false)} />
         </Modal>
       )}
     </>
@@ -211,23 +235,30 @@ const PostFocus = ({ post = null }) => {
 
 PostFocus.propTypes = {
   post: PropTypes.shape({
+    post_id: PropTypes.number,
     base64_image: PropTypes.string,
-    "created-at": PropTypes.string,
-    likeCount: PropTypes.number,
+    "created-at": PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     "full-name": PropTypes.string,
     username: PropTypes.string,
     content: PropTypes.string,
     "bot-score": PropTypes.number,
-    comments: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-        user: PropTypes.string,
-        content: PropTypes.string,
-        createdAt: PropTypes.string,
-        profileImage: PropTypes.string,
-      })
-    ),
+    "likes-count": PropTypes.number,
+    "is-liked": PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
+    comments: PropTypes.array,
+    "comment-count": PropTypes.number,
+    "user_bot_score": PropTypes.number,
   }),
+  loadingFocus: PropTypes.bool,
+  likePostRequest: PropTypes.func.isRequired,
 };
 
-export default connect()(PostFocus);
+const mapStateToProps = (state) => ({
+  post: state.postInteract.postFocus,
+  loadingFocus: state.postInteract.loadingFocus,
+});
+
+const mapDispatchToProps = {
+  likePostRequest,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(PostFocus);

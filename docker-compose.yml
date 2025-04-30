@@ -12,7 +12,7 @@ services:
       AI_IMAGE_CHECKER_URL: 'http://ai-detection:8000/classify'
       AUTH_SECRET: "XXIwRXPJkwNQrDIcJQzPjus60LsVY5ku"
     ports:
-    - 8080:8080
+      - 8080:8080
 
   frontend:
     image: cr0c0dile07/final-year-project:frontend
@@ -20,9 +20,9 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_BASE_URL: 'http://139.59.175.54:8080/'
+      VITE_API_BASE_URL: 'backend'
     ports:
-    - 80:80
+      - 80:80
 
   database:
     image: mysql:latest
