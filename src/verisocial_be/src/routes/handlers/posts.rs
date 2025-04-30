@@ -1,13 +1,17 @@
 use actix_multipart::form::MultipartForm;
 use actix_web::{get, post, web, Responder};
-use crate::{models::{
+use crate::models::{
     app_config::{AppConfig, Pagination}, 
     auth::AuthUser,
     posts::{IncomingEvent, LikeEvent, NewComment, NewPost},
     reports::NewReport, 
     response::Response
-}, repositories::comment_repo::CommentRepo};
-use crate::repositories::post_repo::PostRepo;
+};
+use crate::repositories::{
+    post_repo::PostRepo,
+    game_event_repo::GameEventRepo,
+    comment_repo::CommentRepo
+};
 use crate::services::{comments, likes, posts, reports, game};
 
 // POST Routes ----------------------------------------------------------------------------------------------------------------------
@@ -51,20 +55,20 @@ pub async fn timeline(app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagi
 
 // GAME ROUTES ----------------------------------------------------------------------------------------------------------------------
 #[get("")]
-pub async fn game_pop_up(app_data: web::Data<AppConfig<'_>>, user: AuthUser) -> impl Responder {
-    let post = game::individual_game_post(&app_data.pool, user.user_id).await;
+pub async fn game_pop_up(app_data: web::Data<AppConfig<'_>>, user: AuthUser, post_repo: web::Data<PostRepo>) -> impl Responder {
+    let post = game::individual_game_post(&app_data.pool, user.user_id, &post_repo).await;
     Response::create_get_response(post)
 }
 
 #[post("/add_event")]
-pub async fn add_game_event(new_event: web::Json<IncomingEvent>, app_data: web::Data<AppConfig<'_>>, user: AuthUser) -> impl Responder {
-    let new_game_event = game::new_game_event(&app_data.pool, new_event.into_inner(), user.user_id).await;
+pub async fn add_game_event(new_event: web::Json<IncomingEvent>, app_data: web::Data<AppConfig<'_>>, user: AuthUser, game_event_repo: web::Data<GameEventRepo>) -> impl Responder {
+    let new_game_event = game::new_game_event(&app_data.pool, new_event.into_inner(), user.user_id, &game_event_repo).await;
     Response::create_post_response(new_game_event)
 }
 
 #[get("/game_events")]
-pub async fn list_game_events_for_user(app_data: web::Data<AppConfig<'_>>, user: AuthUser) -> impl Responder {
-    let event_list = game::user_game_event_list(&app_data.pool, user.user_id).await;
+pub async fn list_game_events_for_user(app_data: web::Data<AppConfig<'_>>, user: AuthUser, game_event_repo: web::Data<GameEventRepo>) -> impl Responder {
+    let event_list = game::user_game_event_list(&app_data.pool, user.user_id, &game_event_repo).await;
     Response::create_get_response(event_list)
 }
 
