@@ -16,7 +16,8 @@ from transformers import pipeline
 # Simple body
 class RequestBody(BaseModel):
     post_id: int
-    image_url: str
+    text: str
+    image_url: str | None
 
 class ProcessedPost(BaseModel):
     post_id: int
@@ -111,6 +112,7 @@ def get_db_connection() -> Generator[CMySQLConnection, None, None]:
 def classify(body: RequestBody, image):
     # Write the AI classification function
     pred = image_classifier(image)
+    # text_score = text_classifier(text)
 
     #Create Response (needs to be changed to be custom)
     class_type = pred[0]["label"]
