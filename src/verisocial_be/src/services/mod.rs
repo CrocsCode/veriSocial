@@ -5,3 +5,4 @@ pub mod image;
 pub mod likes;
 pub mod comments;
 pub mod game;
+pub mod reports;
