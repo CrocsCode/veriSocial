@@ -13,7 +13,7 @@ import {
   Icon,
   Divider,
 } from "@chakra-ui/react";
-import { FaHeart, FaRegHeart, FaFlag, FaArrowRight } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaArrowRight } from "react-icons/fa";
 import { formatDistanceToNowStrict } from "date-fns";
 import { connect } from "react-redux";
 import { likePostRequest, createCommentRequest } from "../redux/actionCreators/postInteractCreators";
@@ -95,10 +95,6 @@ function Comments({ initialComments = [], postFocusId, likePostRequest, createCo
                         <Text fontSize="sm" fontWeight={comment.liked ? "bold" : "normal"}>
                           {comment.likeCount || 0}
                         </Text>
-                      </HStack>
-                      <HStack spacing={1.5} cursor="pointer">
-                        <Icon as={FaFlag} boxSize={4} color="red.500" />
-                        <Text fontSize="sm">Report</Text>
                       </HStack>
                     </HStack>
                   </Box>

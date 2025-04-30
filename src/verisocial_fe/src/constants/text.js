@@ -41,6 +41,18 @@ const T = {
         },
         ERROR: "Error in updating Game Score."
     },
+    REPORT: {
+        POST: {
+            SUCCESS: "Report submitted successfully.",
+            ERROR: "Failed to submit report.",
+        },
+        FORM: {
+            SELECT_ERROR_NOTIFICATION: "Please select at least one reason before submitting.",
+            SELECT_ERROR_DISPLAY: "Select at least one reason.",
+            OTHER_DETAILS_ERROR_NOTIFICATION: "Please provide details when selecting “Other.”",
+            OTHER_DETAILS_ERROR_DISPLAY: "Required when “Other” is selected.",
+        }
+    },
     GENERAL: {
         ERROR: "Something went wrong.",
     }
