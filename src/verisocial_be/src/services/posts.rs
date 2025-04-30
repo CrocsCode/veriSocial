@@ -1,21 +1,20 @@
 use log::debug;
-use sqlx::{MySqlPool, Transaction};
+use sqlx::MySqlPool;
 use uuid::Uuid;
-use log::error;
 use crate::config::settings;
 use crate::models::{
     app_config::AppConfig,
     posts::{NewPost, Post},
     response::ApiError
 };
-use super::image::*;
+use crate::repositories::post_repo::{PostRepo, PostTrait};
 
 
-pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id: u64) -> Result<Post, ApiError> {
-    let max_file_size = (*settings::MAX_FILE_SIZE).clone();
+pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id: u64, post_repo: &PostRepo) -> Result<Post, ApiError> {
+    let max_file_size = *settings::MAX_FILE_SIZE;
 
     // Check if there is an image and ensure it's the right format.
-    let mut image_name = if let Some(file) = &new_post.image {    
+    let image_name = if let Some(file) = &new_post.image {    
         debug!("Image detected!");
         let mut file_name = file.file_name.clone().unwrap_or("null".to_string());
         // Check correct filetypes (Could use Tempfile attributes.)
@@ -40,7 +39,7 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         file_name = format!("{}-{}.{}",
             user_id,
             Uuid::new_v4(),
-            file_name[file_name.len() - 3 ..].to_string()
+            &file_name[file_name.len() - 3 ..]
         );
         
         Some(file_name)
@@ -48,265 +47,33 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
         None
     };
 
-    let bot_content_filename = image_name.clone();
+    let post_id = post_repo.create(
+        &app_config.pool,
+        &app_config.bucket_name,
+        &app_config.aws_endpoint,
+        &app_config.s3_client,
+        &app_config.client,
+        new_post,
+        image_name,
+        user_id
+    ).await?;
 
-    // Start a transaction.
-    let mut tx: Transaction<'_, sqlx::MySql> = match app_config.pool.begin().await {
-        Ok(tx) => tx,
-        Err(err) => return Err(ApiError::ServerError(err.to_string())),
-    };
+    let created_post = post_repo.find_user_post(&app_config.pool, user_id, post_id).await?;
 
-    debug!("TRANSACTION STARTING FOR POST");
-    // The process of the transaction is below
-    let result: Result<Post, ApiError> = async {
-        // Upload picture to digitalOcean servers. If this fails the transaction reverts
-        if let Some(image) = new_post.image {
-            debug!("Uploading image");
-
-            // Unwrap will not panic due to the previous if let Some handling the cases when there is no image.
-            let filename = image_name.unwrap();
-            upload_image(&filename, image, &app_config.bucket_name, &app_config.s3_client).await?;
-            // use the image name as the url for retrieving the image in the front-end.
-            image_name = Some(create_image_url(&app_config.aws_endpoint, &app_config.bucket_name, &filename))
-        }
-
-        let insert_result = sqlx::query!(
-            r#"
-            INSERT INTO posts (user_id, content, base64_image, bot_score)
-            VALUES (?, ?, ?, ?)
-            "#,
-            user_id,
-            &new_post.content.to_string(),
-            image_name,
-            0.0
-        )
-        .execute(&mut *tx)
-        .await;
-
-        // After send send the picture to bot-checker queue.
-        let latest_post_id = match insert_result {
-            Ok(query) => query.last_insert_id(),
-            Err(err) => return Err(ApiError::CannotCreateObject(err.to_string()))
-        };
-        
-        if let Some(name) = bot_content_filename {
-            debug!("Queuing post for bot content detection");
-            post_check(name, latest_post_id, &app_config.client).await?;
-        };
-
-        let post_result = sqlx::query_as!(Post,
-            r#"
-            SELECT 
-                p.post_id,
-                p.content,
-                p.created_at,
-                p.base64_image,
-                p.bot_score,
-                u.user_id,
-                u.username,
-                u.full_name,
-                u.bot_score AS user_bot_score,
-                CAST(0 AS UNSIGNED) AS comment_count,
-                CAST(0 AS UNSIGNED) AS likes_count,
-                0 AS is_liked
-            FROM 
-                posts AS p
-            INNER JOIN
-                users AS u ON p.user_id = u.user_id
-            WHERE 
-                p.post_id = ?;
-            "#,
-            latest_post_id
-        ).fetch_one(&mut *tx)
-        .await
-        .map_err(|err|  ApiError::ServerError(err.to_string()))?;
-
-        Ok(post_result)
-    }.await;
-
-    match result {
-        Ok(post) => {
-            tx.commit().await.map_err(|e| ApiError::ServerError(e.to_string()))?;
-            Ok(post)
-        },
-        Err(err) => {
-            tx.rollback().await.map_err(|rollback_err| ApiError::ServerError(rollback_err.to_string()))?;
-            error!("{}", err);
-            Err(err)
-        }
-    }
+    Ok(created_post)
 }
 
-pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
-    let query = sqlx::query_as!(Post,
-        r#"
-        SELECT 
-            p.post_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            u.user_id,
-            u.username,
-            u.full_name,
-            u.bot_score AS user_bot_score,
-            CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
-            CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,
-            MAX(l2.user_id IS NOT NULL) AS is_liked
-        FROM
-            posts AS p
-        INNER JOIN
-            users AS u ON p.user_id = u.user_id
-        LEFT JOIN 
-            likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
-        LEFT JOIN
-            likes AS l2 ON p.post_id = l2.post_id AND l2.user_id = ? AND l2.comment_id IS NULL
-        LEFT JOIN
-            comments AS c ON c.post_id = p.post_id
-        GROUP BY 
-            p.post_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            u.user_id,
-            u.username,
-            u.full_name,
-            l2.user_id
-        ORDER BY
-            created_at DESC
-        LIMIT ? OFFSET ?
-        "#,
-        user_id,
-        page_size,
-        offset
-    )
-    .fetch_all(conn)
-    .await;
-
-    match query {
-        Ok(posts) => Ok(posts),
-        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
-    }
+pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32, post_repo: &PostRepo) -> Result<Vec<Post>, ApiError> {
+    let timeline = post_repo.find_all(conn, user_id, page_size, offset).await?;
+    Ok(timeline)
 }
 
-pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
-    let query = sqlx::query_as!(Post,
-        r#"
-        SELECT 
-            p.post_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            u.user_id,
-            u.username,
-            u.full_name,
-            u.bot_score AS user_bot_score,
-            CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
-            CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,
-            MAX(l2.user_id IS NOT NULL) AS is_liked
-        FROM 
-            posts AS p
-        INNER JOIN
-            users AS u ON p.user_id = u.user_id
-        LEFT JOIN 
-            likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
-        LEFT JOIN
-            likes AS l2 ON p.post_id = l2.post_id AND l2.user_id = ? AND l2.comment_id IS NULL
-        LEFT JOIN
-            comments AS c ON c.post_id = p.post_id
-        WHERE 
-            p.user_id = ?
-        GROUP BY 
-            p.post_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            p.user_id,
-            u.username,
-            u.full_name
-        LIMIT ? OFFSET ?
-        "#,
-        user_id.clone(),
-        user_id,
-        page_size,
-        offset
-    )
-    .fetch_all(conn)
-    .await;
-
-    match query {
-        Ok(posts) => Ok(posts),
-        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
-    }
+pub async fn user_posts(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32, post_repo: &PostRepo) -> Result<Vec<Post>, ApiError> {
+    let user_posts = post_repo.find_posts_for_user(conn, user_id, page_size, offset).await?;
+    Ok(user_posts)
 }
 
-pub async fn individual_user_post(conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<Post, ApiError> {
-    // Should include comments. 
-    let query = sqlx::query_as!(Post,
-        r#"
-        SELECT 
-            p.post_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            u.user_id,
-            u.username,
-            u.full_name,
-            u.bot_score AS user_bot_score,
-            CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
-            CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,
-            MAX(l2.user_id IS NOT NULL) AS is_liked
-        FROM 
-            posts AS p
-        INNER JOIN
-            users AS u ON p.user_id = u.user_id
-        LEFT JOIN 
-            likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL
-        LEFT JOIN
-            likes AS l2 ON p.post_id = l2.post_id AND l2.user_id = ? AND l2.comment_id IS NULL
-        LEFT JOIN
-            comments AS c ON c.post_id = p.post_id
-        WHERE 
-            p.post_id = ?
-        GROUP BY 
-            p.post_id,
-            p.content,
-            p.created_at,
-            p.base64_image,
-            p.bot_score,
-            p.user_id,
-            u.username,
-            u.full_name
-        "#,
-        user_id,
-        post_id
-    )
-    .fetch_one(conn)
-    .await;
-
-    match query {
-        Ok(posts) => Ok(posts),
-        Err(_) => Err(ApiError::ObjectNotFound("User with specified ID can't be found.".to_string()))
-    }
+pub async fn individual_user_post(conn: &MySqlPool, user_id: u64, post_id: u64, post_repo: &PostRepo) -> Result<Post, ApiError> {
+    let post = post_repo.find_user_post(conn, user_id, post_id).await?;
+    Ok(post)
 }
-
-
-// This if for files being created. For deployment
-// async fn decode_and_generate_image(user_id: u64, data: String) -> Result<String, ApiError> {
-//     let filename = format!("{}-{}",
-//         user_id,
-//         Uuid::new_v4()
-//     );
-//     let filepath = format!("./uploads/{}", filename);
-
-//     // Write binary data to uploads folder.
-//     if let Err(err) = fs::write(&filepath, &data).await {
-//         return Err(ApiError::CannotUpload("Error creating the file: ".to_string() + &err.to_string()))
-//     };
-
-//     Ok(filepath)
-// }

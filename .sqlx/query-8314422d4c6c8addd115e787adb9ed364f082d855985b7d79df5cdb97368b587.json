@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT\n            r.report_id,\n            r.user_id AS reportee_id,\n            p.user_id AS reported_id,\n            r.post_id,\n            r.ai_content AS `ai_content: bool`,\n            r.bot_behaviour AS `bot_behaviour: bool`,\n            r.other AS `other: bool`,\n            r.additional_details,\n            r.created_at\n        FROM\n            reports AS r\n        LEFT JOIN\n            posts AS p ON r.post_id = p.post_id\n        ",
+  "query": "\n            SELECT\n                r.report_id,\n                r.user_id AS reportee_id,\n                p.user_id AS reported_id,\n                r.post_id,\n                r.ai_content AS `ai_content: bool`,\n                r.bot_behaviour AS `bot_behaviour: bool`,\n                r.other AS `other: bool`,\n                r.additional_details,\n                r.created_at\n            FROM\n                reports AS r\n            LEFT JOIN\n                posts AS p ON r.post_id = p.post_id\n            WHERE\n                r.report_id = ?;\n            ",
   "describe": {
     "columns": [
       {
@@ -86,7 +86,7 @@
       }
     ],
     "parameters": {
-      "Right": 0
+      "Right": 1
     },
     "nullable": [
       false,
@@ -100,5 +100,5 @@
       false
     ]
   },
-  "hash": "34b63196da6e9fb2fd6a2bcd79c6b25a4285aca9b0c7df7b2882961ba5ee8c05"
+  "hash": "8314422d4c6c8addd115e787adb9ed364f082d855985b7d79df5cdb97368b587"
 }

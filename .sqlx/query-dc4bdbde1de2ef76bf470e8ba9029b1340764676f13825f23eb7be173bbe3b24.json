@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT\n            r.report_id,\n            r.user_id,\n            r.post_id,\n            r.ai_content AS `ai_content: bool`,\n            r.bot_behaviour AS `bot_behaviour: bool`,\n            r.other AS `other: bool`,\n            r.additional_details,\n            r.created_at\n        FROM\n            reports AS r\n        WHERE\n            r.report_id = ?;\n        ",
+  "query": "\n            SELECT\n                r.report_id,\n                r.user_id AS reportee_id,\n                p.user_id AS reported_id,\n                r.post_id,\n                r.ai_content AS `ai_content: bool`,\n                r.bot_behaviour AS `bot_behaviour: bool`,\n                r.other AS `other: bool`,\n                r.additional_details,\n                r.created_at\n            FROM\n                reports AS r\n            LEFT JOIN\n                posts AS p ON r.post_id = p.post_id\n            ",
   "describe": {
     "columns": [
       {
@@ -14,7 +14,7 @@
       },
       {
         "ordinal": 1,
-        "name": "user_id",
+        "name": "reportee_id",
         "type_info": {
           "type": "LongLong",
           "flags": "NOT_NULL | MULTIPLE_KEY | UNSIGNED | NO_DEFAULT_VALUE",
@@ -23,6 +23,15 @@
       },
       {
         "ordinal": 2,
+        "name": "reported_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "MULTIPLE_KEY | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 3,
         "name": "post_id",
         "type_info": {
           "type": "LongLong",
@@ -31,7 +40,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "ai_content: bool",
         "type_info": {
           "type": "Tiny",
@@ -40,7 +49,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "bot_behaviour: bool",
         "type_info": {
           "type": "Tiny",
@@ -49,7 +58,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "other: bool",
         "type_info": {
           "type": "Tiny",
@@ -58,7 +67,7 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "additional_details",
         "type_info": {
           "type": "VarString",
@@ -67,7 +76,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "created_at",
         "type_info": {
           "type": "Timestamp",
@@ -77,11 +86,12 @@
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 0
     },
     "nullable": [
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -90,5 +100,5 @@
       false
     ]
   },
-  "hash": "08a58484b2c4d3466e760633d70ff466f2e1303b04f8abc60eee729ffafbc75c"
+  "hash": "dc4bdbde1de2ef76bf470e8ba9029b1340764676f13825f23eb7be173bbe3b24"
 }

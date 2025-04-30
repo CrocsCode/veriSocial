@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n        SELECT\n            c.comment_id,\n            c.post_id,\n            c.user_id,\n            u.username,\n            u.full_name,\n            c.content,\n            c.created_at,\n            c.bot_score,\n            CAST(0 AS UNSIGNED) AS likes_count,\n            0 AS is_liked\n        FROM\n            comments AS c\n        INNER JOIN\n            users AS u ON c.user_id = u.user_id\n        WHERE\n            c.comment_id = ?;\n        ",
+  "query": "\n            SELECT\n                c.comment_id,\n                c.post_id,\n                c.user_id,\n                u.username,\n                u.full_name,\n                c.content,\n                c.created_at,\n                c.bot_score,\n                CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,\n                MAX(l2.user_id IS NOT NULL) AS is_liked\n            FROM\n                comments AS c\n            INNER JOIN\n                users AS u ON c.user_id = u.user_id\n            LEFT JOIN\n                likes AS l ON c.comment_id = l.comment_id AND l.comment_id IS NOT NULL\n            LEFT JOIN\n                likes AS l2 ON c.comment_id = l2.comment_id AND l2.user_id = ? AND l2.comment_id IS NOT NULL\n            WHERE\n                c.post_id = ?\n            GROUP BY\n                c.comment_id,\n                c.post_id,\n                c.user_id,\n                u.username,\n                u.full_name,\n                c.content,\n                c.created_at,\n                c.bot_score\n            ORDER BY\n                created_at DESC\n            LIMIT ? OFFSET ?\n            ",
   "describe": {
     "columns": [
       {
@@ -89,13 +89,13 @@
         "name": "is_liked",
         "type_info": {
           "type": "LongLong",
-          "flags": "NOT_NULL | BINARY",
-          "max_size": 2
+          "flags": "BINARY",
+          "max_size": 1
         }
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 4
     },
     "nullable": [
       false,
@@ -107,8 +107,8 @@
       false,
       false,
       false,
-      false
+      true
     ]
   },
-  "hash": "1a452e94de2e895554c4236ce3bef16136646e62d8bb29839397772a50f02300"
+  "hash": "f0d44dc2d4eed0549ee04db01dc86526d033d3073dce539f78d6c1f563825dfe"
 }

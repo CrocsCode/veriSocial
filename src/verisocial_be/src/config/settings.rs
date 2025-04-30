@@ -25,7 +25,7 @@ fn set_max_file_size() -> u64 {
 
 fn set_env_var(var: &str) -> String {
     dotenvy::dotenv().ok();
-    match std::env::var(&var) {
+    match std::env::var(var) {
         Ok(s) => s,
         Err(_) =>  {
             error!("Expected {} to be set", var);
