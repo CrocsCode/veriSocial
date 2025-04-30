@@ -5,6 +5,7 @@ import { watchCreatePost } from './createPostSaga';
 import { watchFeedSaga } from './feedSaga';
 import { watchPostInteract } from './postInteractSaga';
 import { watchGameSaga } from './gameSaga';
+import { watchReportSaga } from './reportSaga';
 
 export default function* rootSaga() {
     yield all([
@@ -14,5 +15,6 @@ export default function* rootSaga() {
         watchFeedSaga(),
         watchPostInteract(),
         watchGameSaga(),
+        watchReportSaga(),
     ]);
 }
