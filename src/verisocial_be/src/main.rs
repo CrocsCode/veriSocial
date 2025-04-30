@@ -13,7 +13,8 @@ use log::{debug, error, info};
 use crate::config::settings;
 use repositories::{
     user_repo::UserRepo,
-    post_repo::PostRepo
+    post_repo::PostRepo,
+    comment_repo::CommentRepo,
 };
 
 mod services;
@@ -82,6 +83,7 @@ async fn main() -> std::io::Result<()> {
     // Initialize repositories
     let user_repo = web::Data::new(UserRepo::new());
     let post_repo = web::Data::new(PostRepo::new());
+    let comment_repo = web::Data::new(CommentRepo::new());
 
     let app_data = models::app_config::AppConfig {
         pass_hashing: Argon2::default(), // Password Hashing
@@ -106,6 +108,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(actix_web::web::PayloadConfig::new(usize::MAX))
             .app_data(user_repo.clone())
             .app_data(post_repo.clone())
+            .app_data(comment_repo.clone())
             .app_data(web::Data::new(app_data.clone()))
             .service(routes::teapot::teapot)
             .configure(auth_config::config)

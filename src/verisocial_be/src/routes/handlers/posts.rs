@@ -1,12 +1,12 @@
 use actix_multipart::form::MultipartForm;
 use actix_web::{get, post, web, Responder};
-use crate::models::{
+use crate::{models::{
     app_config::{AppConfig, Pagination}, 
     auth::AuthUser,
     posts::{IncomingEvent, LikeEvent, NewComment, NewPost},
     reports::NewReport, 
     response::Response
-};
+}, repositories::comment_repo::CommentRepo};
 use crate::repositories::post_repo::PostRepo;
 use crate::services::{comments, likes, posts, reports, game};
 
@@ -79,7 +79,7 @@ pub async fn like_post(event: web::Json<LikeEvent>, user: AuthUser, app_data: we
 
 // COMMENT Routes ----------------------------------------------------------------------------------------------------------------------
 #[get("/comments/{post_id}")]
-pub async fn get_comments(post_id: web::Path<u64>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagination>) -> impl Responder {
+pub async fn get_comments(post_id: web::Path<u64>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, query: web::Query<Pagination>, comment_repo: web::Data<CommentRepo>) -> impl Responder {
     let conn = &app_data.pool;
 
     // Query
@@ -87,13 +87,13 @@ pub async fn get_comments(post_id: web::Path<u64>, user: AuthUser, app_data: web
     let size = query.size.unwrap_or(10);
     let page_offset = (page - 1) * size;
 
-    let comments = comments::retrieve_comments_for_post(conn, *post_id, user.user_id, size, page_offset).await;
+    let comments = comments::retrieve_comments_for_post(conn, *post_id, user.user_id, size, page_offset, &comment_repo).await;
     Response::create_get_response(comments)
 }
 
 #[post("/comments")]
-pub async fn post_comment(new_comment: web::Json<NewComment>, user: AuthUser, app_data: web::Data<AppConfig<'_>>) -> impl Responder {
-    let new_comment = comments::insert_comment(&app_data, user.user_id, new_comment.into_inner()).await;
+pub async fn post_comment(new_comment: web::Json<NewComment>, user: AuthUser, app_data: web::Data<AppConfig<'_>>, comment_repo: web::Data<CommentRepo>) -> impl Responder {
+    let new_comment = comments::insert_comment(&app_data.pool, user.user_id, new_comment.into_inner(), &comment_repo).await;
     Response::create_post_response(new_comment)
 }
 
