@@ -1,0 +1,44 @@
+{
+  "db_name": "MySQL",
+  "query": "\n            WITH user_correct_count AS (\n                SELECT\n                    user_id,\n                    COUNT(*) AS signed_correct_count\n                FROM\n                    gameEvents\n                WHERE\n                    is_correct = TRUE\n                GROUP BY\n                    user_id\n            )\n            SELECT\n                user_id,\n                CAST(signed_correct_count AS UNSIGNED) AS correct_count,\n                CAST(\n                    RANK() OVER (ORDER BY signed_correct_count DESC)\n                    AS UNSIGNED\n                ) AS position\n            FROM\n                user_correct_count\n            ORDER BY position;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "correct_count",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | UNSIGNED | BINARY",
+          "max_size": 21
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "position",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | UNSIGNED | BINARY",
+          "max_size": 21
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5ebb104d898a7b236583b1a82a37d7264b80b16b543792b458817f3ff1cf940c"
+}

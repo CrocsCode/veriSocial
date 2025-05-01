@@ -3,7 +3,8 @@ use actix_web::{get, post, web, Responder};
 use crate::{models::{
     app_config::{AppConfig, Pagination}, 
     auth::AuthUser,
-    posts::{IncomingEvent, LikeEvent, NewComment, NewPost},
+    posts::{LikeEvent, NewComment, NewPost},
+    game::IncomingEvent,
     reports::NewReport, 
     response::Response
 }, repositories::{comment_repo::CommentTrait, game_event_repo::GameEventTrait, likes_repo::LikesTrait, report_repo::ReportTrait}};
@@ -72,6 +73,12 @@ pub async fn add_game_event(new_event: web::Json<IncomingEvent>, app_data: web::
 pub async fn list_game_events_for_user(app_data: web::Data<AppConfig<'_>>, user: AuthUser, game_event_repo: web::Data<GameEventRepo>) -> impl Responder {
     let event_list = game_event_repo.list_game_events_for_user(&app_data.pool, user.user_id).await;
     Response::create_get_response(event_list)
+}
+
+#[get("/leaderboard")]
+pub async fn get_leaderboard(app_data: web::Data<AppConfig<'_>>, user: AuthUser, game_event_repo: web::Data<GameEventRepo>) -> impl Responder {
+    let leaderboard = game::retrieve_leaderboard(&app_data.pool, user.user_id, &game_event_repo).await;
+    Response::create_get_response(leaderboard)
 }
 
 // LIKE Routes ----------------------------------------------------------------------------------------------------------------------
