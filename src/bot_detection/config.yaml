@@ -7,7 +7,7 @@ anomaly:
   threshold: 0.0
 # for updating bot score
 update:
-  multiplier: -0.1 # what to multiply each pred by when updating bot_score
+  multiplier: 0.1 # what to multiply each pred by when updating bot_score
 # DB details:
 database: # MUST BE PROVIDED OR CRASH
   host: localhost
@@ -15,3 +15,4 @@ database: # MUST BE PROVIDED OR CRASH
   user: root
   password: my-secret-pw
   name: mydatabase
+
