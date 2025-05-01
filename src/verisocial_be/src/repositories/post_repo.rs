@@ -9,7 +9,7 @@ use async_trait::async_trait;
 use sqlx::{MySqlPool, Transaction};
 use crate::models::{
     response::ApiError,
-    posts::Post,
+    posts::SendPost,
     posts::NewPost,
 };
 use crate::services::image::*;
@@ -38,15 +38,15 @@ pub trait PostTrait: Send + Sync {
         user_id: u64
     ) -> Result<u64, ApiError>;
 
-    async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError>;
+    async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError>;
 
-    async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<Post, ApiError>;
+    async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<SendPost, ApiError>;
 
-    async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError>;
+    async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError>;
 
-    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<Post, ApiError>;
+    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError>;
 
-    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<Post, ApiError>;
+    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError>;
 }
 
 #[async_trait]
@@ -123,8 +123,8 @@ impl PostTrait for PostRepo {
     }
 
     // Finds current timeline
-    async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
-        let query = sqlx::query_as!(Post,
+    async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError> {
+        let query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
@@ -176,8 +176,8 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<Post, ApiError> {
-        let query = sqlx::query_as!(Post,
+    async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<SendPost, ApiError> {
+        let query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
@@ -226,8 +226,8 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
-        let query = sqlx::query_as!(Post,
+    async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError> {
+        let query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
@@ -279,9 +279,9 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<Post, ApiError> {
+    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError> {
         // Finds the post with less than that specified bot-score
-        let low_bot_score_query = sqlx::query_as!(Post,
+        let low_bot_score_query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
@@ -331,9 +331,9 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<Post, ApiError> {
+    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError> {
     // Order by rand to provide more random posts
-        let high_bot_score_query = sqlx::query_as!(Post,
+        let high_bot_score_query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
