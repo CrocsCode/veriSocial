@@ -44,7 +44,7 @@
         "name": "bot_score",
         "type_info": {
           "type": "Float",
-          "flags": "NOT_NULL | UNSIGNED | NO_DEFAULT_VALUE",
+          "flags": "NOT_NULL | UNSIGNED",
           "max_size": 12
         }
       },
