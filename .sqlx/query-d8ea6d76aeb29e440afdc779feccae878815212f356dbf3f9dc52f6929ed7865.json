@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n            DELETE FROM likes\n            WHERE post_id = ? AND user_id = ? AND comment_id IS NULL\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "d8ea6d76aeb29e440afdc779feccae878815212f356dbf3f9dc52f6929ed7865"
+}
