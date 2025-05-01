@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import {
   Box,
   Text,
@@ -9,150 +11,134 @@ import {
   Th,
   Td,
   TableContainer,
-  Button,
-  HStack,
+  Spinner,
 } from '@chakra-ui/react';
-import Modal from '../components/Modal';
-import ReportFocus from '../components/ReportFocus';
+import Modal from './Modal';
+import ReportFocus from './ReportFocus';
+import { reportListRequest } from '../redux/actionCreators/reportCreators';
+import { fetchPostFocusRequest, resetPostFocus } from '../redux/actionCreators/postInteractCreators';
 
-const samplePost = {
-  post_id: 10,
-  "user-id": 1,
-  username: '@joaquinescober',
-  "full-name": 'Joaquin Escober',
-  content: 'AI Art Test',
-};
-
-// Dummy reports
-const dummyReports = [
-  {
-    id: 1,
-    reporter: 'User123',
-    post: samplePost,
-    categories: ['AI Content', 'Spam'],
-    additionalDetails: 'They keep posting the same AI art repeatedly.',
-    date: '2025-03-25',
-    status: 'Pending',
-  },
-  {
-    id: 2,
-    reporter: 'User456',
-    post: samplePost,
-    categories: ['Bot Behaviour'],
-    additionalDetails: 'Seems automated. Replies instantly to every comment.',
-    date: '2025-03-26',
-    status: 'Pending',
-  },
-  {
-    id: 3,
-    reporter: 'User789',
-    post: samplePost,
-    categories: ['Harassment', 'Inappropriate Content'],
-    additionalDetails: 'Uses offensive language in the comments.',
-    date: '2025-03-27',
-    status: 'Reviewed',
-  },
-];
-
-const AdminDataTable = () => {
-  const rowsPerPage = 20;
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(dummyReports.length / rowsPerPage));
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const currentReports = dummyReports.slice(startIndex, endIndex);
-
-  const emptyRowsCount = rowsPerPage - currentReports.length;
-  const emptyRows = Array.from({ length: emptyRowsCount });
-
-  const [isReportOpen, setReportOpen] = useState(false);
+const AdminDataTable = ({
+  userId,
+  reports,
+  loading,
+  error,
+  reportListRequest,
+  fetchPostFocusRequest,
+  resetPostFocus,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
 
-  const handleRowClick = (report) => {
-    setSelectedReport(report);
-    setReportOpen(true);
-    console.log('Report:', report);
-    console.log('Corresponding Post:', report.post);
+  useEffect(() => {
+    reportListRequest();
+  }, [reportListRequest]);
+
+  if (loading) {
+    return (
+      <Box textAlign="center" p={8}>
+        <Spinner size="xl" />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box p={8}>
+        <Text color="red.500">Error loading reports: {error}</Text>
+      </Box>
+    );
+  }
+
+  const handleRowClick = (r) => {
+    setSelectedReport(r);
+    fetchPostFocusRequest(userId, r.post_id);
+    setIsOpen(true);
   };
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
+  const handleClose = () => {
+    setIsOpen(false);
+    resetPostFocus();
   };
 
   return (
-    <Box w="70%">
-      <Text fontSize="2xl" mb={4}>
-        User Reports
-      </Text>
-      <Box
-        borderWidth="1px"
-        borderRadius="md"
-        boxShadow="md"
-        p={2}
-
-        minH="600px"
-      >
-        <TableContainer height="100%">
+    <Box w="80%">
+      <Text fontSize="2xl" mb={4} color="purple.700">User Reports</Text>
+      <Box borderWidth="1px" borderRadius="md" boxShadow="md" p={2}>
+        <TableContainer>
           <Table variant="simple" size="md">
-            <Thead bg="gray.200">
+            <Thead bg="purple.100">
               <Tr>
                 <Th>ID</Th>
-                <Th>Reporter</Th>
                 <Th>Categories</Th>
-                <Th>Additional Details</Th>
+                <Th>Details</Th>
                 <Th>Date</Th>
-                <Th>Status</Th>
               </Tr>
             </Thead>
             <Tbody>
-              {currentReports.map((report) => (
-                <Tr
-                  key={report.id}
-                  _hover={{ bg: 'gray.100', cursor: 'pointer' }}
-                  onClick={() => handleRowClick(report)}
-                >
-                  <Td>{report.id}</Td>
-                  <Td>{report.reporter}</Td>
-                  <Td>{report.categories.join(', ')}</Td>
-                  <Td>{report.additionalDetails}</Td>
-                  <Td>{report.date}</Td>
-                  <Td>{report.status}</Td>
-                </Tr>
-              ))}
+              {reports.map((r) => {
+                const cats = [
+                  r.ai_content && 'AI Content',
+                  r.bot_behaviour && 'Bot Behaviour',
+                  r.other && 'Other',
+                ].filter(Boolean);
+
+                return (
+                  <Tr
+                    key={r.report_id}
+                    _hover={{ bg: 'gray.100', cursor: 'pointer' }}
+                    onClick={() => handleRowClick(r)}
+                  >
+                    <Td>{r.report_id}</Td>
+                    <Td>{cats.join(', ')}</Td>
+                    <Td>{r.additional_details || '-'}</Td>
+                    <Td>{new Date(r.created_at).toLocaleString()}</Td>
+                  </Tr>
+                );
+              })}
             </Tbody>
           </Table>
         </TableContainer>
-
-        {/* Pagination */}
-        <Box mt={4} p={2} borderTop="1px solid" borderColor="gray.200">
-          <HStack spacing={4} justify="space-between">
-            <Button onClick={handlePrevPage} disabled={currentPage === 1}>
-              Prev
-            </Button>
-            <Text>
-              Page {currentPage} of {totalPages}
-            </Text>
-            <Button onClick={handleNextPage} disabled={currentPage === totalPages}>
-              Next
-            </Button>
-          </HStack>
-        </Box>
       </Box>
 
-      {/* Modal ReportFocus*/}
-      <Modal isOpen={isReportOpen} onClose={() => setReportOpen(false)}>
+      <Modal isOpen={isOpen} onClose={handleClose}>
         <ReportFocus report={selectedReport} />
       </Modal>
     </Box>
   );
 };
 
-export default AdminDataTable;
+const mapStateToProps = (state) => ({
+  userId: state.auth.user.user_id,
+  reports: state.report.data,
+  loading: state.report.loading,
+  error: state.report.error,
+});
+
+const mapDispatchToProps = {
+  reportListRequest,
+  fetchPostFocusRequest,
+  resetPostFocus,
+}
+
+AdminDataTable.propTypes = {
+  userId: PropTypes.number.isRequired,
+  reports: PropTypes.arrayOf(
+    PropTypes.shape({
+      report_id: PropTypes.number.isRequired,
+      post_id: PropTypes.number.isRequired,
+      ai_content: PropTypes.bool.isRequired,
+      bot_behaviour: PropTypes.bool.isRequired,
+      other: PropTypes.bool.isRequired,
+      additional_details: PropTypes.string,
+      created_at: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  loading: PropTypes.bool,
+  error: PropTypes.string,
+  reportListRequest: PropTypes.func.isRequired,
+  fetchPostFocusRequest: PropTypes.func.isRequired,
+  resetPostFocus: PropTypes.func.isRequired,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(AdminDataTable);
