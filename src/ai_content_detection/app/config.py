@@ -1,3 +1,4 @@
+import yaml
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -14,4 +15,26 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
-settings = Settings()
+def load_settings(path: str = "config.yml") -> Settings:
+    defaults = {
+        "database_host": "localhost",
+        "database_port": 3306,
+        "database_user": "root",
+        "database_password": "",
+        "database_name": "",
+        "bucket_name": "",
+        "aws_access_key_id": "",
+        "aws_secret_access_key": "",
+        "aws_region": "us-west-2",
+    }
+    try:
+        cfg = yaml.safe_load(open(path)) or {}
+    except Exception:
+        cfg = {}
+    data = {
+        key: cfg.get(key, defaults[key])
+        for key in defaults
+    }
+
+    return Settings(**data)
+settings = load_settings()
