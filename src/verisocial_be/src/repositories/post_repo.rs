@@ -10,6 +10,7 @@ use sqlx::{MySqlPool, Transaction};
 use crate::models::{
     response::ApiError,
     posts::SendPost,
+    posts::Post,
     posts::NewPost,
 };
 use crate::services::image::*;
@@ -38,7 +39,7 @@ pub trait PostTrait: Send + Sync {
         user_id: u64
     ) -> Result<u64, ApiError>;
 
-    async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError>;
+    async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError>;
 
     async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<SendPost, ApiError>;
 
@@ -101,9 +102,11 @@ impl PostTrait for PostRepo {
                 Err(err) => return Err(ApiError::CannotCreateObject(err.to_string()))
             };
             
+            debug!("Queuing post for bot content detection");
             if let Some(name) = bot_content_filename {
-                debug!("Queuing post for bot content detection");
-                post_check(name, latest_post_id, req_client).await?;
+                post_check(new_post.content.to_string(), Some(name), latest_post_id, req_client).await?;
+            } else {
+                post_check(new_post.content.to_string(), None, latest_post_id, req_client).await?;
             };
 
             Ok(latest_post_id)
@@ -123,8 +126,8 @@ impl PostTrait for PostRepo {
     }
 
     // Finds current timeline
-    async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError> {
-        let query = sqlx::query_as!(SendPost,
+    async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
+        let query = sqlx::query_as!(Post,
             r#"
             SELECT 
                 p.post_id,
@@ -135,6 +138,8 @@ impl PostTrait for PostRepo {
                 u.user_id,
                 u.username,
                 u.full_name,
+                p.text_bot_score,
+                p.image_bot_score,
                 u.bot_score AS user_bot_score,
                 CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
                 CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,

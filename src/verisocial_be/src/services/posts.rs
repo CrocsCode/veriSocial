@@ -2,7 +2,7 @@ use log::debug;
 use sqlx::MySqlPool;
 use uuid::Uuid;
 use crate::config::settings;
-use crate::models::posts::SendPost;
+use crate::models::posts::{Post, SendPost};
 use crate::models::{
     app_config::AppConfig,
     posts::NewPost,
@@ -64,7 +64,7 @@ pub async fn create_post(new_post: NewPost, app_config: &AppConfig<'_>, user_id:
     Ok(created_post)
 }
 
-pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32, post_repo: &PostRepo) -> Result<Vec<SendPost>, ApiError> {
+pub async fn user_timeline(conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32, post_repo: &PostRepo) -> Result<Vec<Post>, ApiError> {
     let timeline = post_repo.find_all(conn, user_id, page_size, offset).await?;
     Ok(timeline)
 }

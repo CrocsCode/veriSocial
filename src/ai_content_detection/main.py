@@ -21,16 +21,16 @@ class RequestBody(BaseModel):
 
 class ProcessedPost(BaseModel):
     post_id: int
-    class_type: str
-    score: float
+    text_score: float
+    image_score: float
+    total_score: float
 
 # Initialize in memory queue.
 queue: asyncio.Queue[RequestBody] = asyncio.Queue()
 
 # AI initialization
-# Downloads model everytime again (not that good for now)
 image_classifier = pipeline("image-classification", model="NYUAD-ComNets/AI-generated_images_detector", device="cpu")
-#text_classifier = pipeline()
+text_classifier = pipeline("text-classification", model="fakespot-ai/roberta-base-ai-text-detection-v1", device="cpu")
 
 # S3 Client Initalization
 SPACE_NAME = "fyp-jajo-verisocial-image-storage" # Won't change in our project
@@ -111,17 +111,35 @@ def get_db_connection() -> Generator[CMySQLConnection, None, None]:
 
 def classify(body: RequestBody, image):
     # Write the AI classification function
-    pred = image_classifier(image)
-    # text_score = text_classifier(text)
+    image_pred = image_classifier(image)
+    text_pred = text_classifier(body.text)
 
-    #Create Response (needs to be changed to be custom)
-    class_type = pred[0]["label"]
-    score = pred[0]["score"]
+    # Create Response
+    text_class_type = text_pred[0]["label"]
+    text_score = text_pred[0]["score"]
 
-    if class_type == "real":
-        response = ProcessedPost(post_id=body.post_id, class_type=class_type, score=1 - score)
+    #Create Response (needs to be changed to be custom, or maybe not?)
+    image_class_type = image_pred[0]["label"]
+    image_score = image_pred[0]["score"]
+
+    weight =  0.5 # Should be customizable :)
+
+    # Set a weghted average for total score
+    if text_class_type == "Human" and image_class_type == "real":
+        total_score = ((1 - image_score) * weight) + ((1 - text_score) * (1 - weight)) / 2
+
+        response = ProcessedPost(post_id=body.post_id, text_score=1 - text_score, image_score=1 - image_score, total_score=total_score)
+    elif text_class_type == "Human" and image_class_type != "real":
+        total_score = (image_score * weight) + ((1 - text_score) * (1 - weight)) / 2
+
+        response = ProcessedPost(post_id=body.post_id,  text_score=1 - text_score, image_score=image_score, total_score=total_score)
+    elif text_class_type != "Human" and image_class_type == "real":
+        total_score = ((1 - image_score) * weight) + (text_score * (1 - weight)) / 2
+
+        response = ProcessedPost(post_id=body.post_id,  text_score=text_score, image_score=1 - image_score, total_score=total_score)
     else:
-        response = ProcessedPost(post_id=body.post_id, class_type=class_type, score=score)
+        total_score = (image_score * weight) + (text_score * (1 - weight)) / 2
+        response = ProcessedPost(post_id=body.post_id, text_score=text_score, image_score=image_score, total_score=total_score)
 
     return response
 
@@ -147,8 +165,10 @@ async def update_post_score(post: ProcessedPost):
         with get_db_connection() as db:
             cursor = db.cursor()
             cursor.execute(
-                "UPDATE posts SET bot_score = %s WHERE post_id = %s",
-                (post.score, post.post_id),
+                "UPDATE posts " \
+                "SET bot_score = %s, text_bot_score = %s, image_bot_score = %s" \
+                "WHERE post_id = %s",
+                (post.total_score, post.text_score, post.image_score, post.post_id),
             )
             db.commit()
             cursor.close()

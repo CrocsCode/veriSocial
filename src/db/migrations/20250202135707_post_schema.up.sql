@@ -5,9 +5,9 @@ CREATE TABLE IF NOT EXISTS posts
     user_id BIGINT UNSIGNED NOT NULL,
     content TEXT NOT NULL,
     base64_image LONGTEXT,
-    text_bot_score FLOAT UNSIGNED NOT NULL,
-    image_bot_score FLOAT UNSIGNED NOT NULL,
-    bot_score FLOAT UNSIGNED NOT NULL,
+    text_bot_score FLOAT UNSIGNED NOT NULL DEFAULT 0,
+    image_bot_score FLOAT UNSIGNED NOT NULL DEFAULT 0,
+    bot_score FLOAT UNSIGNED NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
