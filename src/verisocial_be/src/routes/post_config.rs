@@ -26,6 +26,7 @@ pub fn game_config(config: &mut web::ServiceConfig){
             .service(handlers::posts::add_game_event)
             .service(handlers::posts::list_game_events_for_user)
             .service(handlers::posts::game_pop_up)
+            .service(handlers::posts::get_leaderboard)
         );
 }
 
