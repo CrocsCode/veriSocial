@@ -27,7 +27,7 @@ pub trait GameEventTrait: Send + Sync {
 
     async fn list_game_events_for_user(&self, conn: &MySqlPool, user_id: u64) -> Result<Vec<SendGameEvent>, ApiError>;
 
-    async fn find_user_ranking(&self, conn: &MySqlPool, user_id: u64) -> Result<UserRank, ApiError>;
+    async fn find_user_ranking(&self, conn: &MySqlPool, user_id: u64) -> Result<Option<UserRank>, ApiError>;
 
     async fn list_ranking_of_game_event(&self, conn: &MySqlPool) -> Result<Vec<UserRank>, ApiError>;
 }
@@ -107,7 +107,7 @@ impl GameEventTrait for GameEventRepo {
         }
     }
 
-    async fn find_user_ranking(&self, conn: &MySqlPool, user_id: u64) -> Result<UserRank, ApiError> {
+    async fn find_user_ranking(&self, conn: &MySqlPool, user_id: u64) -> Result<Option<UserRank>, ApiError> {
         let user_rank = sqlx::query_as!(UserRank,
             r#"
             WITH user_rank AS (
@@ -133,7 +133,7 @@ impl GameEventTrait for GameEventRepo {
             WHERE user_id = ?
             "#,
             user_id
-        ).fetch_one(conn)
+        ).fetch_optional(conn)
         .await;
 
         match user_rank {
