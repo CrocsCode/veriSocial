@@ -9,5 +9,5 @@ class RequestBody(BaseModel):
 class ProcessedPost(BaseModel):
     post_id: int
     text_score: float
-    image_score: float
+    image_score: float | None
     total_score: float

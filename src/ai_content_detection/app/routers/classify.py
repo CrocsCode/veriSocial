@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas import RequestBody
+from app.models import RequestBody
 from app.worker import queue
 
 router = APIRouter()

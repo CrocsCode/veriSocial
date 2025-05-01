@@ -6,6 +6,7 @@ from app.worker import start_worker, stop_worker, queue
 app = FastAPI(title="AI Content Detector")
 app.include_router(classify_router)
 
+
 @app.on_event("startup")
 async def startup_event():
     print(settings)

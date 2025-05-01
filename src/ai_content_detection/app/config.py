@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     aws_access_key_id: str
     aws_secret_access_key: str
     aws_region: str
+    aws_endpoint: str
 
     class Config:
         env_file = ".env"
@@ -25,16 +26,22 @@ def load_settings(path: str = "config.yml") -> Settings:
         "bucket_name": "",
         "aws_access_key_id": "",
         "aws_secret_access_key": "",
-        "aws_region": "us-west-2",
+        "aws_region": "lon1",
+        "aws_endpoint": ""
     }
     try:
         cfg = yaml.safe_load(open(path)) or {}
     except Exception:
+        print("Something went wrong with loading the yaml file")
         cfg = {}
+    
     data = {
         key: cfg.get(key, defaults[key])
         for key in defaults
     }
 
+    print(data)
+
     return Settings(**data)
+
 settings = load_settings()
