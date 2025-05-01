@@ -1,35 +1,57 @@
-use std::env;
+use serde::Deserialize;
+use std::{fs::File, io::Read, path::Path};
 use log::error;
 use lazy_static::lazy_static;
 
-lazy_static!{
-    pub static ref SECRET: String = set_env_var("AUTH_SECRET");
-    pub static ref AI_IMAGE_URL: String = set_env_var("AI_IMAGE_CHECKER_URL");
-    pub static ref MAX_FILE_SIZE: u64 = set_max_file_size();
-    pub static ref APP_DATABASE_URL: String = set_env_var("APP_DATABASE_URL");
-    pub static ref APP_URL: String = set_env_var("APP_URL");
-    pub static ref AWS_ENDPOINT: String = set_env_var("AWS_ENDPOINT");
-    pub static ref AWS_REGION: String = set_env_var("AWS_REGION");
-    pub static ref AWS_ACCESS_KEY_ID: String = set_env_var("AWS_ACCESS_KEY_ID");
-    pub static ref AWS_SECRET_ACCESS_KEY: String = set_env_var("AWS_SECRET_ACCESS_KEY");
-    pub static ref BUCKET_NAME: String = set_env_var("BUCKET_NAME");
+// Expose a global CONFIG via `lazy_static!`
+lazy_static! {
+    pub static ref CONFIG: Config = load_config();
 }
 
-fn set_max_file_size() -> u64 {
-    dotenvy::dotenv().ok();
-    env::var("MAX_FILE_SIZE")
-        .unwrap()
-        .parse::<u64>()
-        .expect("Can't parse the file size")
+lazy_static! {
+    pub static ref SECRET: String = CONFIG.auth_secret.clone();
+    pub static ref AI_IMAGE_URL: String = CONFIG.ai_image_checker_url.clone();
+    pub static ref MAX_FILE_SIZE: u64 = CONFIG.max_file_size;
+    pub static ref APP_DATABASE_URL: String = CONFIG.app_database_url.clone();
+    pub static ref APP_URL: String = CONFIG.app_url.clone();
+    pub static ref AWS_ENDPOINT: String = CONFIG.aws_endpoint.clone();
+    pub static ref AWS_REGION: String = CONFIG.aws_region.clone();
+    pub static ref AWS_ACCESS_KEY_ID: String = CONFIG.aws_access_key_id.clone();
+    pub static ref AWS_SECRET_ACCESS_KEY: String = CONFIG.aws_secret_access_key.clone();
+    pub static ref BUCKET_NAME: String = CONFIG.bucket_name.clone();
 }
 
-fn set_env_var(var: &str) -> String {
-    dotenvy::dotenv().ok();
-    match std::env::var(var) {
-        Ok(s) => s,
-        Err(_) =>  {
-            error!("Expected {} to be set", var);
-            std::process::exit(1)
-        }
-    }
+// Usage e
+// Define a single Config struct matching all fields from the YAML
+#[derive(Debug, Deserialize)]
+pub struct Config {
+    auth_secret: String,
+    ai_image_checker_url: String,
+    max_file_size: u64,
+    app_database_url: String,
+    app_url: String,
+    aws_endpoint: String,
+    aws_region: String,
+    aws_access_key_id: String,
+    aws_secret_access_key: String,
+    bucket_name: String,
+}
+
+// Load and parse the YAML into the `Config` struct
+fn load_config() -> Config {
+    let path = Path::new("./config.yml");
+    let mut file = File::open(path).unwrap_or_else(|e| {
+        error!("Failed to open config file {}: {}", path.display(), e);
+        std::process::exit(1);
+    });
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap_or_else(|e| {
+        error!("Failed to read config file {}: {}", path.display(), e);
+        std::process::exit(1);
+    });
+
+    serde_yaml::from_str(&contents).unwrap_or_else(|e| {
+        error!("Failed to parse YAML config: {}", e);
+        std::process::exit(1);
+    })
 }
