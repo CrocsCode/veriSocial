@@ -26,23 +26,23 @@ def classify_text_and_image(body: RequestBody, image) -> ProcessedPost:
     image_class_type = image_pred[0]["label"]
     image_score = image_pred[0]["score"]
 
-    weight =  0.5 # Should be customizable :)
+    weight =  0.9 # Should be customizable :)
 
     # Set a weighted average for total score
     if text_class_type == "Human" and image_class_type == "real":
-        total_score = ((1 - image_score) * weight) + ((1 - text_score) * (1 - weight)) / 2
+        total_score = ((1 - image_score) * weight) + ((1 - text_score) * (1 - weight))
 
         response = ProcessedPost(post_id=body.post_id, text_score=1 - text_score, image_score=1 - image_score, total_score=total_score)
     elif text_class_type == "Human" and image_class_type != "real":
-        total_score = (image_score * weight) + ((1 - text_score) * (1 - weight)) / 2
+        total_score = (image_score * weight) + ((1 - text_score) * (1 - weight))
 
         response = ProcessedPost(post_id=body.post_id,  text_score=1 - text_score, image_score=image_score, total_score=total_score)
     elif text_class_type != "Human" and image_class_type == "real":
-        total_score = ((1 - image_score) * weight) + (text_score * (1 - weight)) / 2
+        total_score = ((1 - image_score) * weight) + (text_score * (1 - weight))
 
         response = ProcessedPost(post_id=body.post_id,  text_score=text_score, image_score=1 - image_score, total_score=total_score)
     else:
-        total_score = (image_score * weight) + (text_score * (1 - weight)) / 2
+        total_score = (image_score * weight) + (text_score * (1 - weight))
         response = ProcessedPost(post_id=body.post_id, text_score=text_score, image_score=image_score, total_score=total_score)
 
     return response
