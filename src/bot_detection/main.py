@@ -19,6 +19,7 @@ from analysis.ensemble import combine_predictions
 
 def analyze():
     weights, threshold = load_ensemble_config()
+    # interval_minutes = load_time_interval() # NEW CODE ADDED HERE
 
     # Instantiate db
     db_cfg = load_db_config("config.yaml")

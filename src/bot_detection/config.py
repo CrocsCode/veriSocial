@@ -11,10 +11,9 @@ def load_db_config(path="config.yaml"):
         "database": db.get("name", ""),
     }
 
-
 def load_ensemble_config(path="config.yaml"):
     defaults = {
-        "one_class_svm": 0.5,    # incase not given any values
+        "one_class_svm": 0.5, # incase not given any values
         "lof": 0.5,
         "isolation_forest": 2.0,
         "threshold":0.0,
@@ -24,9 +23,9 @@ def load_ensemble_config(path="config.yaml"):
         ann = cfg.get("anomaly", {})
         w = ann.get("weights", {})
         return [
-            w.get("one_class_svm",    defaults["one_class_svm"]),
-            w.get("lof",               defaults["lof"]),
-            w.get("isolation_forest",  defaults["isolation_forest"]),
+            w.get("one_class_svm", defaults["one_class_svm"]),
+            w.get("lof", defaults["lof"]),
+            w.get("isolation_forest", defaults["isolation_forest"]),
         ], ann.get("threshold", defaults["threshold"])
     except Exception:
         # if error thendefaults
@@ -35,3 +34,14 @@ def load_ensemble_config(path="config.yaml"):
             defaults["lof"],
             defaults["isolation_forest"],
         ], defaults["threshold"]
+
+def load_time_interval(path="config.yaml"):
+    defaults = { 
+        "minutes": 30 
+    }
+    try:
+        cfg = yaml.safe_load(open(path)) or {}
+        ti  = cfg.get("time_interval", {})
+        return ti.get("minutes", defaults["minutes"])
+    except Exception:
+        return defaults["minutes"]
