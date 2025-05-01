@@ -1,0 +1,12 @@
+[project]
+name = "bot-detection"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mysql-connector-python>=9.3.0",
+    "numpy>=2.2.5",
+    "pyyaml>=6.0.2",
+    "scikit-learn>=1.6.1",
+]
