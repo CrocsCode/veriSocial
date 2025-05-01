@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 from app.models import RequestBody
 from app.classifier import classify_text, classify_text_and_image
 from app.s3_client import s3
+from app.config import settings
 from app.db import get_db_connection
 from app.models import ProcessedPost
 
@@ -19,7 +20,7 @@ async def get_image(image_url: str):
         key = image_url.split('/')[-1]
 
         resp = s3.get_object(
-            Bucket=s3.meta.endpoint_url.split("//")[1].split('.')[0],
+            Bucket=settings.bucket_name,
             Key=key
         )
 
