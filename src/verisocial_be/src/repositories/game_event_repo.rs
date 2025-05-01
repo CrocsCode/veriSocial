@@ -2,12 +2,12 @@ use mockall::automock;
 use async_trait::async_trait;
 use sqlx::MySqlPool;
 use crate::models::{
-    response::ApiError,
-    posts::{
+    game::{
         GameEvent,
         IncomingEvent,
-        SendGameEvent
-    }
+        SendGameEvent,
+        UserRank
+    }, response::ApiError
 };
 
 
@@ -26,6 +26,10 @@ pub trait GameEventTrait: Send + Sync {
     async fn find_game_event(&self, conn: &MySqlPool, game_id: u64) -> Result<GameEvent, ApiError>;
 
     async fn list_game_events_for_user(&self, conn: &MySqlPool, user_id: u64) -> Result<Vec<SendGameEvent>, ApiError>;
+
+    async fn find_user_ranking(&self, conn: &MySqlPool, user_id: u64) -> Result<UserRank, ApiError>;
+
+    async fn list_ranking_of_game_event(&self, conn: &MySqlPool) -> Result<Vec<UserRank>, ApiError>;
 }
 
 #[async_trait]
@@ -99,6 +103,76 @@ impl GameEventTrait for GameEventRepo {
     
         match event_query {
             Ok(events) => Ok(events),
+            Err(err) => Err(ApiError::ObjectNotFound(err.to_string()))
+        }
+    }
+
+    async fn find_user_ranking(&self, conn: &MySqlPool, user_id: u64) -> Result<UserRank, ApiError> {
+        let user_rank = sqlx::query_as!(UserRank,
+            r#"
+            WITH user_rank AS (
+                SELECT
+                    user_id,
+                    COUNT(*) AS signed_correct_count,
+                    RANK() OVER (ORDER BY COUNT(*) DESC) AS position
+                FROM
+                    gameEvents
+                WHERE
+                    is_correct = TRUE
+                GROUP BY
+                    user_id
+            )
+            SELECT
+                user_id,
+                CAST(signed_correct_count AS UNSIGNED) AS correct_count,
+                CAST(
+                    RANK() OVER (ORDER BY signed_correct_count DESC)
+                    AS UNSIGNED
+                ) AS position
+            FROM user_rank
+            WHERE user_id = ?
+            "#,
+            user_id
+        ).fetch_one(conn)
+        .await;
+
+        match user_rank {
+            Ok(rank) => Ok(rank),
+            Err(err) => Err(ApiError::ObjectNotFound(err.to_string()))
+        }
+    }
+
+    async fn list_ranking_of_game_event(&self, conn: &MySqlPool) -> Result<Vec<UserRank>, ApiError> {
+        let leaderboard = sqlx::query_as!(UserRank,
+            r#"
+            WITH user_correct_count AS (
+                SELECT
+                    user_id,
+                    COUNT(*) AS signed_correct_count
+                FROM
+                    gameEvents
+                WHERE
+                    is_correct = TRUE
+                GROUP BY
+                    user_id
+            )
+            SELECT
+                user_id,
+                CAST(signed_correct_count AS UNSIGNED) AS correct_count,
+                CAST(
+                    RANK() OVER (ORDER BY signed_correct_count DESC)
+                    AS UNSIGNED
+                ) AS position
+            FROM
+                user_correct_count
+            ORDER BY position;
+            "#
+        )
+        .fetch_all(conn)
+        .await;
+
+        match leaderboard {
+            Ok(leaderboard) => Ok(leaderboard),
             Err(err) => Err(ApiError::ObjectNotFound(err.to_string()))
         }
     }
