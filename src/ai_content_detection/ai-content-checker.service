@@ -4,11 +4,11 @@ After=network.target
 
 [Service]
 User=your_user
-WorkingDirectory=/root/2025-csc1097-escobej2-floresj2/src/ai_image_detection
-ExecStart=/root/2025-csc1097-escobej2-floresj2/src/ai_image_detection/venv/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8000 --env-file .env
+WorkingDirectory=/root/2025-csc1097-escobej2-floresj2/src/ai_content_detection
+ExecStart=/root/2025-csc1097-escobej2-floresj2/src/ai_content_detection/venv/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8000 --env-file .env
 Restart=always
-Environment=PATH=/root/2025-csc1097-escobej2-floresj2/src/ai_image_detection/.venv/bin:/usr/bin:/bin
-Environment=VIRTUAL_ENV=/root/2025-csc1097-escobej2-floresj2/src/ai_image_detection/.venv
+Environment=PATH=/root/2025-csc1097-escobej2-floresj2/src/ai_content_detection/.venv/bin:/usr/bin:/bin
+Environment=VIRTUAL_ENV=/root/2025-csc1097-escobej2-floresj2/src/ai_content_detection/.venv
 
 [Install]
 WantedBy=multi-user.target
