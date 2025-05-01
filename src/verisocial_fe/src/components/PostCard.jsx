@@ -161,7 +161,7 @@ const PostCard = ({ post, onClick, likePostRequest }) => {
 
       {isReportOpen && (
         <Modal isOpen={isReportOpen} onClose={() => setReportOpen(false)}>
-          <ReportForm onClose={() => setReportOpen(false)} />
+          <ReportForm postId={post.post_id} onClose={() => setReportOpen(false)} />
         </Modal>
       )}
     </>

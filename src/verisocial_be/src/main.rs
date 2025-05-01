@@ -11,11 +11,20 @@ use sqlx::mysql::MySqlPoolOptions;
 use log::{debug, error, info};
 
 use crate::config::settings;
+use repositories::{
+    user_repo::UserRepo,
+    post_repo::PostRepo,
+    comment_repo::CommentRepo,
+    game_event_repo::GameEventRepo,
+    likes_repo::LikesRepo,
+    report_repo::ReportRepo
+};
 
 mod services;
 mod models;
 mod routes;
 mod config;
+mod repositories;
 
 static MIGRATOR: Migrator = sqlx::migrate!("../db/migrations");
 
@@ -30,7 +39,7 @@ async fn main() -> std::io::Result<()> {
     let database_url = (*settings::APP_DATABASE_URL).clone();
     let app_url = (*settings::APP_URL).clone();
     let _ = (*settings::SECRET).clone(); // Ensure this value is initialized
-    let max_file_size = (*settings::MAX_FILE_SIZE).clone();
+    let max_file_size = *settings::MAX_FILE_SIZE;
     let ai_image_url = (*settings::AI_IMAGE_URL).clone();
     let aws_region = (*settings::AWS_REGION).clone();
     let aws_endpoint = (*settings::AWS_ENDPOINT).clone();
@@ -74,11 +83,18 @@ async fn main() -> std::io::Result<()> {
     let client =  Req_client::new();
     info!("Successfully started Reqwest client!");
 
+    // Initialize repositories
+    let user_repo = web::Data::new(UserRepo::new());
+    let post_repo = web::Data::new(PostRepo::new());
+    let comment_repo = web::Data::new(CommentRepo::new());
+    let game_event_repo = web::Data::new(GameEventRepo::new());
+    let likes_repo = web::Data::new(LikesRepo::new());
+    let report_repo = web::Data::new(ReportRepo::new());
+
     let app_data = models::app_config::AppConfig {
         pass_hashing: Argon2::default(), // Password Hashing
         pool,
-        _client : client,
-        _ai_image_url: ai_image_url,
+        client,
         s3_client,
         bucket_name,
         aws_endpoint
@@ -96,11 +112,19 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600)
             )
             .app_data(actix_web::web::PayloadConfig::new(usize::MAX))
+            .app_data(user_repo.clone())
+            .app_data(post_repo.clone())
+            .app_data(comment_repo.clone())
+            .app_data(game_event_repo.clone())
+            .app_data(likes_repo.clone())
+            .app_data(report_repo.clone())
             .app_data(web::Data::new(app_data.clone()))
             .service(routes::teapot::teapot)
             .configure(auth_config::config)
             .configure(user_config::config)
-            .configure(post_config::config)
+            .configure(post_config::post_config)
+            .configure(post_config::game_config)
+            .configure(post_config::admin_config)
     })
     .bind((app_url, 8080))?
     .run()

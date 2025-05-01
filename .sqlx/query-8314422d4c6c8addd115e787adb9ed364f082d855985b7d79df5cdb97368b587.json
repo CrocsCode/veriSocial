@@ -1,0 +1,104 @@
+{
+  "db_name": "MySQL",
+  "query": "\n            SELECT\n                r.report_id,\n                r.user_id AS reportee_id,\n                p.user_id AS reported_id,\n                r.post_id,\n                r.ai_content AS `ai_content: bool`,\n                r.bot_behaviour AS `bot_behaviour: bool`,\n                r.other AS `other: bool`,\n                r.additional_details,\n                r.created_at\n            FROM\n                reports AS r\n            LEFT JOIN\n                posts AS p ON r.post_id = p.post_id\n            WHERE\n                r.report_id = ?;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "report_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | PRIMARY_KEY | UNSIGNED | AUTO_INCREMENT",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "reportee_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | MULTIPLE_KEY | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "reported_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "MULTIPLE_KEY | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "post_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | UNSIGNED | NO_DEFAULT_VALUE",
+          "max_size": 20
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "ai_content: bool",
+        "type_info": {
+          "type": "Tiny",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
+          "max_size": 1
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "bot_behaviour: bool",
+        "type_info": {
+          "type": "Tiny",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
+          "max_size": 1
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "other: bool",
+        "type_info": {
+          "type": "Tiny",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
+          "max_size": 1
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "additional_details",
+        "type_info": {
+          "type": "VarString",
+          "flags": "",
+          "max_size": 1020
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": {
+          "type": "Timestamp",
+          "flags": "NOT_NULL | BINARY | TIMESTAMP",
+          "max_size": 19
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "8314422d4c6c8addd115e787adb9ed364f082d855985b7d79df5cdb97368b587"
+}

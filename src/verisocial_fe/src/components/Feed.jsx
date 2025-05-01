@@ -14,6 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { FaPen } from "react-icons/fa";
 import PostCard from "./PostCard";
+import GameEventCard from "./GameEventCard";
 import CreatePostForm from "./CreatePostForm";
 import Modal from "./Modal";
 import { loadFeedPageRequest } from "../redux/actionCreators/feedCreators";
@@ -123,13 +124,29 @@ function Feed({ onSelectPost, loadFeedPageRequest, feed, resetCreatePostForm, lo
         }}
       >
         <VStack spacing={4} align="stretch">
-          {posts.map((post, index) => (
-            <PostCard
-              key={`post-${post.post_id}-${index}`}
-              post={post}
-              onClick={() => handleSelectPostWithComments(post)}
-            />
-          ))}
+          {posts.map((post, index) => {
+            // for game post rendering
+            if (post.post_type === "game") {
+              return (
+                <GameEventCard
+                  key={`game-${post.post_id}-${index}`}
+                  postId={post.post_id}
+                  botImage={post.bot_image}
+                  humanImage={post.human_image}
+                  correctPostId={post.correct_post_id}
+                  wrongPostId={post.wrong_post_id}
+                />
+              );
+            }
+            // else normal post
+            return (
+              <PostCard
+                key={`post-${post.post_id}-${index}`}
+                post={post}
+                onClick={() => handleSelectPostWithComments(post)}
+              />
+            );
+          })}
 
           {/* Skeleton Load */}
           {loading && (
@@ -175,9 +192,22 @@ Feed.propTypes = {
   loadFeedPageRequest: PropTypes.func.isRequired,
   feed: PropTypes.shape({
     posts: PropTypes.arrayOf(
-      PropTypes.shape({
-        post_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-      })
+      PropTypes.oneOfType([
+        // normal post
+        PropTypes.shape({
+          post_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+          post_type: PropTypes.oneOf(["normal"]),
+        }),
+        // game post
+        PropTypes.shape({
+          post_id: PropTypes.string,
+          post_type: PropTypes.oneOf(["game"]),
+          bot_image: PropTypes.string.isRequired,
+          human_image: PropTypes.string.isRequired,
+          correct_post_id: PropTypes.number,
+          wrong_post_id: PropTypes.number,
+        }),
+      ])
     ),
     loading: PropTypes.bool,
     isLastPage: PropTypes.bool,

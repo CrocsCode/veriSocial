@@ -17,7 +17,7 @@ const Layout = ({ isAuthenticated, logout }) => {
         <Box as="header" bg="purple.600" color="white" h="5vh" px={6}>
           <Flex justify="space-between" align="center" h="100%">
             <Text fontSize="xl" fontWeight="bold">
-              VeriSocial - Placeholder Nav
+              VeriSocial
             </Text>
             <Button
               colorScheme="white"

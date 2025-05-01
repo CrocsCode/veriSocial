@@ -1,0 +1,24 @@
+[project]
+name = "ai-content-detection"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3>=1.37.37",
+    "dotenv>=0.9.9",
+    "fastapi>=0.115.12",
+    "mysql-connector-python>=9.3.0",
+    "pillow<=11.0.0",
+    "torch>=2.6.0",
+    "torchvision>=0.21.0",
+    "transformers>=4.51.3",
+    "uvicorn>=0.34.2",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"

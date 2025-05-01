@@ -3,3 +3,4 @@ pub mod posts;
 pub mod app_config;
 pub mod response;
 pub mod auth;
+pub mod reports;
