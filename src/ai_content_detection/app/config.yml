@@ -1,0 +1,11 @@
+database_host: "localhost"
+database_port: 3306
+database_user: "root"
+database_password: "my-secret-pw"
+database_name: "mydatabase"
+
+bucket_name: "my-s3-bucket"
+
+aws_access_key_id: "aws_access_key_id"
+aws_secret_access_key: "aws_secret_access_key"
+aws_region: "aws_region"
