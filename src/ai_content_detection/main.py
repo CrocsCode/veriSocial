@@ -88,9 +88,10 @@ async def classifier_worker():
 
         # Process it, catching only Exception 
         try:
-            image = await get_image(req.image_url)
             if image is None:
-                print(f"Could not fetch image for post {req.post_id}")
+                image = await get_image(req.image_url)
+                result = await loop.run_in_executor(None, classify, req, image)
+                await update_post_score(result)
             else:
                 result = await loop.run_in_executor(None, classify, req, image)
                 await update_post_score(result)
@@ -109,7 +110,7 @@ def get_db_connection() -> Generator[CMySQLConnection, None, None]:
     finally:
         conn.close()
 
-def classify(body: RequestBody, image):
+def classify_text_and_image(body: RequestBody, image):
     # Write the AI classification function
     image_pred = image_classifier(image)
     text_pred = text_classifier(body.text)
