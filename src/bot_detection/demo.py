@@ -13,6 +13,11 @@ sys.modules["mysql.connector"] = mysql.connector
 sys.modules["mysql.connector.cursor"] = mysql.connector.cursor
 sys.modules["mysql.connector.pooling"] = mysql.connector.pooling
 
+from analysis.one_class_svm import one_class_svm_detection
+from analysis.lof import lof_detection
+from analysis.isolation_forest import IsolationForest
+from analysis.ensemble import combine_predictions
+
 try:
     from sklearn.preprocessing import StandardScaler
 except ImportError:
@@ -33,10 +38,6 @@ except ImportError:
 import yaml
 import numpy as np
 
-from analysis.one_class_svm   import one_class_svm_detection
-from analysis.lof            import lof_detection
-from analysis.isolation_forest import IsolationForest
-from analysis.ensemble       import combine_predictions
 
 def load_ensemble_config(path="config.yaml"):
     """
@@ -44,19 +45,19 @@ def load_ensemble_config(path="config.yaml"):
     fallback to defaults if missing.
     """
     defaults = {
-        "one_class_svm":    0.5,
-        "lof":               0.5,
-        "isolation_forest":  2.0,
-        "threshold":         0.0,
+        "one_class_svm": 0.5,
+        "lof": 0.5,
+        "isolation_forest":2.0,
+        "threshold": 0.0,
     }
     try:
         cfg = yaml.safe_load(open(path)) or {}
         ann = cfg.get("anomaly", {})
         w   = ann.get("weights", {})
         weights = [
-            w.get("one_class_svm",    defaults["one_class_svm"]),
-            w.get("lof",               defaults["lof"]),
-            w.get("isolation_forest",  defaults["isolation_forest"]),
+            w.get("one_class_svm", defaults["one_class_svm"]),
+            w.get("lof", defaults["lof"]),
+            w.get("isolation_forest", defaults["isolation_forest"]),
         ]
         threshold = ann.get("threshold", defaults["threshold"])
         return weights, threshold
@@ -67,14 +68,49 @@ def load_ensemble_config(path="config.yaml"):
             defaults["isolation_forest"],
         ], defaults["threshold"]
 
+
+def load_db_config(path="config.yaml"):
+    """
+    Load database connection settings from YAML.
+    """
+    defaults = {
+        "host": "localhost",
+        "port": 3306,
+        "user": "root",
+        "password": "",
+        "database": "",
+    }
+    try:
+        cfg = yaml.safe_load(open(path)) or {}
+        db = cfg.get("database", {})
+        return {
+            "host": db.get("host",defaults["host"]),
+            "port": db.get("port", defaults["port"]),
+            "user": db.get("user", defaults["user"]),
+            "password": db.get("password", defaults["password"]),
+            "database": db.get("name", defaults["database"]),
+        }
+    except Exception:
+        return defaults
+
+
 def demo():
     # 1) Load & print config
     weights, threshold = load_ensemble_config()
-    print("=== Loaded ensemble config from config.yaml ===")
-    print(f"weights → one_class_svm: {weights[0]}, lof: {weights[1]}, isolation_forest: {weights[2]}")
-    print(f"threshold → {threshold}\n")
+    print("Loaded ensemble config from config.yaml")
+    print(f"  weights - one_class_svm: {weights[0]}, lof: {weights[1]}, isolation_forest: {weights[2]}")
+    print(f"  threshold      - {threshold}\n")
 
-    # 2) Mock SQL results
+    # 2) Load & print database config
+    db_cfg = load_db_config()
+    print("Loaded database config from config.yaml")
+    print(f"  host - {db_cfg['host']}")
+    print(f"  port - {db_cfg['port']}")
+    print(f"  user - {db_cfg['user']}")
+    print(f"  password - {db_cfg['password']}")
+    print(f"  database - {db_cfg['database']}\n")
+
+    # 3) Mock SQL results
     sql_results = [
     {"user_id": "u1",  "total_actions": 20,  "avg_interval": 30,  "std_interval": 6.0,  "burst_count": 2},
     {"user_id": "u2",  "total_actions": 22,  "avg_interval": 32,  "std_interval": 5.0,  "burst_count": 2},
@@ -119,25 +155,25 @@ def demo():
     {"user_id": "u39", "total_actions": 280, "avg_interval": 2.2, "std_interval": 0.6,  "burst_count": 100},
     {"user_id": "u40", "total_actions": 400, "avg_interval": 1.2, "std_interval": 0.3,  "burst_count": 150},
     ]
-    print("=== Mock SQL results ===")
+    print("Mock SQL results")
     for row in sql_results:
         print(" ", row)
     print()
 
-    # 3) Raw feature matrix
+    # 4) Raw feature matrix
     raw_feats = parse_sql_results(sql_results)
-    print("=== Raw feature matrix ===")
+    print("Raw feature matrix")
     print(raw_feats, "\n")
 
-    # 4) Scaled features
+    # 5) Scaled features
     scaler = StandardScaler()
     x_scaled = scaler.fit_transform(raw_feats)
-    print("=== Scaled features ===")
+    print("Scaled features")
     print(x_scaled, "\n")
 
-    # 5) Detector predictions
+    # 6) Detector predictions
     _, svm_preds = one_class_svm_detection(x_scaled)
-    print("OneClass SVM preds:       ", svm_preds)
+    print("OneClass SVM preds: ", svm_preds)
 
     _, lof_preds = lof_detection(x_scaled)
     print("Local Outlier Factor preds:", lof_preds)
@@ -145,17 +181,18 @@ def demo():
     forest = IsolationForest(n_estimators=100, max_samples=256, random_state=42, contamination=0.25)
     forest.fit(x_scaled)
     _, if_preds = forest.predict(x_scaled)
-    print("Isolation Forest preds:   ", if_preds, "\n")
+    print("Isolation Forest preds: ", if_preds, "\n")
 
     # 6) Ensemble
     weighted_scores, final_preds = combine_predictions(svm_preds, lof_preds, if_preds, weights=weights, threshold=threshold)
     print("Weighted scores: ", weighted_scores)
-    print("Final preds:     ", final_preds, "\n")
+    print("Final preds: ", final_preds, "\n")
 
     # 7) Simulated update_bot_scores calls
-    print("=== Simulated update_bot_scores calls ===")
+    print("Simulated update_bot_scores calls")
     for user, pred in zip([r["user_id"] for r in sql_results], final_preds):
         print(f" update_bot_scores(user_id={user}, pred={pred})")
+
 
 if __name__ == "__main__":
     demo()

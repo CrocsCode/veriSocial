@@ -12,12 +12,24 @@ from analysis.isolation_forest import IsolationForest
 from analysis.ensemble import combine_predictions
 import yaml
 
+def load_db_config(path="config.yaml"):
+    cfg = yaml.safe_load(open(path)) or {}
+    db = cfg.get("database", {})
+    return {
+        "host": db.get("host", "localhost"),
+        "port": db.get("port", 3306),
+        "user": db.get("user", "root"),
+        "password": db.get("password", ""),
+        "database": db.get("name", ""),
+    }
+
+
 def load_ensemble_config(path="config.yaml"):
     defaults = {
-        "one_class_svm":    0.5,    # incase not given any values
-        "lof":               0.5,
-        "isolation_forest":  2.0,
-        "threshold":         0.0,
+        "one_class_svm": 0.5,    # incase not given any values
+        "lof": 0.5,
+        "isolation_forest": 2.0,
+        "threshold":0.0,
     }
     try:
         cfg = yaml.safe_load(open(path)) or {}
@@ -40,13 +52,8 @@ def main():
     weights, threshold = load_ensemble_config()
 
     # Instantiate db
-    db = mysql.connector.connect(
-        host="localhost",
-        port="3306",
-        user="root",
-        password="my-secret-pw",
-        database="mydatabase"
-    )
+    db_cfg = load_db_config("config.yaml")
+    db = mysql.connector.connect(**db_cfg)
     cursor = db.cursor(dictionary=True)
 
     db.rollback()
