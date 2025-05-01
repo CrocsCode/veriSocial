@@ -24,9 +24,36 @@ pub struct Post {
     pub likes_count: u64,
     #[serde(rename = "is-liked")]
     pub is_liked: Option<i64>,
+    pub text_bot_score: f32,
+    pub image_bot_score: f32,
     #[serde(rename = "bot-score")]
     pub bot_score: f32
 }
+
+// Store image in DigitalOcean sace, store url in DB.
+#[derive(Deserialize, Serialize, sqlx::FromRow, Debug)]
+pub struct SendPost {
+    pub post_id: u64,
+    #[serde(rename = "user-id")]
+    pub user_id: u128,
+    pub user_bot_score: f32,
+    pub username: String,
+    #[serde(rename = "full-name")]
+    pub full_name: String,
+    pub content: String,
+    pub base64_image: Option<String>,
+    #[serde(rename = "created-at")]
+    pub created_at: DateTime<Utc>,
+    #[serde(rename = "comment-count")]
+    pub comment_count: u64,
+    #[serde(rename = "likes-count")]
+    pub likes_count: u64,
+    #[serde(rename = "is-liked")]
+    pub is_liked: Option<i64>,
+    #[serde(rename = "bot-score")]
+    pub bot_score: f32
+}
+
 
 // Change to be part of multipart-uploads.
 #[derive(Debug, MultipartForm)]
@@ -90,8 +117,8 @@ pub struct SendGameEvent {
 
 #[derive(Deserialize, Serialize)]
 pub struct GamePost {
-    pub low_score_post: Post,
-    pub high_score_post: Post,
+    pub low_score_post: SendPost,
+    pub high_score_post: SendPost,
 }
 
 #[derive(Deserialize, Serialize)]

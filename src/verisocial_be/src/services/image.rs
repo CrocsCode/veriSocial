@@ -12,10 +12,11 @@ use crate::models::response::{ApiError, ImageResponse};
 use crate::config::settings::AI_IMAGE_URL;
 
 
-pub async fn post_check(image_name: String, post_id: u64, client: &Client) -> Result<(), ApiError> {
+pub async fn post_check(content: String, image_name: Option<String>, post_id: u64, client: &Client) -> Result<(), ApiError> {
     // Build response
     let payload = json!({
         "post_id": post_id,
+        "text": content,
         "image_url": image_name
     });
 
@@ -31,13 +32,14 @@ pub async fn post_check(image_name: String, post_id: u64, client: &Client) -> Re
 
     match succ_resp {
         Ok(status) => {
-            debug!("{}", status.status);
+            debug!("AI-CONTENT-CHECKER: {}", status.status);
             Ok(())
         },
         Err(err) => Err(ApiError::ServerError(err.to_string()))
     }
 }
 
+// Code grabbed from AWS S3 rust multipart tutorial
 pub async fn upload_image(filename: &str, image: TempFile, bucket_name: &str, s3_client: &S3Client) -> Result<(), ApiError> {
     const CHUNK_SIZE: u64 = 1024 * 1024 * 5; // Make configurable?
 

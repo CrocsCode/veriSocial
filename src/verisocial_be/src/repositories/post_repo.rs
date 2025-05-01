@@ -9,6 +9,7 @@ use async_trait::async_trait;
 use sqlx::{MySqlPool, Transaction};
 use crate::models::{
     response::ApiError,
+    posts::SendPost,
     posts::Post,
     posts::NewPost,
 };
@@ -40,13 +41,13 @@ pub trait PostTrait: Send + Sync {
 
     async fn find_all(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError>;
 
-    async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<Post, ApiError>;
+    async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<SendPost, ApiError>;
 
-    async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError>;
+    async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError>;
 
-    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<Post, ApiError>;
+    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError>;
 
-    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<Post, ApiError>;
+    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError>;
 }
 
 #[async_trait]
@@ -101,9 +102,11 @@ impl PostTrait for PostRepo {
                 Err(err) => return Err(ApiError::CannotCreateObject(err.to_string()))
             };
             
+            debug!("Queuing post for bot content detection");
             if let Some(name) = bot_content_filename {
-                debug!("Queuing post for bot content detection");
-                post_check(name, latest_post_id, req_client).await?;
+                post_check(new_post.content.to_string(), Some(name), latest_post_id, req_client).await?;
+            } else {
+                post_check(new_post.content.to_string(), None, latest_post_id, req_client).await?;
             };
 
             Ok(latest_post_id)
@@ -135,6 +138,8 @@ impl PostTrait for PostRepo {
                 u.user_id,
                 u.username,
                 u.full_name,
+                p.text_bot_score,
+                p.image_bot_score,
                 u.bot_score AS user_bot_score,
                 CAST(COUNT(DISTINCT c.user_id) AS UNSIGNED) AS comment_count,
                 CAST(COUNT(DISTINCT l.user_id) AS UNSIGNED) AS likes_count,
@@ -176,8 +181,8 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<Post, ApiError> {
-        let query = sqlx::query_as!(Post,
+    async fn find_user_post(&self, conn: &MySqlPool, user_id: u64, post_id: u64) -> Result<SendPost, ApiError> {
+        let query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
@@ -226,8 +231,8 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<Post>, ApiError> {
-        let query = sqlx::query_as!(Post,
+    async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError> {
+        let query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
@@ -279,9 +284,9 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<Post, ApiError> {
+    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError> {
         // Finds the post with less than that specified bot-score
-        let low_bot_score_query = sqlx::query_as!(Post,
+        let low_bot_score_query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
@@ -331,9 +336,9 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<Post, ApiError> {
+    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError> {
     // Order by rand to provide more random posts
-        let high_bot_score_query = sqlx::query_as!(Post,
+        let high_bot_score_query = sqlx::query_as!(SendPost,
             r#"
             SELECT 
                 p.post_id,
