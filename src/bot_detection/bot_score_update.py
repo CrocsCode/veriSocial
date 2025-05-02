@@ -10,7 +10,6 @@ except Exception:
 
 def update_bot_scores( preds: list[int], user_order: list[str], cursor: MySQLCursorDict, db: MySQLConnectionPool):
     for user, pred in zip(user_order, preds):
-        print(user, pred)
         update_operation(user, pred, cursor, db)
 
 def update_operation(user_id, pred, cursor: MySQLCursorDict, db: MySQLConnectionPool):
@@ -21,9 +20,12 @@ def update_operation(user_id, pred, cursor: MySQLCursorDict, db: MySQLConnection
         new_score_if_bot = bot_score + (pred * BOT_MULTIPLIER * -1) # Minus one if bot (turns value positive)
         new_score_if_human = bot_score - (pred * BOT_MULTIPLIER)
 
-        if pred == -1 and new_score_if_bot < 1 : # Stop if score goes above 0
+        # The float is there to compare numpy float to python float.
+        if pred == -1 and float(new_score_if_bot) < 1.0 : # Stop if score goes above 0
+            print(f"Increasing bot_sore of {user_id} to {new_score_if_bot}")
             cursor.execute("UPDATE users SET bot_score = %s WHERE user_id = %s", (new_score_if_bot, user_id,))
-        elif pred == -1 and new_score_if_human >= 0: # Stops if score goes below 0
+        elif pred == 1 and float(new_score_if_human) >= 0.0: # Stops if score goes below 0
+            print(f"Deacrasing bot_score of {user_id} to {new_score_if_human}")
             cursor.execute("UPDATE users SET bot_score = %s WHERE user_id = %s", (new_score_if_human, user_id,))
         
         db.commit()

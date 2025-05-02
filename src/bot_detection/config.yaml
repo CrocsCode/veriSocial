@@ -7,8 +7,8 @@ anomaly:
   threshold: 0.0
 # for updating bot score
 update:
-  bot_multiplier: 0.1 # what to multiply each pred by when updating bot_score
-  human_multiplier: 0.1
+  bot_multiplier: 0.2 # what to multiply each pred by when updating bot_score
+  human_multiplier: 0.01
 # DB details:
 database: # MUST BE PROVIDED OR CRASH
   host: localhost
@@ -16,5 +16,6 @@ database: # MUST BE PROVIDED OR CRASH
   user: root
   password: my-secret-pw
   name: mydatabase
+
 time_interval:
-  minutes: 30 
+  minutes: 5

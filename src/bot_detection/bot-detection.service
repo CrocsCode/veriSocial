@@ -1,0 +1,13 @@
+[Unit]
+Description=Bot Detection Script
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/2025-csc1097-escobej2-floresj2
+ExecStart=/root/2025-csc1097-escobej2-floresj2/src/bot_detection/.venv/bin/python /root/2025-csc1097-escobej2-floresj2/src/bot_detection/main.py
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

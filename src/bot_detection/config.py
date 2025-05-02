@@ -2,13 +2,12 @@ import yaml
 
 def load_db_config(path="config.yaml"):
     cfg = yaml.safe_load(open(path)) or {}
-    db = cfg.get("database", {})
     return {
-        "host": db.get("host", "localhost"),
-        "port": db.get("port", 3306),
-        "user": db.get("user", "root"),
-        "password": db.get("password", ""),
-        "database": db.get("name", ""),
+        "host": cfg.get("database_host", "localhost"),
+        "port": cfg.get("database_port", 3306),
+        "user": cfg.get("database_user", "root"),
+        "password": cfg.get("database_secret", ""),
+        "database": cfg.get("database_name", ""),
     }
 
 def load_ensemble_config(path="config.yaml"):
