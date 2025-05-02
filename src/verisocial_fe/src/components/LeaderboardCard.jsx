@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { loadLeaderboardListRequest } from "../redux/actionCreators/gameCreators";
 import { Box, Avatar, Text, VStack, HStack } from "@chakra-ui/react";
 
-const BAR_MAX_VH = 12;
+const BAR_MAX_HEIGHT = 12; // IN VH
 const shadeByPosition = {
   1: "purple.600",
   2: "purple.400",
@@ -17,12 +17,10 @@ const LeaderboardCard = ({ leaderboardList, userRank, loadLeaderboardListRequest
   }, [loadLeaderboardListRequest]);
 
   const topThree = [...leaderboardList]
-    .sort((a, b) => a.position - b.position)
-    .slice(0, 3);
+    .sort((a, b) => a.position - b.position).slice(0, 3);
 
   const maxCount = topThree.length
-    ? Math.max(...topThree.map((u) => u.correct_count))
-    : 1;
+    ? Math.max(...topThree.map((u) => u.correct_count)) : 1;
 
   return (
     <Box
@@ -31,9 +29,9 @@ const LeaderboardCard = ({ leaderboardList, userRank, loadLeaderboardListRequest
       borderRadius="md"
       p="4%"
       boxShadow="md"
-      w="100%"
+      w="85%"
       textAlign="center"
-      h="30vh"
+      h="35vh"
       display="flex"
       flexDirection="column"
       justifyContent="space-between"
@@ -43,14 +41,14 @@ const LeaderboardCard = ({ leaderboardList, userRank, loadLeaderboardListRequest
       </Text>
 
       <HStack justify="center" align="flex-end" spacing="4%" h="100%">
-        {topThree.map(({ position, user_id, correct_count }) => {
-          const barHeight = (correct_count / maxCount) * BAR_MAX_VH;
+        {topThree.map(({ position, username, correct_count }) => {
+          const barHeight = (correct_count / maxCount) * BAR_MAX_HEIGHT;
           const bg = shadeByPosition[position] || "purple.200";
           return (
             <VStack key={position} spacing={1}>
               <Avatar
                 size="md"
-                name={`User ${user_id}`}
+                name={`${username}`}
                 borderWidth="2px"
                 borderColor="white"
                 bg={bg}
@@ -68,7 +66,7 @@ const LeaderboardCard = ({ leaderboardList, userRank, loadLeaderboardListRequest
                 color="white"
               >
               </Box>
-              <Text fontWeight="bold">User {user_id}</Text>
+              <Text fontWeight="bold">{username}</Text>
               <Text color="purple.400" fontSize="1.5vh">{correct_count}</Text>
             </VStack>
           );
@@ -101,6 +99,7 @@ LeaderboardCard.propTypes = {
       position: PropTypes.number.isRequired,
       correct_count: PropTypes.number.isRequired,
       user_id: PropTypes.number.isRequired,
+      username: PropTypes.string.isRequired,
     })
   ).isRequired,
   userRank: PropTypes.shape({
