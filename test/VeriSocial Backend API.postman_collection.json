@@ -1,0 +1,1514 @@
+{
+	"info": {
+		"_postman_id": "bffde8d6-e244-4874-8888-3bfdb04766f9",
+		"name": "VeriSocial Backend API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32764776"
+	},
+	"item": [
+		{
+			"name": "Post Requests",
+			"item": [
+				{
+					"name": "Posts",
+					"item": [
+						{
+							"name": "Games",
+							"item": [
+								{
+									"name": "Add Game Events",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Response has content type application/json\", function () {",
+													"  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+													"});",
+													"",
+													"pm.test(\"Response status code is 201\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"",
+													"",
+													"pm.test(\"Response has a valid JSON schema structure\", function () {",
+													"    const responseData = pm.response.json();",
+													"",
+													"    pm.expect(responseData).to.be.an('object');",
+													"});",
+													"",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{auth-verisocial}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"result\": true,\n    \"correct_post_id\": 40,\n    \"wrong_post_id\": 14\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{database_url}}/game/add_event",
+											"host": [
+												"{{database_url}}"
+											],
+											"path": [
+												"game",
+												"add_event"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Create Post 1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Response time is less than 500ms\", function () {",
+											"  pm.expect(pm.response.responseTime).to.be.below(500);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Validate the schema of the response body\", function () {",
+											"  const jsonData = pm.response.json();",
+											"",
+											"  // Top‐level",
+											"  pm.expect(jsonData).to.be.an(\"object\");",
+											"  pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+											"  pm.expect(jsonData).to.have.property(\"message\");",
+											"  const msg = jsonData.message;",
+											"  pm.expect(msg).to.be.an(\"object\");",
+											"",
+											"  // IDs & scores",
+											"  pm.expect(msg).to.have.property(\"post_id\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"user-id\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"user_bot_score\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"bot-score\").that.is.a(\"number\");",
+											"",
+											"  // User fields",
+											"  pm.expect(msg).to.have.property(\"username\").that.is.a(\"string\");",
+											"  pm.expect(msg).to.have.property(\"full-name\").that.is.a(\"string\");",
+											"",
+											"  // Content & image",
+											"  pm.expect(msg).to.have.property(\"content\").that.is.a(\"string\");",
+											"  pm.expect(msg).to.have.property(\"base64_image\").that.is.a(\"string\");",
+											"  pm.expect(msg.base64_image).to.match(/^https?:\\/\\/.+/);",
+											"",
+											"  // Timestamps",
+											"  pm.expect(msg).to.have.property(\"created-at\").that.is.a(\"string\");",
+											"  pm.expect(msg[\"created-at\"]).to.match(",
+											"    /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/",
+											"  );",
+											"",
+											"  // Engagement counts",
+											"  pm.expect(msg).to.have.property(\"comment-count\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"likes-count\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"is-liked\").that.is.oneOf([0, 1]);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth-verisocial}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "content",
+											"value": "yayayaya",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/home/javi/Downloads/luffy.jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{database_url}}/posts/1",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"posts",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Like Posts",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"pm.test(\"Validate the schema of the response\", function () {",
+											"  const jsonData = pm.response.json();",
+											"",
+											"  // Top‐level",
+											"  pm.expect(jsonData).to.be.an(\"object\");",
+											"  pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+											"",
+											"  // Message is a number (zero)",
+											"  pm.expect(jsonData).to.have.property(\"message\");",
+											"  pm.expect(jsonData.message).to.be.a(\"number\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth-verisocial}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"post_id\": 1,\n    \"comment_id\": null\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/posts/like",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"posts",
+										"like"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Comments",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Response time is less than 500ms\", function () {",
+											"  pm.expect(pm.response.responseTime).to.be.below(500);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Validate the schema of the comment response\", function () {",
+											"  const jsonData = pm.response.json();",
+											"",
+											"  // Top‐level",
+											"  pm.expect(jsonData).to.be.an(\"object\");",
+											"  pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+											"  pm.expect(jsonData).to.have.property(\"message\");",
+											"  const msg = jsonData.message;",
+											"  pm.expect(msg).to.be.an(\"object\");",
+											"",
+											"  // IDs & scores",
+											"  pm.expect(msg).to.have.property(\"comment-id\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"post_id\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"user-id\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"bot-score\").that.is.a(\"number\");",
+											"",
+											"  // User fields",
+											"  pm.expect(msg).to.have.property(\"username\").that.is.a(\"string\");",
+											"  pm.expect(msg).to.have.property(\"full-name\").that.is.a(\"string\");",
+											"",
+											"  // Content",
+											"  pm.expect(msg).to.have.property(\"content\").that.is.a(\"string\");",
+											"",
+											"  // Timestamp",
+											"  pm.expect(msg).to.have.property(\"created-at\").that.is.a(\"string\");",
+											"  pm.expect(msg[\"created-at\"]).to.match(",
+											"    /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/",
+											"  );",
+											"",
+											"  // Engagement",
+											"  pm.expect(msg).to.have.property(\"likes-count\").that.is.a(\"number\");",
+											"  pm.expect(msg).to.have.property(\"is-liked\").that.is.oneOf([0, 1]);",
+											"});",
+											"",
+											"pm.test(\"Validate comment response fields and types\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"object\");",
+											"    pm.expect(jsonData).to.have.property(\"message\");",
+											"    const msg = jsonData.message;",
+											"",
+											"    // Numeric IDs",
+											"    pm.expect(msg).to.have.property(\"post_id\").that.is.a(\"number\").and.to.be.at.least(0, \"post_id should be a non-negative integer\");",
+											"    pm.expect(msg).to.have.property(\"comment-id\").that.is.a(\"number\").and.to.be.at.least(0, \"comment-id should be a non-negative integer\");",
+											"    pm.expect(msg).to.have.property(\"user-id\").that.is.a(\"number\").and.to.be.at.least(0, \"user-id should be a non-negative integer\");",
+											"",
+											"    // Content",
+											"    pm.expect(msg).to.have.property(\"content\").that.is.a(\"string\").and.to.have.lengthOf.at.least(1, \"content should be a non-empty string\");",
+											"",
+											"    // Timestamp",
+											"    pm.expect(msg).to.have.property(\"created-at\").that.is.a(\"string\");",
+											"    const time = new Date(msg[\"created-at\"]).getTime();",
+											"    pm.expect(isNaN(time)).to.be.false; ",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth-verisocial}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"post_id\": 1,\n    \"content\": \"You are so right with that!\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/posts/comments",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"posts",
+										"comments"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Like Comments",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"pm.test(\"Validate the schema of the response\", function () {",
+											"  const jsonData = pm.response.json();",
+											"",
+											"  // Top‐level",
+											"  pm.expect(jsonData).to.be.an(\"object\");",
+											"  pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+											"",
+											"  // Message is a number (zero)",
+											"  pm.expect(jsonData).to.have.property(\"message\");",
+											"  pm.expect(jsonData.message).to.be.a(\"number\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth-verisocial}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"post_id\": 1,\n    \"comment_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/posts/like",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"posts",
+										"like"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Report",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Validate the schema of the report response\", function () {",
+											"    const jsonData = pm.response.json();",
+											"",
+											"    // Top-level",
+											"    pm.expect(jsonData).to.be.an(\"object\");",
+											"    pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+											"    pm.expect(jsonData).to.have.property(\"message\");",
+											"    const msg = jsonData.message;",
+											"    pm.expect(msg).to.be.an(\"object\");",
+											"",
+											"    // Numeric IDs",
+											"    pm.expect(msg).to.have.property(\"report_id\")",
+											"        .that.is.a(\"number\")",
+											"        .and.to.be.at.least(0, \"report_id should be a non-negative integer\");",
+											"    pm.expect(msg).to.have.property(\"reportee_id\")",
+											"        .that.is.a(\"number\")",
+											"        .and.to.be.at.least(0, \"reportee_id should be a non-negative integer\");",
+											"    pm.expect(msg).to.have.property(\"reported_id\")",
+											"        .that.is.a(\"number\")",
+											"        .and.to.be.at.least(0, \"reported_id should be a non-negative integer\");",
+											"    pm.expect(msg).to.have.property(\"post_id\")",
+											"        .that.is.a(\"number\")",
+											"        .and.to.be.at.least(0, \"post_id should be a non-negative integer\");",
+											"",
+											"    // Boolean flags",
+											"    pm.expect(msg).to.have.property(\"ai_content\")",
+											"        .that.is.a(\"boolean\");",
+											"    pm.expect(msg).to.have.property(\"bot_behaviour\")",
+											"        .that.is.a(\"boolean\");",
+											"    pm.expect(msg).to.have.property(\"other\")",
+											"        .that.is.a(\"boolean\");",
+											"",
+											"    // Details string",
+											"    pm.expect(msg).to.have.property(\"additional_details\")",
+											"        .that.is.a(\"string\")",
+											"        .and.to.have.lengthOf.at.least(1, \"additional_details should be a non-empty string\");",
+											"",
+											"    // Timestamp",
+											"    pm.expect(msg).to.have.property(\"created_at\")",
+											"        .that.is.a(\"string\");",
+											"    pm.expect(msg[\"created_at\"]).to.match(",
+											"        /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/,",
+											"        \"created_at should be in ISO 8601 UTC format\"",
+											"    );",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth-verisocial}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"post_id\": 1,\n    \"ai_content\": true,\n    \"bot_behaviour\": true,\n    \"other\": false,\n    \"additional_details\": \"It was a bot moment\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/admin/report",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"admin",
+										"report"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Login",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth-verisocial}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"javifb02@gmail.com\",\n    \"password\": \"Test123!!\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/auth/login",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login 2",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"javitest2@gmail.com\",\n    \"password\": \"test123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/auth/login",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login 3",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"javitest3@gmail.com\",\n    \"password\": \"test123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/auth/login",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login 4",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"javitest4@gmail.com\",\n    \"password\": \"test123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/auth/login",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Register",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"Crocodile07\",\n    \"full-name\": \"Javier\",\n    \"email\": \"javifb02@gmail.com\",\n    \"bio\": \"The very best, there ever was\",\n    \"password\": \"Test123!!\",\n    \"bot-score\": 0\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/auth/register",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Register 2",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"Crocodile10\",\n    \"full-name\": \"Javier\",\n    \"email\": \"javitest2@gmail.com\",\n    \"bio\": \"The very best, there ever was\",\n    \"password\": \"test123\",\n    \"bot-score\": 0\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/auth/register",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Register 3",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"Crocodile100\",\n    \"full-name\": \"Javier\",\n    \"email\": \"javitest3@gmail.com\",\n    \"bio\": \"The very best, there ever was\",\n    \"password\": \"test123\",\n    \"bot-score\": 0\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/auth/register",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Register 4",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"Crocodile120\",\n    \"full-name\": \"Javier\",\n    \"email\": \"javitest4@gmail.com\",\n    \"bio\": \"The very best, there ever was\",\n    \"password\": \"test123\",\n    \"bot-score\": 0\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{database_url}}/auth/register",
+									"host": [
+										"{{database_url}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Classify endpoint",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaXNzIjoiaHR0cDovL3Zlcmlzb2NpYWwtYmUuY29tIiwiZXhwIjoxNzQxMjE3NzY0fQ.XI8uihJfMz74YoZLFmCqNomBjR7XjdJkKBKyxXqiXk8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"post_id\": 1,\n    \"text\": \"my bad\",\n    \"image_url\": null\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{image_url}}/classify",
+							"host": [
+								"{{image_url}}"
+							],
+							"path": [
+								"classify"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "A collection of Post Requests for the VeriSocial."
+		},
+		{
+			"name": "Get Game",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth-verisocial}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"post_id\": 1,\n    \"comment_id\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{database_url}}/game",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"game"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get LeaderBoard",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema of the leaderboard response\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    // Top-level",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"    pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+							"    pm.expect(jsonData).to.have.property(\"message\");",
+							"    const msg = jsonData.message;",
+							"    pm.expect(msg).to.be.an(\"object\");",
+							"",
+							"    // Leaderboard array",
+							"    pm.expect(msg).to.have.property(\"leaderboard\").that.is.an(\"array\");",
+							"    pm.expect(msg.leaderboard.length).to.be.above(0, \"leaderboard should have at least one entry\");",
+							"    msg.leaderboard.forEach((entry, idx) => {",
+							"        pm.test(`leaderboard[${idx}] has correct schema`, function () {",
+							"            pm.expect(entry).to.be.an(\"object\");",
+							"            pm.expect(entry).to.have.property(\"correct_count\").that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(entry).to.have.property(\"position\").that.is.a(\"number\").and.to.be.at.least(1);",
+							"            pm.expect(entry).to.have.property(\"user_id\").that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(entry).to.have.property(\"username\").that.is.a(\"string\");",
+							"        });",
+							"    });",
+							"",
+							"    // User rank object",
+							"    pm.expect(msg).to.have.property(\"user_rank\").that.is.an(\"object\");",
+							"    const rank = msg.user_rank;",
+							"    pm.expect(rank).to.have.property(\"correct_count\").that.is.a(\"number\").and.to.be.at.least(0);",
+							"    pm.expect(rank).to.have.property(\"position\").that.is.a(\"number\").and.to.be.at.least(1);",
+							"    pm.expect(rank).to.have.property(\"user_id\").that.is.a(\"number\").and.to.be.at.least(0);",
+							"    pm.expect(rank).to.have.property(\"username\").that.is.a(\"string\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth-verisocial}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"post_id\": 1,\n    \"comment_id\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{database_url}}/game/leaderboard",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"game",
+						"leaderboard"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Reports",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema of the reports-list response\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    // Top-level",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"    pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.is.an(\"array\");",
+							"    pm.expect(jsonData.message.length).to.be.at.least(1, \"message array should have at least one report\");",
+							"",
+							"    // Per-report checks",
+							"    jsonData.message.forEach((report, idx) => {",
+							"        pm.test(`message[${idx}] has correct schema`, function () {",
+							"            pm.expect(report).to.be.an(\"object\");",
+							"",
+							"            // IDs",
+							"            pm.expect(report).to.have.property(\"report_id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(report).to.have.property(\"reportee_id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(report).to.have.property(\"reported_id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(report).to.have.property(\"post_id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0);",
+							"",
+							"            // Flags",
+							"            pm.expect(report).to.have.property(\"ai_content\")",
+							"                .that.is.a(\"boolean\");",
+							"            pm.expect(report).to.have.property(\"bot_behaviour\")",
+							"                .that.is.a(\"boolean\");",
+							"            pm.expect(report).to.have.property(\"other\")",
+							"                .that.is.a(\"boolean\");",
+							"",
+							"            // Details",
+							"            pm.expect(report).to.have.property(\"additional_details\")",
+							"                .that.is.a(\"string\")",
+							"                .and.to.have.lengthOf.at.least(1);",
+							"",
+							"            // Timestamp",
+							"            pm.expect(report).to.have.property(\"created_at\")",
+							"                .that.is.a(\"string\")",
+							"                .and.to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/, \"created_at should be ISO 8601 UTC\");",
+							"        });",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth-verisocial}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"post_id\": 1,\n    \"comment_id\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{database_url}}/admin/report",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"admin",
+						"report"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Game Events",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema of the event responses\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    // Top‐level",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"    pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.is.an(\"array\");",
+							"    pm.expect(jsonData.message.length).to.be.at.least(1, \"message array should have at least one event\");",
+							"",
+							"    // Per‐event checks",
+							"    jsonData.message.forEach((evt, idx) => {",
+							"        pm.test(`message[${idx}] has correct schema`, function () {",
+							"            // IDs & flag",
+							"            pm.expect(evt).to.have.property(\"event_id\").that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(evt).to.have.property(\"user_id\").that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(evt).to.have.property(\"is_correct\").that.is.a(\"boolean\");",
+							"",
+							"            pm.expect(evt.correct_image_url !== null || evt.wrong_image_url !== null)",
+							"              .to.be.true;",
+							"",
+							"            if (evt.correct_image_url !== null) {",
+							"                pm.expect(evt.correct_image_url)",
+							"                  .to.be.a(\"string\")",
+							"                  .and.to.match(/^https?:\\/\\/.+/, \"correct_image_url should be a valid URL\");",
+							"            }",
+							"            if (evt.wrong_image_url !== null) {",
+							"                pm.expect(evt.wrong_image_url)",
+							"                  .to.be.a(\"string\")",
+							"                  .and.to.match(/^https?:\\/\\/.+/, \"wrong_image_url should be a valid URL\");",
+							"            }",
+							"        });",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth-verisocial}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{database_url}}/game/game_events",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"game",
+						"game_events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Health",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaXNzIjoiaHR0cDovL3Zlcmlzb2NpYWwtYmUuY29tIiwiZXhwIjoxNzQwNzg5MTg3fQ.t7P_A3rZUUSRxMx6UxkZUbpHPDFQpuCW0tJm2bKkDIM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{database_url}}/iamteapot",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"iamteapot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List of Posts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema of the posts list response\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    // Top‐level checks",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"    pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.is.an(\"array\");",
+							"    pm.expect(jsonData.message.length).to.be.at.least(1, \"message array should have at least one post\");",
+							"",
+							"    // Per‐post checks",
+							"    jsonData.message.forEach((post, idx) => {",
+							"        pm.test(`message[${idx}] has correct schema`, function () {",
+							"            pm.expect(post).to.be.an(\"object\");",
+							"",
+							"            // IDs & scores",
+							"            pm.expect(post).to.have.property(\"post_id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(post).to.have.property(\"user-id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(post).to.have.property(\"user_bot_score\")",
+							"                .that.is.a(\"number\");",
+							"            pm.expect(post).to.have.property(\"text_bot_score\")",
+							"                .that.is.a(\"number\");",
+							"            pm.expect(post).to.have.property(\"image_bot_score\")",
+							"                .that.is.a(\"number\");",
+							"            pm.expect(post).to.have.property(\"bot-score\")",
+							"                .that.is.a(\"number\");",
+							"",
+							"            // User fields",
+							"            pm.expect(post).to.have.property(\"username\")",
+							"                .that.is.a(\"string\");",
+							"            pm.expect(post).to.have.property(\"full-name\")",
+							"                .that.is.a(\"string\");",
+							"",
+							"            // Content & image",
+							"            pm.expect(post).to.have.property(\"content\")",
+							"                .that.is.a(\"string\").and.to.have.lengthOf.at.least(1);",
+							"            pm.expect(post).to.have.property(\"base64_image\")",
+							"                .that.is.a(\"string\");",
+							"            pm.expect(post.base64_image).to.match(/^https?:\\/\\/.+/, \"base64_image should be a valid URL\");",
+							"",
+							"            // Timestamp",
+							"            pm.expect(post).to.have.property(\"created-at\")",
+							"                .that.is.a(\"string\");",
+							"            pm.expect(post[\"created-at\"]).to.match(",
+							"                /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/,",
+							"                \"created-at should be ISO 8601 UTC format\"",
+							"            );",
+							"",
+							"            // Engagement counts",
+							"            pm.expect(post).to.have.property(\"comment-count\")",
+							"                .that.is.a(\"number\");",
+							"            pm.expect(post).to.have.property(\"likes-count\")",
+							"                .that.is.a(\"number\");",
+							"            pm.expect(post).to.have.property(\"is-liked\")",
+							"                .that.is.oneOf([0, 1], \"is-liked should be 0 or 1\");",
+							"        });",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth-verisocial}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{database_url}}/posts/user?page=1&size=100",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"posts",
+						"user"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "size",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Of Users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema of the users‐list response\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    // Top‐level",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"    pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.is.an(\"array\");",
+							"    pm.expect(jsonData.message.length).to.be.at.least(1, \"message array should have at least one user\");",
+							"",
+							"    // Per‐user checks",
+							"    jsonData.message.forEach((user, idx) => {",
+							"        pm.test(`message[${idx}] has correct user schema`, function () {",
+							"            // IDs & scores",
+							"            pm.expect(user).to.have.property(\"user_id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0);",
+							"            pm.expect(user).to.have.property(\"bot-score\")",
+							"                .that.is.a(\"number\");",
+							"",
+							"            // Strings",
+							"            pm.expect(user).to.have.property(\"username\")",
+							"                .that.is.a(\"string\").and.to.have.lengthOf.at.least(1);",
+							"            pm.expect(user).to.have.property(\"full_name\")",
+							"                .that.is.a(\"string\").and.to.have.lengthOf.at.least(1);",
+							"            pm.expect(user).to.have.property(\"bio\")",
+							"                .that.is.a(\"string\");",
+							"",
+							"            // Email format",
+							"            pm.expect(user).to.have.property(\"email\")",
+							"                .that.is.a(\"string\")",
+							"                .and.to.match(/^.+@.+\\..+$/, \"email should be a valid email address\");",
+							"",
+							"            // Password hash format (Argon2id)",
+							"            pm.expect(user).to.have.property(\"password-hash\")",
+							"                .that.is.a(\"string\")",
+							"                .and.to.match(",
+							"                    /^\\$argon2id\\$v=\\d+\\$m=\\d+,t=\\d+,p=\\d+\\$[^$]+\\$[^$]+$/,",
+							"                    \"password-hash should be a valid Argon2id hash\"",
+							"                );",
+							"",
+							"            // Timestamp",
+							"            pm.expect(user).to.have.property(\"created-at\")",
+							"                .that.is.a(\"string\")",
+							"                .and.to.match(",
+							"                    /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/,",
+							"                    \"created-at should be in ISO 8601 UTC format\"",
+							"                );",
+							"        });",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth-verisocial}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{database_url}}/home/users",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"home",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Single Post",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema of the single-post response\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    // Top‐level",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"    pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.is.an(\"object\");",
+							"    const msg = jsonData.message;",
+							"",
+							"    // IDs & scores",
+							"    pm.expect(msg).to.have.property(\"post_id\")",
+							"        .that.is.a(\"number\").and.to.be.at.least(0, \"post_id should be a non-negative integer\");",
+							"    pm.expect(msg).to.have.property(\"user-id\")",
+							"        .that.is.a(\"number\").and.to.be.at.least(0, \"user-id should be a non-negative integer\");",
+							"    pm.expect(msg).to.have.property(\"user_bot_score\")",
+							"        .that.is.a(\"number\");",
+							"    pm.expect(msg).to.have.property(\"bot-score\")",
+							"        .that.is.a(\"number\");",
+							"",
+							"    // User fields",
+							"    pm.expect(msg).to.have.property(\"username\")",
+							"        .that.is.a(\"string\").and.to.have.lengthOf.at.least(1, \"username should be a non-empty string\");",
+							"    pm.expect(msg).to.have.property(\"full-name\")",
+							"        .that.is.a(\"string\").and.to.have.lengthOf.at.least(1, \"full-name should be a non-empty string\");",
+							"",
+							"    // Content & image",
+							"    pm.expect(msg).to.have.property(\"content\")",
+							"        .that.is.a(\"string\").and.to.have.lengthOf.at.least(1, \"content should be a non-empty string\");",
+							"    pm.expect(msg).to.have.property(\"base64_image\")",
+							"        .that.is.a(\"string\");",
+							"    pm.expect(msg.base64_image).to.match(/^https?:\\/\\/.+/, \"base64_image should be a valid URL\");",
+							"",
+							"    // Timestamp",
+							"    pm.expect(msg).to.have.property(\"created-at\")",
+							"        .that.is.a(\"string\");",
+							"    pm.expect(msg[\"created-at\"]).to.match(",
+							"        /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/,",
+							"        \"created-at should be ISO 8601 UTC format\"",
+							"    );",
+							"",
+							"    // Engagement counts",
+							"    pm.expect(msg).to.have.property(\"comment-count\")",
+							"        .that.is.a(\"number\").and.to.be.at.least(0, \"comment-count should be a non-negative integer\");",
+							"    pm.expect(msg).to.have.property(\"likes-count\")",
+							"        .that.is.a(\"number\").and.to.be.at.least(0, \"likes-count should be a non-negative integer\");",
+							"    pm.expect(msg).to.have.property(\"is-liked\")",
+							"        .that.is.oneOf([0, 1], \"is-liked should be 0 or 1\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth-verisocial}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{database_url}}/posts/1/1",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"posts",
+						"1",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Of Comments For Post",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema of the comments-list response\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    ",
+							"    // Top-level",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"    pm.expect(jsonData).to.have.property(\"status\", \"success\");",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.is.an(\"array\");",
+							"    pm.expect(jsonData.message.length).to.be.at.least(1, \"message array should have at least one comment\");",
+							"    ",
+							"    // Per-comment checks",
+							"    jsonData.message.forEach((comment, idx) => {",
+							"        pm.test(`message[${idx}] has correct schema`, function () {",
+							"            pm.expect(comment).to.be.an(\"object\");",
+							"            ",
+							"            // IDs",
+							"            pm.expect(comment).to.have.property(\"comment-id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0, \"comment-id should be a non-negative integer\");",
+							"            pm.expect(comment).to.have.property(\"post_id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0, \"post_id should be a non-negative integer\");",
+							"            pm.expect(comment).to.have.property(\"user-id\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0, \"user-id should be a non-negative integer\");",
+							"            ",
+							"            // User fields",
+							"            pm.expect(comment).to.have.property(\"username\")",
+							"                .that.is.a(\"string\").and.to.have.lengthOf.at.least(1, \"username should be non-empty\");",
+							"            pm.expect(comment).to.have.property(\"full-name\")",
+							"                .that.is.a(\"string\").and.to.have.lengthOf.at.least(1, \"full-name should be non-empty\");",
+							"            ",
+							"            // Content",
+							"            pm.expect(comment).to.have.property(\"content\")",
+							"                .that.is.a(\"string\").and.to.have.lengthOf.at.least(1, \"content should be non-empty\");",
+							"            ",
+							"            // Timestamp",
+							"            pm.expect(comment).to.have.property(\"created-at\")",
+							"                .that.is.a(\"string\");",
+							"            pm.expect(comment[\"created-at\"]).to.match(",
+							"                /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/,",
+							"                \"created-at should be ISO 8601 UTC format\"",
+							"            );",
+							"            ",
+							"            // Engagement",
+							"            pm.expect(comment).to.have.property(\"likes-count\")",
+							"                .that.is.a(\"number\").and.to.be.at.least(0, \"likes-count should be a non-negative integer\");",
+							"            pm.expect(comment).to.have.property(\"is-liked\")",
+							"                .that.is.oneOf([0, 1], \"is-liked should be 0 or 1\");",
+							"            ",
+							"            // Bot score",
+							"            pm.expect(comment).to.have.property(\"bot-score\")",
+							"                .that.is.a(\"number\");",
+							"        });",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth-verisocial}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{database_url}}/posts/comments/1?page=1&size=100",
+					"host": [
+						"{{database_url}}"
+					],
+					"path": [
+						"posts",
+						"comments",
+						"1"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "size",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

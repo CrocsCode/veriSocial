@@ -1,5 +1,6 @@
 from transformers import pipeline
 from app.models import RequestBody, ProcessedPost
+from config import settings
 
 image_classifier = pipeline(
     "image-classification",
@@ -26,7 +27,7 @@ def classify_text_and_image(body: RequestBody, image) -> ProcessedPost:
     image_class_type = image_pred[0]["label"]
     image_score = image_pred[0]["score"]
 
-    weight =  0.9 # Should be customizable :)
+    weight = settings.weight
 
     # Set a weighted average for total score
     if text_class_type == "Human" and image_class_type == "real":

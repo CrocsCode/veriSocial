@@ -58,7 +58,6 @@ async def classifier_worker():
             break
 
         try:
-            # Needs to be revised
             img = None
             if req.image_url:
                 img = await get_image(req.image_url)

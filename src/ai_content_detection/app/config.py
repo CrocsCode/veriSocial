@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     aws_secret_access_key: str
     aws_region: str
     aws_endpoint: str
+    weight: float
 
     class Config:
         env_file = ".env"
@@ -27,7 +28,8 @@ def load_settings(path: str = "config.yml") -> Settings:
         "aws_access_key_id": "",
         "aws_secret_access_key": "",
         "aws_region": "lon1",
-        "aws_endpoint": ""
+        "aws_endpoint": "",
+        "weight": 0.9
     }
     try:
         cfg = yaml.safe_load(open(path)) or {}

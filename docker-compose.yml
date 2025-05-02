@@ -4,8 +4,6 @@ services:
   backend:
     image: cr0c0dile07/final-year-project:backend
     container_name: backend
-    depends_on:
-      - database
     volumes:
      - ./config.yaml:/usr/src/app/config.yaml
     ports:
