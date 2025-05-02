@@ -98,7 +98,7 @@ pub async fn get_comments(post_id: web::Path<u64>, user: AuthUser, app_data: web
     let size = query.size.unwrap_or(10);
     let page_offset = (page - 1) * size;
 
-    let comments = comment_repo.list_comments_for_post(&app_data.pool, post_id.into_inner(), user.user_id, page, page_offset).await;
+    let comments = comment_repo.list_comments_for_post(&app_data.pool, post_id.into_inner(), user.user_id, size, page_offset).await;
     Response::create_get_response(comments)
 }
 
