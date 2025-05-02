@@ -31,7 +31,7 @@ const GameStatisticCard = ({ events, loadGameEventListRequest }) => {
       borderWidth="1px"
       borderRadius="md"
       boxShadow="md"
-      w="80%"
+      w="85%"
       p={6}
     >
       <Box textAlign="center" mb={6}>

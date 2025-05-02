@@ -32,6 +32,8 @@ describe("AdminDataTable Component", () => {
     const reports = [
       {
         report_id: 42,
+        reportee_id: 30,
+        reported_id: 10,
         post_id: 99,
         ai_content: true,
         bot_behaviour: false,
