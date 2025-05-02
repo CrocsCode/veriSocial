@@ -29,6 +29,7 @@ pub struct SendGameEvent {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserRank {
     pub user_id: u64,
+    pub username: Option<String>,
     pub correct_count: u64,
     pub position: u64
 }

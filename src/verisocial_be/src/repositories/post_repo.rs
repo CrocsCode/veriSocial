@@ -45,9 +45,9 @@ pub trait PostTrait: Send + Sync {
 
     async fn find_posts_for_user(&self, conn: &MySqlPool, user_id: u64, page_size: u32, offset: u32) -> Result<Vec<SendPost>, ApiError>;
 
-    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError>;
+    async fn find_low_image_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError>;
 
-    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError>;
+    async fn find_high_image_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError>;
 }
 
 #[async_trait]
@@ -284,7 +284,7 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_low_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError> {
+    async fn find_low_image_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError> {
         // Finds the post with less than that specified bot-score
         let low_bot_score_query = sqlx::query_as!(SendPost,
             r#"
@@ -310,7 +310,7 @@ impl PostTrait for PostRepo {
             LEFT JOIN
                 comments AS c ON c.post_id = p.post_id
             WHERE 
-                p.bot_score < ?
+                p.image_bot_score < ?
                 AND p.base64_image IS NOT NULL
             GROUP BY 
                 p.post_id,
@@ -336,7 +336,7 @@ impl PostTrait for PostRepo {
         }
     }
 
-    async fn find_high_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError> {
+    async fn find_high_image_bot_score_post(&self, conn: &MySqlPool, user_id: u64, threshold: f64) -> Result<SendPost, ApiError> {
     // Order by rand to provide more random posts
         let high_bot_score_query = sqlx::query_as!(SendPost,
             r#"
@@ -362,7 +362,7 @@ impl PostTrait for PostRepo {
             LEFT JOIN
                 comments AS c ON c.post_id = p.post_id
             WHERE 
-                p.bot_score > ?
+                p.image_bot_score > ?
                 AND p.base64_image IS NOT NULL
             GROUP BY 
                 p.post_id,

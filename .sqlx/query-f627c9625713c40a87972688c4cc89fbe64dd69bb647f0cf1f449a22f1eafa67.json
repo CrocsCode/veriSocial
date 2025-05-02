@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n            SELECT \n                p.post_id,\n                p.content,\n                p.created_at,\n                p.base64_image,\n                p.bot_score,\n                u.user_id,\n                u.username,\n                u.full_name,\n                u.bot_score AS user_bot_score,\n                CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,\n                CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,\n                MAX(l.user_id = ?) > 0 AS is_liked\n            FROM \n                posts AS p\n            INNER JOIN\n                users AS u ON p.user_id = u.user_id\n            LEFT JOIN \n                likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL\n            LEFT JOIN\n                comments AS c ON c.post_id = p.post_id\n            WHERE \n                p.bot_score > ?\n                AND p.base64_image IS NOT NULL\n            GROUP BY \n                p.post_id,\n                p.content,\n                p.created_at,\n                p.base64_image,\n                p.bot_score,\n                p.user_id,\n                u.username,\n                u.full_name\n            ORDER BY\n                RAND()\n            ",
+  "query": "\n            SELECT \n                p.post_id,\n                p.content,\n                p.created_at,\n                p.base64_image,\n                p.bot_score,\n                u.user_id,\n                u.username,\n                u.full_name,\n                u.bot_score AS user_bot_score,\n                CAST(COUNT(c.user_id) AS UNSIGNED) AS comment_count,\n                CAST(COUNT(l.user_id) AS UNSIGNED) AS likes_count,\n                MAX(l.user_id = ?) > 0 AS is_liked\n            FROM \n                posts AS p\n            INNER JOIN\n                users AS u ON p.user_id = u.user_id\n            LEFT JOIN \n                likes AS l ON p.post_id = l.post_id AND l.comment_id IS NULL\n            LEFT JOIN\n                comments AS c ON c.post_id = p.post_id\n            WHERE \n                p.image_bot_score > ?\n                AND p.base64_image IS NOT NULL\n            GROUP BY \n                p.post_id,\n                p.content,\n                p.created_at,\n                p.base64_image,\n                p.bot_score,\n                p.user_id,\n                u.username,\n                u.full_name\n            ORDER BY\n                RAND()\n            ",
   "describe": {
     "columns": [
       {
@@ -130,5 +130,5 @@
       true
     ]
   },
-  "hash": "25368a0e6943554410325271e50492728db3967801f5254bc05ea8da4d2e8062"
+  "hash": "f627c9625713c40a87972688c4cc89fbe64dd69bb647f0cf1f449a22f1eafa67"
 }
