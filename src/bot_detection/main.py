@@ -4,6 +4,14 @@ import mysql.connector
 
 # Update
 from bot_score_update import update_bot_scores
+from config import *
+
+# Schedule run
+import time
+import schedule
+import threading
+import sys
+import signal
 
 # Analysis
 from analysis.one_class_svm import one_class_svm_detection
@@ -11,15 +19,17 @@ from analysis.lof import lof_detection
 from analysis.isolation_forest import IsolationForest
 from analysis.ensemble import combine_predictions
 
-def main():
+# Flag for stopping event
+stop_event = threading.Event()
+
+def analyze():
+    print("\nStarting work")
+    weights, threshold = load_ensemble_config()
+    # interval_minutes = load_time_interval() # NEW CODE ADDED HERE
+
     # Instantiate db
-    db = mysql.connector.connect(
-        host="localhost",
-        port="3306",
-        user="root",
-        password="my-secret-pw",
-        database="mydatabase"
-    )
+    db_cfg = load_db_config("config.yaml")
+    db = mysql.connector.connect(**db_cfg)
     cursor = db.cursor(dictionary=True)
 
     db.rollback()
@@ -52,7 +62,32 @@ def main():
     # Cleanup
     cursor.close()
     db.close()
-    
-    
+    print("\nEnding work")
+
+def _handle_signal(signum, _):
+    # first signal sets the flag; any further signal forces immediate exit
+    if not stop_event.is_set():
+        print(f"\nReceived signal {signum}, will shut down gracefully…")
+        stop_event.set()
+    else:
+        print(f"\nReceived signal {signum} again, forcing exit.", file=sys.stderr)
+        sys.exit(1)
+
+
+def main():
+    # install our handlers for Ctrl-C and `kill`
+    signal.signal(signal.SIGINT, _handle_signal)
+    signal.signal(signal.SIGTERM, _handle_signal)
+
+    interval_minutes = load_time_interval()
+    print(f"Scheduled every: {interval_minutes} minutes")
+    schedule.every(interval_minutes).minutes.do(analyze)
+ 
+    while not stop_event.is_set():
+        schedule.run_pending()
+        time.sleep(1)
+
+    print("Shutdown flag detected.")
+
 if __name__ == "__main__":
     main()

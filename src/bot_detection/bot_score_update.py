@@ -1,21 +1,32 @@
+import yaml
 from mysql.connector.cursor import MySQLCursorDict
 from mysql.connector.pooling import MySQLConnectionPool
 
+try:
+    cfg = yaml.safe_load(open("config.yaml")) or {}
+    BOT_MULTIPLIER = cfg.get("update", {}).get("bot_multiplier", 0.1)
+except Exception:
+    BOT_MULTIPLIER = 0.1
 
-def update_bot_scores(preds: list[int], user_order: list[str], cursor: MySQLCursorDict, db: MySQLConnectionPool):
-    i = 0
-    for user in user_order:
-        update_operation(user, preds[i], cursor, db)
-        i += 1
+def update_bot_scores( preds: list[int], user_order: list[str], cursor: MySQLCursorDict, db: MySQLConnectionPool):
+    for user, pred in zip(user_order, preds):
+        update_operation(user, pred, cursor, db)
 
 def update_operation(user_id, pred, cursor: MySQLCursorDict, db: MySQLConnectionPool):
     try:
         cursor.execute("SELECT bot_score FROM users WHERE user_id = %s FOR UPDATE", (user_id,))
         bot_score = cursor.fetchone()["bot_score"]
-    
-        if bot_score > -1:
-            new_score = bot_score + (pred * -0.1) # I want to set a multiplier for weights.
-            cursor.execute("UPDATE users SET bot_score = %s WHERE user_id = %s", (new_score, user_id,))
+
+        new_score_if_bot = bot_score + (pred * BOT_MULTIPLIER * -1) # Minus one if bot (turns value positive)
+        new_score_if_human = bot_score - (pred * BOT_MULTIPLIER)
+
+        # The float is there to compare numpy float to python float.
+        if pred == -1 and float(new_score_if_bot) < 1.0 : # Stop if score goes above 0
+            print(f"Increasing bot_sore of {user_id} to {new_score_if_bot}")
+            cursor.execute("UPDATE users SET bot_score = %s WHERE user_id = %s", (new_score_if_bot, user_id,))
+        elif pred == 1 and float(new_score_if_human) >= 0.0: # Stops if score goes below 0
+            print(f"Deacrasing bot_score of {user_id} to {new_score_if_human}")
+            cursor.execute("UPDATE users SET bot_score = %s WHERE user_id = %s", (new_score_if_human, user_id,))
         
         db.commit()
 
