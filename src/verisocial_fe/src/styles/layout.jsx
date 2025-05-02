@@ -57,7 +57,7 @@ const Layout = ({ isAuthenticated, logout }) => {
           alignItems="center"
           justifyContent="center"
         >
-          <Text fontSize="sm">&copy; 2025 VeriSocial. All rights reserved.</Text>
+          <Text fontSize="sm">2025 VeriSocial.</Text>
         </Box>
       )}
     </Flex>
