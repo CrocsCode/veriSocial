@@ -16,8 +16,8 @@ pub async fn individual_game_post(conn: &MySqlPool, user_id: u64, post_repo: &Po
     let low_bot_score_threshold: f64 = 0.4;
     let high_bot_score_threshold: f64 = 0.7;
 
-    let low_score_post = post_repo.find_low_bot_score_post(conn, user_id, low_bot_score_threshold).await?;
-    let high_score_post = post_repo.find_high_bot_score_post(conn, user_id, high_bot_score_threshold).await?;
+    let low_score_post = post_repo.find_low_image_bot_score_post(conn, user_id, low_bot_score_threshold).await?;
+    let high_score_post = post_repo.find_high_image_bot_score_post(conn, user_id, high_bot_score_threshold).await?;
 
     Ok(GamePost {
         low_score_post,

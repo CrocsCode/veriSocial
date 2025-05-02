@@ -112,11 +112,14 @@ impl GameEventTrait for GameEventRepo {
             r#"
             WITH user_rank AS (
                 SELECT
-                    user_id,
+                    g.user_id,
+                    u.username,
                     COUNT(*) AS signed_correct_count,
                     RANK() OVER (ORDER BY COUNT(*) DESC) AS position
                 FROM
-                    gameEvents
+                    gameEvents AS g
+                INNER JOIN
+                    users AS u ON g.user_id = u.user_id
                 WHERE
                     is_correct = TRUE
                 GROUP BY
@@ -124,11 +127,9 @@ impl GameEventTrait for GameEventRepo {
             )
             SELECT
                 user_id,
+                username,
                 CAST(signed_correct_count AS UNSIGNED) AS correct_count,
-                CAST(
-                    RANK() OVER (ORDER BY signed_correct_count DESC)
-                    AS UNSIGNED
-                ) AS position
+                CAST(position AS UNSIGNED) AS position
             FROM user_rank
             WHERE user_id = ?
             "#,
@@ -147,10 +148,13 @@ impl GameEventTrait for GameEventRepo {
             r#"
             WITH user_correct_count AS (
                 SELECT
-                    user_id,
+                    g.user_id,
+                    u.username,
                     COUNT(*) AS signed_correct_count
                 FROM
-                    gameEvents
+                    gameEvents AS g
+                INNER JOIN
+                    users AS u ON g.user_id = u.user_id
                 WHERE
                     is_correct = TRUE
                 GROUP BY
@@ -158,6 +162,7 @@ impl GameEventTrait for GameEventRepo {
             )
             SELECT
                 user_id,
+                username,
                 CAST(signed_correct_count AS UNSIGNED) AS correct_count,
                 CAST(
                     RANK() OVER (ORDER BY signed_correct_count DESC)
